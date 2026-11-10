@@ -1,31 +1,64 @@
-# Glowbug
+# Firefliers
 
-A small survivors-style arena game that runs in the browser. You're the last light in the meadow, your attacks fire on their own, and you move, dodge, and pick upgrades until dawn breaks (after the third boss, a little past 6:00).
+**Play it here: https://firefliers.vercel.app**
 
-The whole game is one file, `index.html`, with no build step and no dependencies. Graphics are drawn on a canvas and the sound is synthesized with the Web Audio API.
+You're the last light in the meadow, and the night wants it gone. Firefliers is a small survivors-style game that runs in your browser, on a laptop or a phone, with nothing to install and no account to make. Your attacks fire on their own, so all you do is move, dodge, and pick what to grow into, and a full run takes about seven minutes.
 
-## Play
+I wanted something a friend could open from a link and be playing ten seconds later, and then want one more run because the last build almost worked.
 
-Open `index.html` in a browser, or serve the folder:
+## Why it's fun to come back to
+
+- **A daily challenge you can compare.** Once a day everyone gets the same bug, the same upgrade cards, and the same waves, so the only difference is how you play it. When the run ends you can copy your result and paste it into a group chat.
+- **Every run is a different build.** There are 8 weapons and you can only carry 5, each one evolves into a stronger form if you pair it with the right boost, and the cards you're offered change every time.
+- **Five bugs to unlock.** Each one starts with a different weapon and plays differently, like the fast, fragile Moth or the slow, armored Beetle. You unlock them by playing well.
+- **It gets harder when you're ready.** Beat the third boss to see the dawn, then keep going in endless mode or turn on Nightmare.
+
+A copied daily result looks like this:
+
+```
+Firefliers Daily #1
+Moth · 2:09 · the night won 🌙
+375 squashed · level 11
+◉ ✢ ❄ ☁ ✺
+1,020 points (attempt 4)
+https://firefliers.vercel.app/
+```
+
+## How to play
+
+| | Keyboard and mouse | Phone |
+|---|---|---|
+| Move | WASD or arrow keys, or click and drag | Drag anywhere |
+| Dash | Space, Shift, or right-click | DASH button, or tap with a second finger |
+| Pick an upgrade | Click a card, or press 1, 2, 3 | Tap a card |
+| Reroll the cards | R (twice per run) | Reroll button |
+| Pause and mute | Esc and M | Buttons in the top right |
+
+Dashing makes you untouchable for a moment and hurts whatever you fly through, so it's your way out when you're surrounded. Your progress, unlocks, and best runs are saved in your browser.
+
+## Where to find it
+
+- **Live game:** https://firefliers.vercel.app (hosted on Vercel)
+- **Source:** this repository. The whole game is one file, `index.html`.
+
+## Running it yourself
+
+There's no build step and nothing to install. Open `index.html` in a browser, or serve the folder:
 
 ```bash
 python -m http.server 8765
 ```
 
-- Move: WASD, arrow keys, or drag with a mouse or finger
-- Dash: Space, Shift, right-click, or the DASH button on touch screens
-- Upgrades: click a card or press 1, 2, 3 (R rerolls, twice per run)
-- Esc pauses, M mutes
+Then go to http://localhost:8765.
 
-## What's in it
+## How it's built
 
-- 5 bugs with different starting weapons and stats (4 are unlocked by playing)
-- 8 weapons, each with an evolution you get by maxing it while holding a matching boost
-- 9 passive boosts, and a 5 weapon limit so every run is a different build
-- 8 enemy types, elites, swarm events, and a boss every two minutes
-- Nightmare mode and an endless mode after you win
-- Progress and best run saved in the browser (localStorage)
+Everything is in `index.html`: the graphics are drawn on a canvas, the sound effects and music are synthesized with the Web Audio API, and the only thing loaded from outside is the Fredoka font from Google Fonts (it falls back to your system font offline).
 
-## Development notes
+The daily challenge works without a server. The day's bug, upgrade offers, and enemy waves all come from a hash of the UTC date, so two people who open the game on the same day get the same run.
 
-`window.__glow` exposes the game state and an `update(dt)` step function, which makes it possible to run fast simulated playtests from the browser console when tuning balance.
+For tuning balance, `window.__glow` exposes the game state and an `update(dt)` step function, which lets you run fast simulated playtests from the browser console. Those bots are useful for catching errors and big balance swings, but they aren't a substitute for real people playing.
+
+## What's next
+
+A shared leaderboard for the daily challenge, permanent upgrades that carry between runs, and new meadows with their own enemies and bosses.
