@@ -10,6 +10,7 @@ I wanted something a friend could open from a link and be playing ten seconds la
 
 - **A daily challenge you can compare.** Once a day everyone gets the same bug, the same upgrade cards, and the same waves, so the only difference is how you play it. When the run ends you can copy your result and paste it into a group chat.
 - **Your flight is a weapon.** Stray fireflies are lost out in the dark. Rescue them and they trail behind you in a glowing rope. Fly a closed loop around your enemies and everything inside the ring burns, bullets included. Nightjars swoop in to snatch the firefly at the end of the line, and you can chase them down to free it.
+- **Three bosses that each ask something different.** The Gloom dims the meadow and slams out shockwaves you have to dash through. The Maw inhales to drag you in and eat fireflies off your rope, and it's soft while its mouth is open. The Eclipse sweeps beams across the dark until you fly a ring of light around it to break its corona.
 - **Every run is a different build.** There are 8 weapons and you can only carry 5, each one evolves into a stronger form if you pair it with the right boost, and the cards you're offered change every time.
 - **Five bugs to unlock.** Each one starts with a different weapon and plays differently, like the fast, fragile Moth or the slow, armored Beetle. You unlock them by playing well.
 - **It gets harder when you're ready.** Beat the third boss to see the dawn, then keep going in endless mode or turn on Nightmare.
