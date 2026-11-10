@@ -9,6 +9,7 @@ I wanted something a friend could open from a link and be playing ten seconds la
 ## Why it's fun to come back to
 
 - **A daily challenge you can compare.** Once a day everyone gets the same bug, the same upgrade cards, and the same waves, so the only difference is how you play it. When the run ends you can copy your result and paste it into a group chat.
+- **Your flight is a weapon.** Stray fireflies are lost out in the dark. Rescue them and they trail behind you in a glowing rope. Fly a closed loop around your enemies and everything inside the ring burns, bullets included. Nightjars swoop in to snatch the firefly at the end of the line, and you can chase them down to free it.
 - **Every run is a different build.** There are 8 weapons and you can only carry 5, each one evolves into a stronger form if you pair it with the right boost, and the cards you're offered change every time.
 - **Five bugs to unlock.** Each one starts with a different weapon and plays differently, like the fast, fragile Moth or the slow, armored Beetle. You unlock them by playing well.
 - **It gets harder when you're ready.** Beat the third boss to see the dawn, then keep going in endless mode or turn on Nightmare.
@@ -23,6 +24,20 @@ Moth · 2:09 · the night won 🌙
 1,020 points (attempt 4)
 https://firefliers.vercel.app/
 ```
+
+## How the daily score works
+
+The score is built so that dragging a run out earns nothing.
+
+| What | Points |
+|---|---|
+| Time survived | 5 per second, and it stops counting at 6:00 |
+| Enemies squashed | 1 each, and it stops counting at 6:00 |
+| Bosses beaten | 400 each |
+| Fireflies in your flight at the end | 60 each |
+| Seeing the dawn | 2,000, plus 15 for every second you beat the last boss faster than 2:30 |
+
+The last boss arrives at 6:00. From then on the only way to score more is to beat it quickly and keep your flight alive.
 
 ## How to play
 
