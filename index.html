@@ -73,6 +73,15 @@
   .stats div{font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:.08em}
   .stats b{display:block;font-size:34px;color:var(--ink);letter-spacing:0;font-weight:600}
   .best{color:var(--gold);font-size:14px;min-height:20px;margin-top:8px}
+  .build-h{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-top:20px}
+  .build{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:760px;margin:8px auto 0}
+  .chip{font-size:12.5px;padding:4px 10px;border-radius:999px;background:#0f1a2bcc;border:1px solid var(--line);color:var(--dim);display:inline-flex;gap:6px;align-items:center}
+  .chip i{font-style:normal;color:var(--c)}.chip b{color:var(--ink);font-weight:500}
+  #tutBox{position:fixed;left:50%;top:76px;transform:translateX(-50%);z-index:4;width:min(560px,calc(100% - 32px));background:#0f1a2bf0;
+    border:1.5px solid var(--gold);border-radius:16px;padding:12px 16px;text-align:center;pointer-events:none;box-shadow:0 0 30px -8px var(--gold)}
+  #tutStep{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:600}
+  #tutText{font-size:16px;line-height:1.4;margin:4px 0 8px}#tutText b{color:var(--gold);font-weight:600}
+  #tutSkip{pointer-events:auto}
   #topbtns{position:fixed;top:18px;right:10px;display:flex;gap:8px;z-index:4}
   #topbtns button{width:38px;height:38px;border-radius:12px;background:#0f1a2bcc;border:1px solid var(--line);font-size:16px}
   #dashBtn{position:fixed;right:22px;bottom:28px;width:86px;height:86px;border-radius:50%;background:#ffd76a22;
@@ -91,6 +100,7 @@
   <button id="pauseBtn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
 </div>
 <button id="dashBtn" class="hidden" aria-label="Dash">DASH</button>
+<div id="tutBox" class="hidden" role="status" aria-live="polite"><div id="tutStep"></div><div id="tutText"></div><button class="btn ghost small" id="tutSkip">Skip tutorial</button></div>
 
 <div id="start" class="screen">
   <div class="flies" id="flies" aria-hidden="true"></div>
@@ -105,7 +115,7 @@
   </div>
   <div class="row" style="margin-top:0"><button class="btn" id="playBtn">Play</button><button class="btn daily" id="dailyBtn">Daily</button></div>
   <div class="best" id="dailyInfo" style="color:var(--mint)"></div>
-  <div class="row" style="margin-top:6px"><button class="btn ghost small" id="nmBtn"></button></div>
+  <div class="row" style="margin-top:6px"><button class="btn ghost small" id="howBtn">How to play</button><button class="btn ghost small" id="nmBtn"></button></div>
   <div class="best" id="bestStart"></div>
 </div>
 
@@ -114,6 +124,7 @@
   <p style="margin:0">Pick one.</p>
   <div class="cards" id="cards"></div>
   <div class="row"><button class="btn ghost small" id="rerollBtn">Reroll</button></div>
+  <div id="luBuild"></div>
 </div>
 
 <div id="pause" class="screen hidden">
@@ -123,6 +134,7 @@
     <button class="btn ghost" id="restartBtn">Restart</button>
     <button class="btn ghost" id="quitBtn">Menu</button>
   </div>
+  <div id="pauseBuild"></div>
 </div>
 
 <div id="over" class="screen hidden">
@@ -185,7 +197,7 @@ function initAudio() {
   if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
   try {
     AC = new (window.AudioContext || window.webkitAudioContext)();
-    master = AC.createGain(); master.gain.value = muted ? 0 : 0.55; master.connect(AC.destination);
+    master = AC.createGain(); master.gain.value = muted ? 0 : 0.55; const comp = AC.createDynamicsCompressor(); master.connect(comp); comp.connect(AC.destination);
     noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
     const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
   } catch (e) { AC = null; }
@@ -227,26 +239,96 @@ function sfx(n) {
     case 'select': tone(700, .07, 'triangle', .1); tone(1050, .1, 'triangle', .08, 0, .05); break;
     case 'charge': tone(90, .5, 'sawtooth', .14, 300); break;
     case 'win': [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, .4, 'triangle', .12, 0, i * .12)); break;
-    case 'sync': tone(988, .14, 'sine', .035); tone(1319, .18, 'sine', .025, 0, .04); break;
     case 'ring': [523, 659, 784, 1047].forEach((f, i) => tone(f, .3, 'triangle', .09, 0, i * .03)); noise(.25, .08, 3000); break;
     case 'jar': tone(1500, .28, 'sawtooth', .05, -800); break;
     case 'snatch': tone(520, .22, 'square', .06, -320); break;
   }
 }
-let mStep = 0, mNext = 0;
-const mScale = [0, 3, 5, 7, 10, 12];
+/* ---------- music ----------
+   A small step sequencer: 16 steps to a bar, 8 bars to a section, sections played A A B A.
+   Tracks are a chord pad, bass, drums, an arpeggio and a lead melody. Layers join as the run goes on,
+   and during a boss fight the tempo rises, the key lifts a tone and the B section loops. */
+let mStep = 0, mNext = 0, mus = null, mDelay = null;
 const midi = n => 440 * Math.pow(2, (n - 69) / 12);
+const CH = { Am: [45, 57, 60, 64], F: [41, 53, 57, 60], C: [48, 55, 60, 64], G: [43, 55, 59, 62], Em: [40, 52, 55, 59], E: [40, 52, 56, 59] };
+// melody notes are [step, midi note, length in steps]
+const SEC_A = { ch: ['Am', 'F', 'C', 'G', 'Am', 'F', 'G', 'Em'], mel: [
+  [[0, 76, 3], [3, 72, 1], [4, 69, 4], [10, 72, 2], [12, 74, 2], [14, 76, 2]],
+  [[0, 77, 3], [3, 72, 1], [4, 69, 4], [10, 69, 2], [12, 72, 2], [14, 77, 2]],
+  [[0, 79, 3], [3, 76, 1], [4, 72, 4], [10, 72, 2], [12, 76, 2], [14, 79, 2]],
+  [[0, 74, 6], [8, 71, 2], [10, 74, 2], [12, 79, 4]],
+  [[0, 81, 3], [3, 76, 1], [4, 72, 4], [10, 76, 2], [12, 79, 2], [14, 81, 2]],
+  [[0, 84, 3], [3, 81, 1], [4, 77, 4], [10, 77, 2], [12, 81, 2], [14, 84, 2]],
+  [[0, 83, 4], [4, 79, 4], [8, 74, 4], [12, 79, 2], [14, 83, 2]],
+  [[0, 76, 8], [8, 71, 4], [12, 76, 4]]] };
+const SEC_B = { ch: ['F', 'G', 'Am', 'Am', 'F', 'G', 'C', 'E'], mel: [
+  [[0, 69, 2], [2, 72, 2], [4, 77, 4], [8, 76, 2], [10, 72, 2], [12, 69, 4]],
+  [[0, 71, 2], [2, 74, 2], [4, 79, 4], [8, 77, 2], [10, 74, 2], [12, 71, 4]],
+  [[0, 72, 2], [2, 76, 2], [4, 81, 6], [10, 79, 2], [12, 76, 2], [14, 72, 2]],
+  [[0, 69, 8], [8, 64, 2], [10, 69, 2], [12, 72, 2], [14, 76, 2]],
+  [[0, 77, 2], [2, 81, 2], [4, 84, 4], [8, 81, 2], [10, 77, 2], [12, 72, 4]],
+  [[0, 79, 2], [2, 83, 2], [4, 86, 4], [8, 83, 2], [10, 79, 2], [12, 74, 4]],
+  [[0, 84, 4], [4, 79, 4], [8, 76, 4], [12, 72, 4]],
+  [[0, 76, 4], [4, 80, 4], [8, 83, 4], [12, 88, 4]]] };
+const SONG = [SEC_A, SEC_A, SEC_B, SEC_A];
+function initMusic() {
+  mus = AC.createGain(); mus.gain.value = .6; mus.connect(master);
+  mDelay = AC.createDelay(1); mDelay.delayTime.value = .375;
+  const fb = AC.createGain(), wet = AC.createGain(); fb.gain.value = .28; wet.gain.value = .3;
+  mDelay.connect(fb); fb.connect(mDelay); mDelay.connect(wet); wet.connect(mus);
+}
+function voice(t, f, dur, type, vol, cut, det, att, echo) {
+  const o = AC.createOscillator(), g = AC.createGain(), lp = AC.createBiquadFilter(), a = att || .008;
+  o.type = type; o.frequency.setValueAtTime(f, t); if (det) o.detune.setValueAtTime(det, t);
+  lp.type = 'lowpass'; lp.frequency.setValueAtTime(cut, t);
+  g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(vol, t + a);
+  g.gain.linearRampToValueAtTime(vol * .7, t + Math.max(a + .01, dur * .6)); g.gain.exponentialRampToValueAtTime(.0008, t + dur);
+  o.connect(lp); lp.connect(g); g.connect(mus); if (echo) g.connect(mDelay);
+  o.start(t); o.stop(t + dur + .03);
+}
+function drum(t, kind) {
+  if (kind === 'k') {
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(42, t + .13);
+    g.gain.setValueAtTime(.5, t); g.gain.exponentialRampToValueAtTime(.001, t + .2);
+    o.connect(g); g.connect(mus); o.start(t); o.stop(t + .22); return;
+  }
+  const src = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(), d = kind === 'h' ? .035 : .16;
+  src.buffer = noiseBuf; f.type = kind === 's' ? 'bandpass' : 'highpass'; f.frequency.value = kind === 's' ? 1900 : 7500;
+  g.gain.setValueAtTime(kind === 's' ? .2 : .045, t); g.gain.exponentialRampToValueAtTime(.001, t + d);
+  src.connect(f); f.connect(g); g.connect(mus); src.start(t, Math.random() * .5); src.stop(t + d + .02);
+  if (kind === 's') voice(t, 185, .09, 'triangle', .1, 1200);
+}
 function music() {
-  if (!AC || muted || state !== 'play') return;
-  const now = AC.currentTime; if (mNext < now) mNext = now + 0.02;
-  const stepLen = boss ? 0.125 : 0.15;
-  while (mNext < now + 0.12) {
-    const s = mStep++, root = [45, 41, 48, 43][Math.floor(s / 16) % 4], d = mNext - now;
-    if (s % 8 === 0 || s % 8 === 3 || s % 8 === 6) tone(midi(root - 12), .22, 'triangle', .13, 0, d);
-    if (s % 2 === 0) tone(midi(root + 12 + mScale[(s * 5 + Math.floor(s / 4)) % 6]), .12, 'square', .014, 0, d);
-    if (T > 60 && s % 4 === 2) tone(midi(root + 24 + mScale[(s * 3) % 6]), .1, 'sine', .03, 0, d);
-    if (boss && s % 4 === 0) tone(60, .09, 'sine', .16, -25, d);
-    mNext += stepLen;
+  if (!AC || muted || (state !== 'play' && state !== 'levelup')) return;
+  if (!mus) initMusic();
+  const now = AC.currentTime; if (mNext < now) mNext = now + .03;
+  const hot = !!boss, sl = hot ? .108 : .125, tr = hot ? 2 : 0;
+  while (mNext < now + .16) {
+    const st = mStep % 16, bar = Math.floor(mStep / 16), b = bar % 8, t = mNext; mStep++;
+    const sec = hot ? SEC_B : SONG[Math.floor(bar / 8) % SONG.length], ch = CH[sec.ch[b]], full = bar >= 4 || T > 16;
+    // pad: the chord held for the bar on detuned saws
+    if (st === 0) for (let i = 1; i < 4; i++) { voice(t, midi(ch[i] + tr), sl * 16.5, 'sawtooth', .015, 850, -7, .25); voice(t, midi(ch[i] + tr), sl * 16.5, 'sawtooth', .015, 850, 7, .25); }
+    // bass: eighths with octave jumps, sixteenths when a boss is out
+    if (hot || st % 2 === 0) {
+      const off = hot ? [0, 0, 12, 0][st % 4] : [0, 0, 12, 0, 0, 12, 0, 7][st / 2], len = sl * (hot ? .9 : 1.8), f = midi(ch[0] + off + tr);
+      voice(t, f, len, 'sawtooth', .075, 420, 0, .005); voice(t, f, len, 'triangle', .07, 700, 0, .005);
+    }
+    // drums
+    if (full) {
+      if (hot ? st % 4 === 0 : st === 0 || st === 8 || st === 10) drum(t, 'k');
+      if (st === 4 || st === 12 || (b === 7 && st > 12)) drum(t, 's');
+      if (hot || st % 2 === 0) drum(t, st === 14 ? 'o' : 'h');
+    } else if (st % 4 === 2) drum(t, 'h');
+    // arpeggio joins after the first minute
+    if (T > 60 || hot) voice(t, midi(ch[1 + st % 3] + 12 + (st % 8 >= 4 ? 12 : 0) + tr), sl * .9, 'square', .012, 2600, 0, .004, true);
+    // lead melody, an octave below where it's written, with a harmony voice late in the run
+    if (full) for (const n of sec.mel[b]) if (n[0] === st) {
+      const f = midi(n[1] - 12 + tr), len = n[2] * sl * .95;
+      voice(t, f, len, 'square', .038, 2200, 0, .01, true); voice(t, f, len, 'square', .022, 2200, 9, .01);
+      if (T > 180) voice(t, f / 2, len, 'triangle', .035, 1500, 0, .01);
+    }
+    mNext += sl;
   }
 }
 
@@ -603,7 +685,7 @@ function kill(e) {
 }
 let dmgLog = {};
 function hurtPlayer(d, src) {
-  if (P.inv > 0 || state !== 'play') return;
+  if (P.inv > 0 || state !== 'play' || tut) return;
   const dealt = Math.max(2, d - P.armor); dmgLog[src || 'other'] = (dmgLog[src || 'other'] || 0) + dealt; // per-source totals, used when tuning balance
   P.hp -= dealt; P.inv = .6; shake(9);
   if (flight.length) { const f = flight.pop(), a = rand(0, TAU), R = rand(90, 140); strays.push({ x: f.x + Math.cos(a) * R, y: f.y + Math.sin(a) * R, ph: rand(0, TAU) }); } flashT = .3; sfx('hurt'); burst(P.x, P.y, '#ff5f8f', 14, 200);
@@ -710,9 +792,12 @@ function checkRing(a, b) {
     const p = path[i], q = path[i + 1]; acc += Math.hypot(q.x - p.x, q.y - p.y);
     if (acc > maxLen || p.s < ringSer) break;
     if (acc < 60) continue;
-    const ip = segX(a, b, p, q); if (!ip) continue;
+    // a true crossing closes the loop, and so does coming within a few pixels of the rope
+    const ip = segX(a, b, p, q) || ((b.x - q.x) ** 2 + (b.y - q.y) ** 2 < 144 ? b : null); if (!ip) continue;
     const poly = path.slice(i + 1).map(v => [v.x, v.y]); poly.push([ip.x, ip.y]);
-    if (poly.length >= 6) ringOfLight(poly);
+    let area = 0; for (let j = 0, k = poly.length - 1; j < poly.length; k = j++) area += poly[k][0] * poly[j][1] - poly[j][0] * poly[k][1];
+    if (Math.abs(area) / 2 < 1500) continue; // too thin to be a loop, such as doubling back on yourself
+    ringOfLight(poly);
     return;
   }
 }
@@ -721,7 +806,7 @@ function ringOfLight(poly) {
   for (const e of enemies.slice()) if (!e.dead && inPoly(e.x, e.y, poly)) {
     c++; const corona = e.boss && e.kind === 2;
     if (!e.boss) e.frz = .9; else if (corona) { e.stun = 2.5; e.beam = 0; e.bt = 3; say('Corona broken!', '', 1.6); }
-    hit(e, corona ? dmg * 3 : dmg);
+    hit(e, tut ? 99999 : corona ? dmg * 3 : dmg);
   }
   for (const b of ebullets) if (inPoly(b.x, b.y, poly)) { b.life = 0; cleared++; }
   for (const g of gems) if (inPoly(g.x, g.y, poly)) { g.pull = true; g.sp = g.sp || 300; }
@@ -759,7 +844,6 @@ function flightUpdate(dt) {
     if (flight.length) {
       const dmg = 5 + .4 * flight.length;
       for (const f of flight) { f.fl = .3; near(f.x, f.y, 90, e => { if ((e.x - f.x) ** 2 + (e.y - f.y) ** 2 < (40 + e.r) ** 2) hit(e, dmg, undefined, undefined, true); }); }
-      sfx('sync');
     }
   }
   // strays wait out in the dark to be rescued
@@ -772,7 +856,7 @@ function flightUpdate(dt) {
     } else if (d2 > (viewR() * 3) ** 2) strays.splice(i, 1);
   }
   strayT -= dt;
-  if (strayT <= 0) {
+  if (strayT <= 0 && !tut) {
     strayT = 7;
     if (strays.length < 3 && flight.length + strays.length < MAX_FLIGHT) { const a = rand(0, TAU), R = viewR() * rand(.8, 1.3); strays.push({ x: P.x + Math.cos(a) * R, y: P.y + Math.sin(a) * R, ph: rand(0, TAU) }); }
   }
@@ -807,10 +891,19 @@ function openLevelUp() {
   buildCards();
   $('levelup').classList.remove('hidden');
 }
+// every weapon and boost the player owns, as a row of chips for the level-up and pause screens
+function buildHTML() {
+  const chip = (d, label, c) => '<span class="chip" style="--c:' + c + '" title="' + (typeof d.desc === 'string' ? d.desc : '') + '"><i>' + d.icon + '</i><b>' + d.name + '</b>' + label + '</span>';
+  let h = '<div class="build-h">Your build</div><div class="build">';
+  for (const k in wl) { const l = wl[k], d = WEAPONS[k]; h += l >= 7 ? chip({ icon: d.icon, name: EVO[k].name, desc: EVO[k].desc }, '★ evolved', '#ffd76a') : chip(d, l >= 6 ? 'MAX' : 'Lv ' + l, d.col); }
+  for (const k in pl) { const d = PASSIVES[k]; h += chip(d, pl[k] >= d.max ? 'MAX' : '×' + pl[k], d.col); }
+  return h + '</div>';
+}
 function reroll() { if (state !== 'levelup' || rerolls <= 0) return; rerolls--; sfx('select'); buildCards(); }
 function buildCards() {
   curChoices = choices(); const box = $('cards'); box.innerHTML = '';
   const rb = $('rerollBtn'); rb.textContent = 'Reroll (' + rerolls + ' left)'; rb.classList.toggle('hidden', rerolls <= 0);
+  $('luBuild').innerHTML = buildHTML();
   $('luTitle').textContent = 'Level ' + P.level + '!';
   curChoices.forEach((c, i) => {
     let d, lv, ds;
@@ -831,6 +924,7 @@ function choose(i, force) {
   else if (c.kind === 'e') { wl[c.id] = 7; say(EVO[c.id].name + '!', WEAPONS[c.id].name + ' evolved', 2.6); whiteT = .2; sfx('win'); }
   else if (c.kind === 'p') { pl[c.id] = pv(c.id) + 1; recompute(); if (c.id === 'vigor') P.hp = Math.min(P.maxhp, P.hp + 25); }
   else P.hp = Math.min(P.maxhp, P.hp + 40);
+  if (tut && tut.step === TUT.length - 1) tut.picked = true;
   sfx('select'); pending--; $('levelup').classList.add('hidden');
   if (pending > 0) { openLevelUp(); return; }
   state = 'play'; P.inv = Math.max(P.inv, .8);
@@ -844,6 +938,7 @@ let joy = null, touchUI = false;
 function dash() {
   if (state !== 'play' || P.dashCd > 0) return;
   let dx = mvx, dy = mvy; if (!dx && !dy) { dx = Math.cos(P.face); dy = Math.sin(P.face); }
+  if (tut) tut.dashed = true;
   P.dvx = dx; P.dvy = dy; P.dashT = .17; P.dashCd = 1.6; P.inv = Math.max(P.inv, .32); sfx('dash');
 }
 function fx(dt) {
@@ -858,7 +953,7 @@ function fx(dt) {
   if (banner && (banner.t -= dt) <= 0) banner = null;
 }
 function update(dt) {
-  T += dt; if (T >= 180) unlock('moth'); if (killsDawn < 0 && T >= 360) killsDawn = kills;
+  T += dt; if (T >= 180 && !tut) unlock('moth'); if (killsDawn < 0 && T >= 360) killsDawn = kills;
   // input
   let ix = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0);
   let iy = (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0);
@@ -874,9 +969,10 @@ function update(dt) {
   } else { P.x += ix * mag * P.speed * dt; P.y += iy * mag * P.speed * dt; }
   P.wing += dt * (mag ? 34 : 18);
   flightUpdate(dt);
+  if (tut && mag) tut.moved += P.speed * dt;
   if (S.regen) P.hp = Math.min(P.maxhp, P.hp + S.regen * dt);
 
-  director(dt);
+  if (tut) tutorialUpdate(dt); else director(dt);
   buildGrid();
 
   // enemies
@@ -1013,7 +1109,52 @@ function update(dt) {
   cam.x += (P.x - cam.x) * Math.min(1, dt * 9); cam.y += (P.y - cam.y) * Math.min(1, dt * 9);
 
   if (winT > 0 && state === 'play') { winT -= dt; if (winT <= 0) { won = true; finish(true); return; } }
-  if (pending > 0 && state === 'play') openLevelUp();
+  if (pending > 0 && state === 'play' && !(tut && tut.end)) openLevelUp();
+}
+
+/* ---------- tutorial ----------
+   A guided practice run. Nothing can hurt the player, the normal spawner is off, and each step
+   waits until the player has actually done the thing it describes. */
+let tut = null;
+const isTouch = () => touchUI || !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
+function tutSpawn(n, type, speed) {
+  for (let i = 0; i < n; i++) { const a = rand(0, TAU), R = rand(240, 320), e = spawn(type, P.x + Math.cos(a) * R, P.y + Math.sin(a) * R); e.speed = speed; }
+}
+// a tight cluster of tough, motionless targets for practising rings
+function tutDummies() {
+  const a = rand(0, TAU), cx = P.x + Math.cos(a) * 220, cy = P.y + Math.sin(a) * 220;
+  for (let i = 0; i < 3; i++) { const b = i / 3 * TAU, e = spawn('brute', cx + Math.cos(b) * 20, cy + Math.sin(b) * 20); e.speed = 0; e.hp = e.maxhp = 600; }
+}
+const TUT = [
+  { text: () => isTouch() ? 'Drag anywhere on the screen to fly.' : 'Fly with <b>WASD</b> or the arrow keys. You can also click and drag.',
+    done: t => t.moved > 240 },
+  { text: () => 'You attack on your own. Squash 3 enemies, then fly over the blue sparks they drop.',
+    enter: () => tutSpawn(4, 'wisp', 40), keep: ['wisp', 40], done: t => kills - t.k0 >= 3 && P.level * 1e4 + P.xp > t.x0 },
+  { text: () => (isTouch() ? 'Tap <b>DASH</b> to dash.' : 'Press <b>Space</b> to dash.') + ' Nothing can hurt you mid-dash, and you damage whatever you fly through.',
+    done: t => t.dashed },
+  { text: () => 'A stray firefly is lost in the dark. Follow the gold arrow and touch it to rescue it.',
+    enter: () => { const a = rand(0, TAU); strays.push({ x: P.x + Math.cos(a) * 460, y: P.y + Math.sin(a) * 460, ph: 0 }); }, done: t => flight.length > t.f0 },
+  { text: () => 'Your fireflies trail behind you like a rope. Fly a full circle around these sleeping brutes so you cross your own rope, and everything inside burns.',
+    enter: () => { while (flight.length < 16) flight.push({ x: P.x, y: P.y, fl: .4 }); tutDummies(); }, dummies: true, done: t => ringsMade > t.r0 },
+  { text: () => 'Sparks level you up. Pick an upgrade to finish.',
+    enter: () => gainXP(P.next), done: t => t.picked },
+];
+function tutNext() {
+  tut.step++; tut.dashed = false; tut.moved = 0; tut.k0 = kills; tut.x0 = P.level * 1e4 + P.xp; tut.f0 = flight.length; tut.r0 = ringsMade;
+  if (tut.step >= TUT.length) {
+    tut.end = 2.4; save.tut = true; persist(); sfx('win');
+    $('tutStep').textContent = 'Done'; $('tutText').innerHTML = "That's everything. Now stay alive until dawn."; $('tutSkip').classList.add('hidden'); return;
+  }
+  const st = TUT[tut.step];
+  $('tutStep').textContent = 'Step ' + (tut.step + 1) + ' of ' + TUT.length; $('tutText').innerHTML = st.text(); $('tutSkip').classList.remove('hidden');
+  if (st.enter) st.enter(); if (tut.step) sfx('pick');
+}
+function tutorialUpdate(dt) {
+  if (tut.end) { tut.end -= dt; if (tut.end <= 0) toMenu(); return; }
+  const st = TUT[tut.step];
+  if (st.keep && enemies.length < 2) tutSpawn(2, st.keep[0], st.keep[1]);
+  if (st.dummies && !enemies.length) tutDummies();
+  if (st.done(tut)) tutNext();
 }
 
 /* ---------- screens ---------- */
@@ -1039,7 +1180,7 @@ function finish(win) {
     : T < 360 ? 'So close. Dawn comes once the third boss falls, right after the 6 minute mark.' : 'That was a serious run.';
   $('stTime').textContent = fmt(T); $('stKills').textContent = kills; $('stLevel').textContent = P.level; $('stFlight').textContent = flight.length;
   $('bestOver').textContent = nb && !win ? 'New best time!' : bestLine();
-  $('endlessBtn').classList.toggle('hidden', !win || daily); $('shareBtn').classList.toggle('hidden', !daily);
+  $('endlessBtn').classList.toggle('hidden', !win); $('shareBtn').classList.toggle('hidden', !daily);
   if (daily) {
     const sc = calcScore(win), d = save.daily, nbd = sc > d.best; if (nbd) d.best = sc; persist();
     lastDaily = { num: dday - DAY0 + 1, char: ch.name, T, win, kills, level: P.level, flight: flight.length, score: sc, attempt: d.attempts, build: Object.keys(wl).map(k => WEAPONS[k].icon + (wl[k] >= 7 ? '★' : '')).join(' ') };
@@ -1052,13 +1193,14 @@ function finish(win) {
   $('over').classList.remove('hidden'); $('topbtns').classList.add('hidden'); $('dashBtn').classList.add('hidden');
   if (win) sfx('win');
 }
-function start(d) {
-  initAudio(); daily = d === true; if (daily) beginDaily(); reset(); state = 'play';
+function start(d, tutorial) {
+  initAudio(); mStep = 0; tut = tutorial === true ? { step: -1 } : null; daily = d === true && !tut; if (daily) beginDaily(); reset(); state = 'play';
+  if (tut) { banner = null; tutNext(); } $('tutBox').classList.toggle('hidden', !tut);
   for (const id of ['start', 'over', 'pause', 'levelup']) $(id).classList.add('hidden');
   $('topbtns').classList.remove('hidden'); $('dashBtn').classList.toggle('hidden', !touchUI);
 }
 function togglePause(force) {
-  if (state === 'play' && force !== false) { state = 'pause'; $('pause').classList.remove('hidden'); }
+  if (state === 'play' && force !== false) { state = 'pause'; $('pauseBuild').innerHTML = buildHTML(); $('pause').classList.remove('hidden'); }
   else if (state === 'pause' && force !== true) { state = 'play'; $('pause').classList.add('hidden'); last = performance.now(); }
 }
 function toggleMute() {
@@ -1067,7 +1209,7 @@ function toggleMute() {
 }
 $('muteBtn').style.opacity = muted ? .4 : 1;
 $('bestStart').textContent = bestLine();
-$('playBtn').onclick = () => start(false); $('dailyBtn').onclick = () => start(true);
+$('playBtn').onclick = () => start(false, !save.tut); $('dailyBtn').onclick = () => start(true);
 $('againBtn').onclick = () => start(daily); $('restartBtn').onclick = () => start(daily); $('shareBtn').onclick = copyResult;
 $('resumeBtn').onclick = () => togglePause(false);
 function buildStart() {
@@ -1087,6 +1229,7 @@ function buildStart() {
   n.style.opacity = save.won ? 1 : .5; n.style.borderColor = save.won && save.nm ? '#ff6b8a' : ''; n.style.color = save.won && save.nm ? '#ff6b8a' : '';
 }
 function toMenu() {
+  tut = null; $('tutBox').classList.add('hidden');
   state = 'menu'; for (const id of ['over', 'pause', 'levelup']) $(id).classList.add('hidden');
   $('start').classList.remove('hidden'); $('topbtns').classList.add('hidden'); $('dashBtn').classList.add('hidden');
   $('bestStart').textContent = bestLine(); buildStart();
@@ -1095,8 +1238,10 @@ buildStart();
 (() => { const f = $('flies'); for (let i = 0; i < 18; i++) { const e = document.createElement('i'); e.style.cssText = 'left:' + rand(2, 96) + '%;top:' + rand(4, 94) + '%;--d:' + rand(7, 15).toFixed(1) + 's;--dl:-' + rand(0, 15).toFixed(1) + 's;--dx:' + rand(-70, 70).toFixed(0) + 'px;--dy:' + rand(-60, 30).toFixed(0) + 'px'; f.appendChild(e); } })();
 $('nmBtn').onclick = () => { if (!save.won) return; save.nm = !save.nm; persist(); buildStart(); };
 $('menuBtn').onclick = toMenu; $('quitBtn').onclick = toMenu; $('rerollBtn').onclick = reroll;
+$('howBtn').onclick = () => start(false, true);
+$('tutSkip').onclick = () => { save.tut = true; persist(); start(false); };
 $('pauseBtn').onclick = () => togglePause(); $('muteBtn').onclick = toggleMute;
-$('endlessBtn').onclick = () => { endless = true; state = 'play'; $('over').classList.add('hidden'); $('topbtns').classList.remove('hidden'); $('dashBtn').classList.toggle('hidden', !touchUI); say('Endless night', 'How long can you last?', 3); last = performance.now(); };
+$('endlessBtn').onclick = () => { daily = false; /* the daily score was locked in at the win */ endless = true; state = 'play'; $('over').classList.add('hidden'); $('topbtns').classList.remove('hidden'); $('dashBtn').classList.toggle('hidden', !touchUI); say('Endless night', 'How long can you last?', 3); last = performance.now(); };
 $('dashBtn').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); dash(); });
 
 /* ---------- input ---------- */
@@ -1109,7 +1254,7 @@ addEventListener('keydown', e => {
     else if (e.code === 'Escape' || e.code === 'KeyP') togglePause();
   } else if (state === 'pause') { if (e.code === 'Escape' || e.code === 'KeyP') togglePause(); }
   else if (state === 'levelup') { const n = ['Digit1', 'Digit2', 'Digit3', 'Numpad1', 'Numpad2', 'Numpad3'].indexOf(e.code); if (n >= 0) choose(n % 3); else if (e.code === 'KeyR') reroll(); }
-  else if (state === 'menu' || state === 'over') { if (e.code === 'Enter') start(state === 'over' && daily); }
+  else if (state === 'menu' || state === 'over') { if (e.code === 'Enter') start(state === 'over' && daily, state === 'menu' && !save.tut); }
   if (e.code === 'KeyM') toggleMute();
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
@@ -1420,9 +1565,14 @@ function render() {
   if (state === 'play') for (const st of strays) {
     const sxp = (st.x - cam.x) * zoom + VW / 2, syp = (st.y - cam.y) * zoom + VH / 2;
     if (sxp > 0 && sxp < VW && syp > 0 && syp < VH) continue;
-    ctx.save(); ctx.translate(clamp(sxp, 26, VW - 26), clamp(syp, 40, VH - 26)); ctx.rotate(Math.atan2(syp - VH / 2, sxp - VW / 2));
-    ctx.globalAlpha = .55 + .35 * Math.sin(T * 5); ctx.fillStyle = '#ffe9a0';
-    ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(-6, -8); ctx.lineTo(-2, 0); ctx.lineTo(-6, 8); ctx.closePath(); ctx.fill(); ctx.restore();
+    const pl = .5 + .5 * Math.sin(T * 6);
+    ctx.save(); ctx.translate(clamp(sxp, 42, VW - 42), clamp(syp, 58, VH - 42));
+    ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = .55 + pl * .4; ctx.drawImage(glow('#ffd76a'), -46, -46, 92, 92);
+    ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+    ctx.rotate(Math.atan2(syp - VH / 2, sxp - VW / 2)); ctx.translate(pl * 7, 0);
+    ctx.fillStyle = '#ffe9a0'; ctx.strokeStyle = '#1a1200'; ctx.lineWidth = 3.5; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(21, 0); ctx.lineTo(-11, -16); ctx.lineTo(-3, 0); ctx.lineTo(-11, 16); ctx.closePath(); ctx.stroke(); ctx.fill();
+    ctx.restore();
   }
   // xp bar
   xpShow += (P.xp / P.next - xpShow) * .2;
@@ -1444,6 +1594,7 @@ function render() {
   // owned weapons
   ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; let wx = 16; const wy = VH - 26;
   for (const k in wl) { const d = WEAPONS[k]; ctx.font = '20px Fredoka, system-ui'; ctx.fillStyle = d.col; ctx.fillText(d.icon, wx, wy); ctx.font = '700 11px Fredoka, system-ui'; ctx.fillStyle = '#9aa0c8'; ctx.fillStyle = wl[k] >= 7 ? '#ffe066' : '#9aa0c8'; ctx.fillText(wl[k] >= 7 ? '★' : wl[k] >= d.max ? 'MAX' : wl[k], wx + 22, wy + 6); wx += wl[k] === 6 ? 54 : 40; }
+  let bx = 16; for (const k in pl) { const d = PASSIVES[k]; ctx.font = '15px Fredoka, system-ui'; ctx.fillStyle = d.col; ctx.fillText(d.icon, bx, wy - 28); ctx.font = '700 10px Fredoka, system-ui'; ctx.fillStyle = '#9aa0c8'; ctx.fillText(pl[k], bx + 16, wy - 23); bx += 32; }
   // joystick
   if (joy && state === 'play') {
     ctx.strokeStyle = '#ffffff33'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(joy.x0, joy.y0, 55, 0, TAU); ctx.stroke();
@@ -1466,6 +1617,7 @@ function frame(now) {
   if (state === 'play') {
     if (hitstop > 0) { hitstop -= dt; dt *= .15; }
     update(dt); music();
+  } else if (state === 'levelup') { music();
   } else if (state === 'dying') { fx(dt * .6); dieT -= dt; if (dieT <= 0) finish(false); }
   render();
   requestAnimationFrame(frame);
@@ -1475,7 +1627,7 @@ requestAnimationFrame(frame);
 
 // small hook for automated playtests
 window.__glow = { get state() { return state; }, get T() { return T; }, get P() { return P; }, get enemies() { return enemies; }, get ebullets() { return ebullets; },
-  get kills() { return kills; }, get wl() { return wl; }, get pl() { return pl; }, get gems() { return gems; }, get pickups() { return pickups; }, get flight() { return flight; }, get strays() { return strays; }, get shocks() { return shocks; }, get dmgLog() { return dmgLog; }, get rings() { return ringsMade; }, scoreParts, get boss() { return boss; }, keys, update, choose, start, dash, render, save, reroll, toMenu, shareText, get lastDaily() { return lastDaily; } };
+  get kills() { return kills; }, get wl() { return wl; }, get pl() { return pl; }, get gems() { return gems; }, get pickups() { return pickups; }, get flight() { return flight; }, get strays() { return strays; }, get shocks() { return shocks; }, get dmgLog() { return dmgLog; }, get rings() { return ringsMade; }, scoreParts, get boss() { return boss; }, keys, update, choose, start, dash, render, save, reroll, toMenu, music, shareText, get lastDaily() { return lastDaily; } };
 })();
 </script>
 </body>

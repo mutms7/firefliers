@@ -50,6 +50,8 @@ The last boss arrives at 6:00. From then on the only way to score more is to bea
 | Reroll the cards | R (twice per run) | Reroll button |
 | Pause and mute | Esc and M | Buttons in the top right |
 
+The first time you press Play you get a short tutorial that walks you through moving, dashing, rescuing a firefly, and flying a ring, and nothing can hurt you while you learn. You can replay it any time from How to play on the menu. The level-up and pause screens list every weapon and boost you've picked up so far.
+
 Dashing makes you untouchable for a moment and hurts whatever you fly through, so it's your way out when you're surrounded. Your progress, unlocks, and best runs are saved in your browser.
 
 ## Where to find it
