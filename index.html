@@ -73,13 +73,18 @@
   .stats div{font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:.08em}
   .stats b{display:block;font-size:34px;color:var(--ink);letter-spacing:0;font-weight:600}
   .best{color:var(--gold);font-size:14px;min-height:20px;margin-top:8px}
+  .score{display:flex;align-items:baseline;gap:10px;justify-content:center;margin-top:6px}
+  .score b{font-size:clamp(44px,10vw,72px);font-weight:700;line-height:1;color:var(--gold);filter:drop-shadow(0 0 18px #ffb84d66)}
+  .score span{font-size:15px;color:var(--dim);text-transform:uppercase;letter-spacing:.12em}
+  .scoreLine{font-size:12.5px;color:var(--dim);margin-top:6px;max-width:560px}
+  #statTiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));width:min(900px,100%);gap:14px 8px}
   .achs{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;width:min(900px,100%);margin-top:8px}
   .ach{background:#0f1a2bcc;border:1px solid var(--line);border-radius:12px;padding:8px 10px;text-align:left;opacity:.5}
   .ach.got{opacity:1;border-color:var(--gold)}.ach b{display:block;font-size:14px;font-weight:600}.ach.got b{color:var(--gold)}.ach span{font-size:12px;color:var(--dim)}
   .runs{width:min(900px,100%);margin-top:8px;display:flex;flex-direction:column;gap:4px}
   .run{display:flex;gap:10px;justify-content:space-between;background:#0f1a2b99;border:1px solid var(--line);border-radius:10px;padding:6px 12px;font-size:13px;color:var(--dim);flex-wrap:wrap}
   .run b{color:var(--ink);font-weight:500}.run .w{color:var(--mint)}
-  #toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:7;background:#3a3210f5;border:1.5px solid var(--gold);border-radius:999px;padding:8px 18px;
+  #toast{position:fixed;bottom:124px;left:50%;transform:translateX(-50%);z-index:7;background:#3a3210f5;border:1.5px solid var(--gold);border-radius:999px;padding:8px 18px;
     font-size:14px;color:var(--ink);pointer-events:none;transition:opacity .3s;max-width:calc(100% - 24px);text-align:center}
   .chip.syn{border-color:var(--gold);box-shadow:0 0 16px -2px var(--gold);color:var(--ink);background:#3a3210}
   .card.syn{border-color:var(--gold);box-shadow:0 0 28px -4px var(--gold)}
@@ -88,7 +93,7 @@
   .build{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:760px;margin:8px auto 0}
   .chip{font-size:12.5px;padding:4px 10px;border-radius:999px;background:#0f1a2bcc;border:1px solid var(--line);color:var(--dim);display:inline-flex;gap:6px;align-items:center}
   .chip i{font-style:normal;color:var(--c)}.chip b{color:var(--ink);font-weight:500}
-  #tutBox{position:fixed;left:50%;top:76px;transform:translateX(-50%);z-index:4;width:min(560px,calc(100% - 32px));background:#0f1a2bf0;
+  #tutBox{position:fixed;left:50%;top:104px;transform:translateX(-50%);z-index:4;width:min(560px,calc(100% - 32px));background:#0f1a2bf0;
     border:1.5px solid var(--gold);border-radius:16px;padding:12px 16px;text-align:center;pointer-events:none;box-shadow:0 0 30px -8px var(--gold)}
   #tutStep{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:600}
   #tutText{font-size:16px;line-height:1.4;margin:4px 0 8px}#tutText b{color:var(--gold);font-weight:600}
@@ -100,6 +105,7 @@
   @media (max-width:640px){
     .card{width:100%;min-height:0;flex-direction:row;text-align:left;gap:14px;padding:12px 14px}
     .card .ic{font-size:24px;line-height:46px;width:48px;height:48px}.card .k{display:none}.cards{gap:10px}
+    #over .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 30px}
     .char{width:calc(33.3% - 8px);padding:8px 4px}.chars{gap:8px}.screen .keys{display:none}.btn{padding:13px 30px}}
 </style>
 </head>
@@ -128,13 +134,7 @@
   <div class="flies" id="flies" aria-hidden="true"></div>
   <h1>FIREFLIERS</h1>
   <div class="tag">Keep the light alive until dawn</div>
-  <p>You're the last light in the meadow, and the night wants it gone. Your attacks fire on their own, so you just move, dodge, and choose what to grow into. Rescue stray fireflies, then fly a loop around your enemies to burn them.</p>
   <div class="chars" id="chars"></div>
-  <div class="keys">
-    <span><b>WASD</b>or drag to move</span>
-    <span><b>Space</b>dash through danger</span>
-    <span><b>1 2 3</b>pick upgrades</span>
-  </div>
   <div class="row" style="margin-top:0"><button class="btn" id="playBtn">Play</button><button class="btn daily" id="dailyBtn">Daily</button></div>
   <div class="best" id="dailyInfo" style="color:var(--mint)"></div>
   <div class="row" style="margin-top:6px"><button class="btn ghost small" id="howBtn">How to play</button><button class="btn ghost small" id="statsBtn">Stats</button><button class="btn ghost small" id="nmBtn"></button></div>
@@ -161,6 +161,8 @@
 
 <div id="over" class="screen hidden">
   <h2 id="overTitle">The night got you</h2>
+  <div class="score"><b id="stScore">0</b><span>points</span></div>
+  <div class="scoreLine" id="scoreLine"></div>
   <p id="overSub"></p>
   <div class="stats">
     <div><b id="stTime">0:00</b>survived</div>
@@ -193,7 +195,7 @@ function resize() {
   DPR = Math.min(window.devicePixelRatio || 1, 2);
   VW = innerWidth; VH = innerHeight;
   cv.width = Math.round(VW * DPR); cv.height = Math.round(VH * DPR);
-  zoom = clamp(Math.min(VW, VH) / 680, 0.55, 1.2);
+  zoom = clamp(Math.min(VW, VH) / 680, 0.66, 1.2);
   vignette = ctx.createRadialGradient(VW / 2, VH / 2, Math.min(VW, VH) * 0.25, VW / 2, VH / 2, Math.hypot(VW, VH) * 0.62);
   vignette.addColorStop(0, 'rgba(3,4,12,0)'); vignette.addColorStop(1, 'rgba(3,4,12,0.82)');
 }
@@ -413,10 +415,10 @@ const ET = {
 const BOSSES = [
   { name: 'The Gloom', col: '#9a4dff', tip: 'Dash through its shockwaves', r: 50, sp: 44, dmg: 22, dark: .32 },
   { name: 'The Maw', col: '#ff3b5c', tip: 'Stay out of its breath. It eats fireflies', r: 46, sp: 64, dmg: 20, dark: 0 },
-  { name: 'The Eclipse', col: '#ffb347', tip: 'Fly a ring around it to break its corona', r: 54, sp: 40, dmg: 26, dark: .6 },
+  { name: 'The Eclipse', col: '#ffb347', tip: 'Catch it in a dash flare to break its corona', r: 54, sp: 40, dmg: 26, dark: .6 },
   { name: 'The Weaver', col: '#7de0c0', tip: 'Its webs slow you to a crawl. Dash to break free', r: 44, sp: 50, dmg: 22, dark: 0 },
   { name: 'The Shade', col: '#8a8cff', tip: 'It walks the trail you leave. Never double back', r: 34, sp: 0, dmg: 22, dark: .25 },
-  { name: 'The Hive', col: '#ffc93b', tip: 'Ring its drones to strip its shield', r: 52, sp: 30, dmg: 22, dark: 0 },
+  { name: 'The Hive', col: '#ffc93b', tip: 'Flare its drones away to strip its shield', r: 52, sp: 54, dmg: 22, dark: 0 },
 ];
 const BOSS_HP = [800, 1700, 6000];
 const WIN_TIER = 2;
@@ -434,6 +436,7 @@ try { best = Object.assign(best, JSON.parse(localStorage.getItem('firefliers.bes
 let zones = [], rerolls = 2, ch = CHARS.glow, nm = false, newUnlocks = [];
 let flight = [], strays = [], path = [], ringFx = [], pathSer = 0, ringSer = 0, ringCd = 0, syncT = 2.4, strayT = 5, jarT = 12, ringsMade = 0, bossKills = 0, killsDawn = -1;
 const MAX_FLIGHT = 30;
+let frenzyT = 0, wonW = 0, newBestScore = false;
 let shocks = [], dark = 0, webs = [], bossOrder = [0, 1, 2, 3, 4, 5], frameMove = 0;
 let save = { unlocked: { glow: true }, char: 'glow', nm: false, won: false, nmWon: false, daily: { day: 0, best: 0, attempts: 0, streak: 0 },
   runs: [], ach: {}, stats: { runs: 0, wins: 0, kills: 0, time: 0, rings: 0, rescued: 0, bestFlight: 0, bossKills: {} } };
@@ -465,9 +468,9 @@ function beginDaily() {
 }
 // Time and kills stop counting at 6:00, when the last boss arrives, so stalling earns nothing. After that only a fast finish adds points.
 function scoreParts(win) {
-  const t = Math.min(360, Math.floor(T)) * 5, k = killsDawn >= 0 ? killsDawn : kills, b = bossKills * 400, f = flight.length * 60,
-    w = win ? 2000 + Math.max(0, Math.round(150 - (T - 360))) * 15 : 0;
-  return { t, k, b, f, w, total: t + k + b + f + w };
+  const t = Math.min(360, Math.floor(T)) * 5, k = killsDawn >= 0 ? killsDawn : kills, b = bossKills * 400, f = Math.max(0, flight.length - 3) * 60, // the 3 you start with don't count
+    w = win ? 2000 + Math.max(0, Math.round(150 - (T - 360))) * 15 : wonW, m = nm ? 1.5 : 1;
+  return { t, k, b, f, w, m, total: Math.round((t + k + b + f + w) * m) };
 }
 const calcScore = win => scoreParts(win).total;
 const num = n => n.toLocaleString('en-US');
@@ -490,14 +493,14 @@ function reset() {
   recompute(); P.hp = P.maxhp;
   zones = []; rerolls = 2; newUnlocks = [];
   flight = [{ x: 0, y: 0, fl: 0 }, { x: 0, y: 0, fl: 0 }, { x: 0, y: 0, fl: 0 }]; strays = []; path = [{ x: 0, y: 0, s: 0 }]; ringFx = [];
-  run = { rescued: 0, maxFlight: 3, bosses: [], bossHurt: false }; webs = []; frameMove = 0;
+  run = { rescued: 0, maxFlight: 3, bosses: [], bossHurt: false }; webs = []; frameMove = 0; frenzyT = 0; wonW = 0;
   { const rnd = daily ? mkRng(4, 0) : Math.random; bossOrder = BOSSES.map((b, i) => i); for (let i = bossOrder.length - 1; i > 0; i--) { const j = (rnd() * (i + 1)) | 0, t = bossOrder[i]; bossOrder[i] = bossOrder[j]; bossOrder[j] = t; } }
   dmgLog = {}; shocks = []; dark = 0; pathSer = 0; ringSer = 0; ringCd = 0; syncT = 2.4; strayT = 5; jarT = 12; ringsMade = 0; bossKills = 0; killsDawn = -1;
   enemies = []; bullets = []; ebullets = []; gems = []; pickups = []; parts = []; texts = []; rings = []; arcs = [];
   boss = null; bossCount = 0; nextBoss = 120; nextEvent = 45; spawnAcc = 0;
   cam.x = cam.y = 0; shakeT = flashT = whiteT = hitstop = 0; pending = 0; orbA = 0; xpShow = 0; winT = 0;
   banner = daily ? { text: 'Daily #' + (dday - DAY0 + 1), sub: 'Same bug, same cards, same waves for everyone today', t: 4.5, max: 4.5 }
-    : { text: 'Stay alive until dawn', sub: 'Rescue stray fireflies, then fly a loop around enemies to burn them', t: 4.5, max: 4.5 };
+    : { text: 'Stay alive until dawn', sub: 'Rescue stray fireflies. Dash, and whatever is between you and your trail burns', t: 4.5, max: 4.5 };
 }
 const pv = k => pl[k] || 0;
 function recompute() {
@@ -560,7 +563,7 @@ function spawn(type, x, y, opt) {
 }
 const pwOf = e => [.8, 1, 1.2][Math.min(e.tier, 2)] * (1 + Math.max(0, e.tier - 2) * .25);
 function hiveDrone(h, slot) {
-  const dr = spawn('drone', h.x, h.y); dr.hive = h; dr.slot = slot; dr.hp = dr.maxhp = 26 * (1 + T / 150); dr.dmg = 10 * pwOf(h); return dr;
+  const dr = spawn('drone', h.x, h.y); dr.hive = h; dr.slot = slot; dr.hp = dr.maxhp = 20 * (1 + T / 200); dr.dmg = 10 * pwOf(h); return dr;
 }
 // where a point is, measured back along the trail the player has flown
 function pathBehind(dist) {
@@ -583,7 +586,8 @@ function spawnBoss() {
   e.beam = 0; e.bt = 2.5; e.ba = rand(0, TAU); e.bdir = 1; e.stun = 0; e.born = T;
   e.gap = 380; e.da = 0; e.slots = []; e.drT = 3.5; e.nd = 0; e.ndPrev = 8; e.shield = false; e.tx = e.x; e.ty = e.y;
   if (kind === 4) e.hp = e.maxhp = e.hp * 1.4; // the Shade spends the fight inside your own firing line
-  if (kind === 5) { const n = tier >= 2 ? 8 : 6; for (let i = 0; i < n; i++) e.slots[i] = hiveDrone(e, i); }
+  // the Hive's drones soak up shots, so its body gets less health
+  if (kind === 5) { e.hp = e.maxhp = e.hp * .8; const n = tier >= 2 ? 8 : 6; for (let i = 0; i < n; i++) e.slots[i] = hiveDrone(e, i); }
   run.bossHurt = false;
   boss = e; say(e.name, B.tip, 3.6); sfx('warn'); shake(6);
 }
@@ -713,8 +717,9 @@ function bossAI(e, dt, dx, dy, d) {
 
   if (k === 5) { // The Hive: orbiting drones shield it, and they grow back
     const n = e.tier >= 2 ? 8 : 6;
-    e.da += dt * 1.2; e.shield = e.ndPrev >= 3; e.ndPrev = e.nd; e.nd = 0; e.drT -= dt;
-    if (e.drT <= 0) { e.drT = 5; for (let i = 0; i < n; i++) if (!e.slots[i] || e.slots[i].dead) { e.slots[i] = hiveDrone(e, i); break; } }
+    e.da += dt * 1.2; e.shield = e.ndPrev >= 3; e.ndPrev = e.nd; e.nd = 0;
+    // the ring only regrows, all at once, a while after every drone is gone
+    if (e.ndPrev > 0) e.drT = 8; else { e.drT -= dt; if (e.drT <= 0) { e.drT = 8; for (let i = 0; i < n; i++) e.slots[i] = hiveDrone(e, i); e.ndPrev = n; sfx('charge'); } }
     e.t -= dt;
     if (e.t <= 0) {
       e.phase++; e.t = 3.2 / Math.sqrt(pw);
@@ -750,7 +755,7 @@ function hit(e, base, kx, ky, quiet) {
   if (e.dead) return;
   let d = base * S.dmg; const crit = !quiet && Math.random() < S.crit; if (crit) d *= 2;
   if (e.boss && e.mode === 'inhale') d *= 1.5;
-  if (e.boss && e.shield) d *= .55; // the Hive behind its drones // the Maw is soft while its mouth is open
+  if (e.boss && e.shield) d *= .8; // the Hive behind its drones // the Maw is soft while its mouth is open
   e.hp -= d; e.flash = .08;
   if (!e.boss && kx !== undefined) { e.kx += kx; e.ky += ky; }
   if (!quiet) {
@@ -763,8 +768,10 @@ function dropGem(x, y, v) {
   if (gems.length > 320) { gems[(Math.random() * gems.length) | 0].v += v; return; }
   gems.push({ x, y, v, vx: rand(-60, 60), vy: rand(-60, 60), pull: false, ph: rand(0, TAU) });
 }
+// pickup kinds: icon, colour, and the word shown when you grab an attack one
+const PICK = { heart: ['♥', '#ff6b8a'], magnet: ['◎', '#6fd3ff'], zap: ['⚡', '#b69cff', 'Thunderclap!'], blast: ['✹', '#ff9a4d', 'Fire ring!'], freeze: ['❄', '#9ff0ff', 'Cold snap!'], frenzy: ['»', '#ffe066', 'Frenzy!'] };
 function dropPickup(x, y, kind) {
-  if (!kind) { const r = Math.random(); kind = r < .5 ? 'heart' : r < .8 ? 'magnet' : 'bomb'; }
+  if (!kind) { const r = Math.random(); kind = r < .4 ? 'heart' : r < .62 ? 'magnet' : r < .72 ? 'zap' : r < .82 ? 'blast' : r < .91 ? 'freeze' : 'frenzy'; }
   pickups.push({ x, y, kind, ph: rand(0, TAU) });
 }
 function kill(e) {
@@ -780,14 +787,14 @@ function kill(e) {
     for (let i = 0; i < (e.belly || 0); i++) { const a = rand(0, TAU), R = rand(40, 110); strays.push({ x: e.x + Math.cos(a) * R, y: e.y + Math.sin(a) * R, ph: rand(0, TAU) }); } hitstop = .3; whiteT = .35; sfx('boom');
     rings.push({ x: e.x, y: e.y, r0: 20, r1: 420, life: .7, max: .7, col: e.col, w: 10 });
     for (let i = 0; i < 28; i++) dropGem(e.x + rand(-70, 70), e.y + rand(-70, 70), 4 + e.tier * 3);
-    dropPickup(e.x - 24, e.y, 'heart'); dropPickup(e.x + 24, e.y, 'magnet');
+    dropPickup(e.x - 24, e.y, 'heart'); if (!nm) dropPickup(e.x + 24, e.y, 'magnet');
     ebullets.length = 0;
     if (e.tier === WIN_TIER && !won) winT = 1.6; else say(e.name + ' is down!', '', 2.4);
     unlock('beetle');
   } else {
     if (e.carry) { award('freed'); strays.push({ x: e.x, y: e.y, ph: rand(0, TAU) }); if (texts.length < 80) texts.push({ x: e.x, y: e.y - 18, t: 'Freed!', life: 1, max: 1, heal: true }); }
     if (e.xp > 0) dropGem(e.x, e.y, e.xp);
-    const r = Math.random(); if ((e.elite && r < .45) || r < .011) dropPickup(e.x, e.y);
+    const r = Math.random() * (nm ? 2 : 1); if ((e.elite && r < .45) || r < .011) dropPickup(e.x, e.y); // Nightmare drops half as often
   }
 }
 let dmgLog = {};
@@ -851,7 +858,7 @@ function dropSpore() {
 const orbSpec = () => wl.orbit >= 7 ? { n: 8, R: 98 * S.area, dmg: 40, s: 11 } : { n: 1 + wl.orbit, R: 72 * S.area, dmg: 7 + 4 * wl.orbit, s: 8 };
 const frostR = () => (wl.frost >= 7 ? 190 : 85 + 14 * wl.frost) * S.area;
 function weapons(dt) {
-  for (const k in cds) cds[k] -= dt;
+  const hs = frenzyT > 0 ? 2 : 1; for (const k in cds) cds[k] -= dt * hs;
   if (wl.bolt && cds.bolt <= 0) cds.bolt = fireBolt() ? [.5, .42, .42, .4, .38, .34, .24][wl.bolt - 1] * S.cd : .1;
   if (wl.nova && cds.nova <= 0) { fireNova(); cds.nova = (wl.nova >= 7 ? 1.5 : 3.3 - .3 * wl.nova) * S.cd; }
   if (wl.thorn && cds.thorn <= 0) cds.thorn = fireThorn() ? (wl.thorn >= 7 ? 1.1 : 1.6) * S.cd : .15;
@@ -879,11 +886,6 @@ function weapons(dt) {
 }
 
 /* ---------- the flight ---------- */
-function segX(a, b, c, d) {
-  const rx = b.x - a.x, ry = b.y - a.y, sx = d.x - c.x, sy = d.y - c.y, den = rx * sy - ry * sx; if (Math.abs(den) < 1e-9) return null;
-  const t = ((c.x - a.x) * sy - (c.y - a.y) * sx) / den, u = ((c.x - a.x) * ry - (c.y - a.y) * rx) / den;
-  return t >= 0 && t <= 1 && u >= 0 && u <= 1 ? { x: a.x + rx * t, y: a.y + ry * t } : null;
-}
 function inPoly(x, y, poly) {
   let inside = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
@@ -893,46 +895,37 @@ function inPoly(x, y, poly) {
   return inside;
 }
 const ropeLen = () => 260 + flight.length * 45;
-// Did the newest step (a to b) cross the rope of fireflies trailing behind us? If so, the loop it closed becomes a ring of light.
-function checkRing(a, b) {
-  const maxLen = ropeLen(); let acc = 0;
-  for (let i = path.length - 2; i >= 0; i--) {
-    const p = path[i], q = path[i + 1]; acc += Math.hypot(q.x - p.x, q.y - p.y);
-    if (acc > maxLen || p.s < ringSer) break;
-    if (acc < 110) continue;
-    // a true crossing closes the loop, and so does coming within a few pixels of the rope
-    const ip = segX(a, b, p, q) || ((b.x - q.x) ** 2 + (b.y - q.y) ** 2 < 26 * 26 ? b : null); if (!ip) continue;
-    const poly = path.slice(i + 1).map(v => [v.x, v.y]); poly.push([ip.x, ip.y]);
-    let area = 0; for (let j = 0, k = poly.length - 1; j < poly.length; k = j++) area += poly[k][0] * poly[j][1] - poly[j][0] * poly[k][1];
-    if (Math.abs(area) / 2 < 3000) continue; // too thin to be a loop, such as doubling back on yourself
-    ringOfLight(poly);
-    return;
-  }
+// Dash flare: when a dash ends, the shape made by the player and the trail of fireflies behind them burns a little.
+function flare() {
+  if (!flight.length) return;
+  const maxLen = ropeLen(), poly = [[P.x, P.y]]; let acc = 0, px = P.x, py = P.y;
+  for (let i = path.length - 1; i >= 0; i--) { const q = path[i]; acc += Math.hypot(px - q.x, py - q.y); if (acc > maxLen) break; poly.push([q.x, q.y]); px = q.x; py = q.y; }
+  if (poly.length < 4) return;
+  let area = 0; for (let j = 0, k = poly.length - 1; j < poly.length; k = j++) area += poly[k][0] * poly[j][1] - poly[j][0] * poly[k][1];
+  if (Math.abs(area) / 2 < 2500) return; // a straight trail encloses nothing
+  ringOfLight(poly);
 }
 function ringOfLight(poly) {
-  const n = flight.length, dmg = 30 + 5 * n; let c = 0, cleared = 0;
+  const n = flight.length, dmg = 14 + 2.5 * n; let c = 0;
   for (const e of enemies.slice()) if (!e.dead && inPoly(e.x, e.y, poly)) {
-    c++; const corona = e.boss && e.kind === 2;
-    if (!e.boss) e.frz = .9; else if (corona) { e.stun = 2.5; e.beam = 0; e.bt = 3; say('Corona broken!', '', 1.6); award('corona'); } else if (e.kind === 4) e.stun = 1.5;
+    c++; const ready = e.boss && !(e.flareCd > T), corona = ready && e.kind === 2; // bosses shrug off the special effect for a while after it lands
+    if (corona) { e.stun = 2.5; e.beam = 0; e.bt = 3; e.flareCd = T + 9; say('Corona broken!', '', 1.6); award('corona'); } else if (ready && e.kind === 4) { e.stun = 1.5; e.flareCd = T + 6; }
     hit(e, tut ? 99999 : corona ? dmg * 3 : dmg);
   }
-  for (const b of ebullets) if (inPoly(b.x, b.y, poly)) { b.life = 0; cleared++; }
   webs = webs.filter(w => !inPoly(w.x, w.y, poly));
   for (const g of gems) if (inPoly(g.x, g.y, poly)) { g.pull = true; g.sp = g.sp || 300; }
-  ringSer = pathSer;
-  if (!c && !cleared) { ringFx.push({ poly, life: .3, max: .3, soft: true }); return; }
-  ringFx.push({ poly, life: .7, max: .7 }); ringCd = .8; ringsMade++;
+  if (!c) { ringFx.push({ poly, life: .25, max: .25, soft: true }); return; }
+  ringFx.push({ poly, life: .5, max: .5 }); ringsMade++;
   if (c >= 10) award('ring10'); if (ringsMade >= 25) award('rings25');
   for (const f of flight) f.fl = .4;
   sfx('ring'); shake(3 + Math.min(9, c));
-  if (c && texts.length < 80) texts.push({ x: P.x, y: P.y - 34, t: 'RING ×' + c, life: 1, max: 1, crit: true });
+  if (c && texts.length < 80) texts.push({ x: P.x, y: P.y - 34, t: 'FLARE ×' + c, life: 1, max: 1, crit: true });
 }
 function flightUpdate(dt) {
   ringCd -= dt;
   const lp = path[path.length - 1];
   if ((P.x - lp.x) ** 2 + (P.y - lp.y) ** 2 >= 25) {
     const np = { x: P.x, y: P.y, s: ++pathSer };
-    if (ringCd <= 0 && flight.length) checkRing(lp, np);
     path.push(np); if (path.length > 440) path.shift();
   }
   // followers sit at even spacing along the path we flew
@@ -1079,10 +1072,10 @@ function update(dt) {
   else if (joy) { const jx = joy.x - joy.x0, jy = joy.y - joy.y0, jm = Math.hypot(jx, jy); if (jm > 8) { mag = Math.min(1, jm / 55); ix = jx / jm; iy = jy / jm; } }
   mvx = mag ? ix : 0; mvy = mag ? iy : 0;
   if (mag) P.face = Math.atan2(iy, ix);
-  P.dashCd -= dt; P.inv -= dt;
+  P.dashCd -= dt; P.inv -= dt; frenzyT -= dt;
   const ox = P.x, oy = P.y; let ws = 1; for (const w of webs) if (w.land <= 0 && (P.x - w.x) ** 2 + (P.y - w.y) ** 2 < w.r * w.r) { ws = .45; break; }
   if (P.dashT > 0) {
-    P.dashT -= dt; P.x += P.dvx * 840 * dt; P.y += P.dvy * 840 * dt;
+    P.dashT -= dt; P.x += P.dvx * 840 * dt; P.y += P.dvy * 840 * dt; if (P.dashT <= 0) flare();
     parts.push({ x: P.x, y: P.y, vx: 0, vy: 0, life: .25, max: .25, col: '#ffe066', s: 10 });
     near(P.x, P.y, 60, e => { if (e.orbT <= 0 && (e.x - P.x) ** 2 + (e.y - P.y) ** 2 < (e.r + 20) ** 2) { e.orbT = .3; hit(e, 18, P.dvx * 300, P.dvy * 300); } });
   } else { P.x += ix * mag * P.speed * ws * dt; P.y += iy * mag * P.speed * ws * dt; }
@@ -1222,11 +1215,18 @@ function update(dt) {
       k.dead = true; sfx('pick');
       if (k.kind === 'heart') { P.hp = Math.min(P.maxhp, P.hp + 30); burst(P.x, P.y, '#ff6b8a', 16, 180); texts.push({ x: P.x, y: P.y - 24, t: '+30', life: .9, max: .9, heal: true }); }
       else if (k.kind === 'magnet') { for (const g of gems) { g.pull = true; g.sp = g.sp || 300; } rings.push({ x: P.x, y: P.y, r0: 500, r1: 20, life: .5, max: .5, col: '#6fd3ff', w: 5 }); }
-      else {
-        whiteT = .3; shake(16); sfx('boom'); rings.push({ x: P.x, y: P.y, r0: 20, r1: viewR(), life: .5, max: .5, col: '#ffffff', w: 14 });
-        const R = viewR() + 40; for (const e of enemies.slice()) if (!e.dead && (e.x - P.x) ** 2 + (e.y - P.y) ** 2 < R * R) hit(e, e.boss ? 250 : 99999, undefined, undefined, true);
-        ebullets.length = 0;
-      }
+      else if (k.kind === 'zap') { // thunderclap: lightning finds the toughest few on screen
+        const R = viewR(), tg = enemies.filter(e => !e.dead && (e.x - P.x) ** 2 + (e.y - P.y) ** 2 < R * R).sort((a, b) => b.hp - a.hp).slice(0, 7);
+        for (const e of tg) { arcs.push(mkArc(P.x, P.y, e.x, e.y)); burst(e.x, e.y, '#b69cff', 8, 200); hit(e, (140 + T * .6) / S.dmg); }
+        sfx('zap'); shake(8);
+      } else if (k.kind === 'blast') { // fire ring: a burst around you that shoves things back
+        const R = 270, dmg = (45 + T * .3) / S.dmg; rings.push({ x: P.x, y: P.y, r0: 20, r1: R, life: .45, max: .45, col: '#ff9a4d', w: 12 }); shake(10); sfx('boom');
+        for (const e of enemies.slice()) { const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1; if (!e.dead && d < R + e.r) hit(e, dmg, dx / d * 520, dy / d * 520); }
+      } else if (k.kind === 'freeze') { // cold snap: everything on screen stops for a moment
+        const R = viewR() + 40; rings.push({ x: P.x, y: P.y, r0: 20, r1: R, life: .5, max: .5, col: '#9ff0ff', w: 10 }); sfx('nova');
+        for (const e of enemies) if ((e.x - P.x) ** 2 + (e.y - P.y) ** 2 < R * R) { if (e.boss) { e.slowT = 3; e.slowF = .5; } else e.frz = 3; }
+      } else { frenzyT = 7; sfx('level'); } // frenzy: weapons fire twice as fast for a few seconds
+      if (PICK[k.kind][2] && texts.length < 80) texts.push({ x: P.x, y: P.y - 30, t: PICK[k.kind][2], life: 1, max: 1, crit: true });
     }
   }
   enemies = enemies.filter(e => !e.dead); bullets = bullets.filter(b => !b.dead);
@@ -1250,9 +1250,9 @@ const ACH = [
   ['fast', 'Before Sunrise', 'Beat the last boss within 40 seconds'],
   ['untouched', 'Untouchable', 'Beat a boss without being hit while it is alive'],
   ['bosses', 'Big Game', 'Beat all six bosses'],
-  ['corona', 'Corona Breaker', 'Close a ring of light around the Eclipse'],
-  ['ring10', 'Ringmaster', 'Burn 10 enemies with one ring'],
-  ['rings25', 'Lasso', 'Close 25 rings in one run'],
+  ['corona', 'Corona Breaker', 'Break the corona of the Eclipse with a dash flare'],
+  ['ring10', 'Wildfire', 'Burn 10 enemies with one dash flare'],
+  ['rings25', 'Firestarter', 'Land 25 dash flares in one run'],
   ['flight30', 'Full Flight', 'Fly with 30 fireflies'],
   ['freed', 'Jailbreak', 'Free a firefly from a nightjar'],
   ['evo1', 'Metamorphosis', 'Evolve a weapon'],
@@ -1271,7 +1271,7 @@ function award(id) {
 function recordRun(win) {
   const st = save.stats;
   save.runs.unshift({ d: Date.now(), mode: daily ? 'daily' : nm ? 'nightmare' : 'normal', bug: ch.name, T: Math.round(T), win, kills, level: P.level, flight: flight.length, rings: ringsMade,
-    score: daily ? calcScore(win) : 0, bosses: run.bosses.slice(), build: Object.keys(wl).map(k => WEAPONS[k].icon + (wl[k] >= 7 ? '★' : '')).join(' ') });
+    score: calcScore(win), bosses: run.bosses.slice(), build: Object.keys(wl).map(k => WEAPONS[k].icon + (wl[k] >= 7 ? '★' : '')).join(' ') });
   if (save.runs.length > 50) save.runs.length = 50;
   st.runs++; if (win) st.wins++; st.kills += kills; st.time += Math.round(T); st.rings += ringsMade; st.rescued += run.rescued;
   st.bestFlight = Math.max(st.bestFlight, run.maxFlight, flight.length);
@@ -1279,8 +1279,8 @@ function recordRun(win) {
   persist();
 }
 function showStats() {
-  const st = save.stats, tiles = [[st.runs, 'runs'], [st.wins, 'dawns seen'], [(st.runs ? Math.round(st.wins / st.runs * 100) : 0) + '%', 'win rate'], [fmt(best.time), 'best time'],
-    [num(st.kills), 'squashed'], [num(st.rings), 'rings closed'], [num(st.rescued), 'fireflies rescued'], [st.bestFlight, 'biggest flight'], [save.daily.streak || 0, 'daily streak']];
+  const st = save.stats, tiles = [[st.runs, 'runs'], [st.wins, 'dawns seen'], [(st.runs ? Math.round(st.wins / st.runs * 100) : 0) + '%', 'win rate'], [num(best.score || 0), 'best score'], [fmt(best.time), 'best time'],
+    [num(st.kills), 'squashed'], [num(st.rings), 'flares landed'], [num(st.rescued), 'fireflies rescued'], [st.bestFlight, 'biggest flight'], [save.daily.streak || 0, 'daily streak']];
   $('statTiles').innerHTML = tiles.map(t => '<div><b>' + t[0] + '</b>' + t[1] + '</div>').join('');
   $('achCount').textContent = ACH.filter(a => save.ach[a[0]]).length + ' of ' + ACH.length;
   $('achList').innerHTML = ACH.map(a => '<div class="ach' + (save.ach[a[0]] ? ' got' : '') + '"><b>' + (save.ach[a[0]] ? '★ ' : '') + a[1] + '</b><span>' + a[2] + '</span></div>').join('');
@@ -1314,7 +1314,7 @@ const TUT = [
     done: t => t.dashed },
   { text: () => 'A stray firefly is lost in the dark. Follow the gold arrow and touch it to rescue it.',
     enter: () => { const a = rand(0, TAU); strays.push({ x: P.x + Math.cos(a) * 460, y: P.y + Math.sin(a) * 460, ph: 0 }); }, done: t => flight.length > t.f0 },
-  { text: () => 'Your fireflies trail behind you like a rope. Fly a full circle around these sleeping brutes so you cross your own rope, and everything inside burns.',
+  { text: () => 'Your fireflies trail behind you. Fly a curve around these sleeping brutes, then dash. Whatever is between you and your trail burns.',
     enter: () => { while (flight.length < 16) flight.push({ x: P.x, y: P.y, fl: .4 }); tutDummies(); }, dummies: true, done: t => ringsMade > t.r0 },
   { text: () => 'Sparks level you up. Pick an upgrade to finish.',
     enter: () => gainXP(P.next), done: t => t.picked },
@@ -1343,12 +1343,14 @@ function saveBest() {
   let nb = false;
   if (T > best.time) { best.time = T; nb = true; }
   if (kills > best.kills) best.kills = kills;
+  const sc0 = calcScore(state === 'win'); newBestScore = !daily && sc0 > (best.score || 0); if (newBestScore) best.score = sc0;
   if (won) best.won = true;
   try { localStorage.setItem('firefliers.best', JSON.stringify(best)); } catch (e) {}
   return nb;
 }
-function bestLine() { return best.time > 0 ? 'Best run: ' + fmt(best.time) + ', ' + best.kills + ' squashed' + (best.won ? ' ★ saw the dawn' : '') : ''; }
+function bestLine() { return best.time > 0 ? 'Best: ' + (best.score ? num(best.score) + ' pts · ' : '') + fmt(best.time) + ' · ' + num(best.kills) + ' squashed' + (best.won ? ' ★ saw the dawn' : '') : ''; }
 function finish(win) {
+  if (win) wonW = scoreParts(true).w; // kept so an endless run after the win still counts its dawn bonus
   if (win) { award('dawn'); if (nm) award('nm'); if (Object.keys(wl).length <= 3) award('mini'); }
   if (!endless) recordRun(win);
   const firstWin = win && !save.won;
@@ -1361,16 +1363,17 @@ function finish(win) {
     : T < 270 ? 'Tip: a few weapons leveled high will carry you further than a little bit of everything.'
     : T < 360 ? 'So close. Dawn comes once the third boss falls, right after the 6 minute mark.' : 'That was a serious run.';
   $('stTime').textContent = fmt(T); $('stKills').textContent = kills; $('stLevel').textContent = P.level; $('stFlight').textContent = flight.length;
-  $('bestOver').textContent = nb && !win ? 'New best time!' : bestLine();
+  { const sp = scoreParts(win); $('stScore').textContent = num(sp.total);
+    $('scoreLine').textContent = 'time ' + num(sp.t) + ' · squashed ' + num(sp.k) + ' · bosses ' + num(sp.b) + ' · fireflies ' + num(sp.f) + (sp.w ? ' · dawn ' + num(sp.w) : '') + (nm ? ' · ×1.5 Nightmare' : ''); }
+  $('bestOver').textContent = newBestScore ? 'New best score!' : bestLine();
   $('endlessBtn').classList.toggle('hidden', !win); $('shareBtn').classList.toggle('hidden', !daily);
   if (daily) {
     const sc = calcScore(win), d = save.daily, nbd = sc > d.best; if (nbd) d.best = sc; persist();
     lastDaily = { num: dday - DAY0 + 1, char: ch.name, T, win, kills, level: P.level, flight: flight.length, score: sc, attempt: d.attempts, build: Object.keys(wl).map(k => WEAPONS[k].icon + (wl[k] >= 7 ? '★' : '')).join(' ') };
-    $('overTitle').textContent = 'Daily #' + lastDaily.num + ': ' + num(sc) + ' points';
+    $('overTitle').textContent = 'Daily #' + lastDaily.num + (win ? ' · you saw the dawn' : '');
     $('bestOver').textContent = (nbd ? 'Your best today!' : 'Your best today: ' + num(d.best)) + ' · attempt ' + d.attempts + (d.streak > 1 ? ' · ' + d.streak + ' day streak' : '');
     $('shareBtn').textContent = 'Copy result';
-    const sp = scoreParts(win);
-    $('overSub').textContent = 'Time ' + num(sp.t) + ' · squashed ' + num(sp.k) + ' · bosses ' + num(sp.b) + ' · fireflies ' + num(sp.f) + (win ? ' · dawn ' + num(sp.w) : '');
+
   }
   $('over').classList.remove('hidden'); $('topbtns').classList.add('hidden'); $('dashBtn').classList.add('hidden');
   if (win) sfx('win');
@@ -1675,10 +1678,10 @@ function render() {
   // pickups
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   for (const k of pickups) {
-    const c = k.kind === 'heart' ? '#ff6b8a' : k.kind === 'magnet' ? '#6fd3ff' : '#ffffff', y = k.y + Math.sin(T * 3 + k.ph) * 3;
+    const c = PICK[k.kind][1], y = k.y + Math.sin(T * 3 + k.ph) * 3;
     ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(glow(c), k.x - 34, y - 34, 68, 68); ctx.globalCompositeOperation = 'source-over';
     ctx.fillStyle = '#0b0d1f'; ctx.strokeStyle = c; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(k.x, y, 14, 0, TAU); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = c; ctx.font = 'bold 16px Fredoka, system-ui'; ctx.fillText(k.kind === 'heart' ? '♥' : k.kind === 'magnet' ? '◎' : '✹', k.x, y + 1);
+    ctx.fillStyle = c; ctx.font = 'bold 16px Fredoka, system-ui'; ctx.fillText(PICK[k.kind][0], k.x, y + 1);
   }
   // the Weaver's webs
   for (const w of webs) if (vis(w.x, w.y, w.r)) {
@@ -1720,7 +1723,7 @@ function render() {
     const maxLen = ropeLen(); let acc = 0, px = P.x, py = P.y;
     ctx.beginPath(); ctx.moveTo(px, py);
     for (let i = path.length - 1; i >= 0; i--) { const q = path[i]; if (q.s < ringSer) break; acc += Math.hypot(px - q.x, py - q.y); if (acc > maxLen) break; ctx.lineTo(q.x, q.y); px = q.x; py = q.y; }
-    ctx.strokeStyle = ringCd > 0 ? 'rgba(255,215,106,.08)' : 'rgba(255,215,106,.26)'; ctx.lineWidth = 2.5; ctx.lineJoin = 'round'; ctx.stroke();
+    ctx.strokeStyle = P.dashCd > 0 ? 'rgba(255,215,106,.1)' : 'rgba(255,215,106,.3)'; // the trail brightens when a flare is ready ctx.lineWidth = 2.5; ctx.lineJoin = 'round'; ctx.stroke();
     for (let i = 0; i < flight.length; i++) {
       const f = flight[i], lit = f.fl > 0, sz = lit ? 26 : 13;
       ctx.globalAlpha = lit ? 1 : .55 + .45 * Math.sin(T * 4 - i * .6); ctx.drawImage(glow('#ffe9a0'), f.x - sz, f.y - sz, sz * 2, sz * 2);
@@ -1758,6 +1761,7 @@ function render() {
     ctx.strokeStyle = dk >= 1 ? '#ffe066aa' : '#ffffff44'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(P.x, P.y, 21, -Math.PI / 2, -Math.PI / 2 + TAU * dk); ctx.stroke();
     ctx.fillStyle = '#000a'; ctx.fillRect(P.x - 20, P.y + 27, 40, 5);
     ctx.fillStyle = P.hp / P.maxhp < .3 ? '#ff4d6d' : '#7dff9a'; ctx.fillRect(P.x - 20, P.y + 27, 40 * P.hp / P.maxhp, 5);
+    if (frenzyT > 0) { ctx.fillStyle = '#ffe066'; ctx.fillRect(P.x - 20, P.y + 34, 40 * Math.min(1, frenzyT / 7), 3); }
   }
   // damage numbers
   for (const t of texts) {
@@ -1790,7 +1794,7 @@ function render() {
     const sxp = (st.x - cam.x) * zoom + VW / 2, syp = (st.y - cam.y) * zoom + VH / 2;
     if (sxp > 0 && sxp < VW && syp > 0 && syp < VH) continue;
     const pl = .5 + .5 * Math.sin(T * 6);
-    ctx.save(); ctx.translate(clamp(sxp, 42, VW - 42), clamp(syp, 58, VH - 42));
+    ctx.save(); ctx.translate(clamp(sxp, 42, VW - 42), clamp(syp, 120, VH - 100)); // kept clear of the HUD rows at the top and bottom
     ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = .55 + pl * .4; ctx.drawImage(glow('#ffd76a'), -46, -46, 92, 92);
     ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
     ctx.rotate(Math.atan2(syp - VH / 2, sxp - VW / 2)); ctx.translate(pl * 7, 0);
@@ -1804,14 +1808,19 @@ function render() {
   const xg = ctx.createLinearGradient(0, 0, VW, 0); xg.addColorStop(0, '#6fd3ff'); xg.addColorStop(1, '#8df0c8'); ctx.fillStyle = xg; ctx.fillRect(0, 0, VW * clamp(xpShow, 0, 1), 10);
   ctx.fillStyle = '#eef0ff'; ctx.textBaseline = 'top'; ctx.textAlign = 'left'; ctx.font = '800 18px Fredoka, system-ui';
   ctx.fillText('LV ' + P.level, 14, 20);
-  ctx.font = '600 13px Fredoka, system-ui'; ctx.fillStyle = '#9aa0c8'; ctx.fillText(kills + ' squashed  ·  ' + flight.length + (flight.length === 1 ? ' firefly' : ' fireflies'), 14, 44);
-  if (nm) { ctx.fillStyle = '#ff6b8a'; ctx.font = '800 11px Fredoka, system-ui'; ctx.fillText('NIGHTMARE', 14, 62); }
-  if (daily) { ctx.fillStyle = '#8df0c8'; ctx.font = '700 12px Fredoka, system-ui'; ctx.fillText('DAILY #' + (dday - DAY0 + 1) + '  ·  ' + num(calcScore(false)) + ' pts', 14, 62); }
-  ctx.textAlign = 'center'; ctx.font = '800 24px Fredoka, system-ui'; ctx.fillStyle = '#eef0ff'; ctx.fillText(fmt(T), VW / 2, 18);
-  if (!won && !boss) { ctx.font = '600 11px Fredoka, system-ui'; ctx.fillStyle = '#9aa0c8'; ctx.fillText(T < 360 ? 'dawn at 6:00' : 'beat the last boss', VW / 2, 46); }
+  // health, score, then the small counters, stacked so nothing collides with the timer on a phone
+  const narrow = VW < 520, hbw = narrow ? 84 : 128, tcx = narrow ? (70 + hbw + VW - 98) / 2 : VW / 2, hf = clamp(P.hp / P.maxhp, 0, 1);
+  ctx.fillStyle = '#0c0f24'; ctx.beginPath(); ctx.roundRect(70, 23, hbw, 13, 6.5); ctx.fill();
+  if (hf > 0) { ctx.fillStyle = hf < .3 ? '#ff4d6d' : '#7dff9a'; ctx.beginPath(); ctx.roundRect(70, 23, Math.max(13, hbw * hf), 13, 6.5); ctx.fill(); }
+  ctx.font = '700 10px Fredoka, system-ui'; ctx.textAlign = 'center'; ctx.fillStyle = hf > .5 ? '#06210f' : '#eef0ff'; ctx.fillText(Math.ceil(P.hp) + ' / ' + P.maxhp, 70 + hbw / 2, 24.5); ctx.textAlign = 'left';
+  ctx.font = '700 15px Fredoka, system-ui'; ctx.fillStyle = '#ffd76a'; ctx.fillText(num(calcScore(false)) + ' pts', 14, 45);
+  ctx.font = '600 12px Fredoka, system-ui'; ctx.fillStyle = '#9aa0c8'; ctx.fillText(num(kills) + ' squashed · ' + flight.length + ' ✦', 14, 66);
+  { const tag = daily ? 'DAILY #' + (dday - DAY0 + 1) : nm ? 'NIGHTMARE' : ''; if (tag) { ctx.font = '700 11px Fredoka, system-ui'; ctx.fillStyle = daily ? '#8df0c8' : '#ff6b8a'; ctx.fillText(tag, 14, 84); } }
+  ctx.textAlign = 'center'; ctx.font = '800 24px Fredoka, system-ui'; ctx.fillStyle = '#eef0ff'; ctx.fillText(fmt(T), tcx, 18);
+  if (!won && !boss && !tut) { ctx.font = '600 11px Fredoka, system-ui'; ctx.fillStyle = '#9aa0c8'; ctx.fillText(T < 360 ? 'dawn at 6:00' : 'beat the last boss', tcx, 46); }
   // boss bar
   if (boss) {
-    const w = Math.min(420, VW - 120), x = VW / 2 - w / 2, y = 50;
+    const w = Math.min(420, VW - 120), x = VW / 2 - w / 2, y = narrow ? 106 : 50;
     ctx.fillStyle = '#000a'; ctx.fillRect(x - 2, y - 2, w + 4, 14); ctx.fillStyle = '#ff3b5c'; ctx.fillRect(x, y, w * Math.max(0, boss.hp / boss.maxhp), 10);
     ctx.font = '700 12px Fredoka, system-ui'; ctx.fillStyle = '#ffd0d8'; ctx.fillText(boss.name, VW / 2, y + 16);
   }
