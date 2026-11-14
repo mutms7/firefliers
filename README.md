@@ -9,8 +9,8 @@ I wanted something a friend could open from a link and be playing ten seconds la
 ## Why it's fun to come back to
 
 - **A daily challenge you can compare.** Once a day everyone gets the same bug, the same upgrade cards, and the same waves, so the only difference is how you play it. When the run ends you can copy your result and paste it into a group chat.
-- **Your flight is a weapon.** Stray fireflies are lost out in the dark. Rescue them and they trail behind you in a glowing rope. Fly a closed loop around your enemies and everything inside the ring burns, bullets included. Nightjars swoop in to snatch the firefly at the end of the line, and you can chase them down to free it.
-- **Six bosses, three per run, in a random order.** The Gloom slams out shockwaves you have to dash through. The Maw inhales to drag you in and eat fireflies off your rope. The Eclipse sweeps beams across the dark until you ring it to break its corona. The Weaver pins you in sticky webs and pounces. The Shade is your own shadow, walking the trail you leave, so you can never double back. The Hive hides behind a ring of drones until you burn them away.
+- **Your flight is a weapon.** Stray fireflies are lost out in the dark. Rescue them and they trail behind you in a long glowing line. When you dash, everything caught between you and that trail burns, so the shape you fly decides what you hit. Nightjars swoop in to snatch the firefly at the end of the line, and you can chase them down to free it.
+- **Six bosses, three per run, in a random order.** The Gloom slams out shockwaves you have to dash through. The Maw inhales to drag you in and eat fireflies off your rope. The Eclipse sweeps beams across the dark until you catch it in a dash flare to break its corona. The Weaver pins you in sticky webs and pounces. The Shade is your own shadow, walking the trail you leave, so you can never double back. The Hive hides behind a ring of drones, and they only grow back a while after you've cleared every one.
 - **Stats, history, and achievements.** Every run is logged, with a stats screen and 18 achievements to chase. These are saved in your browser.
 - **Every run is a different build.** There are 8 weapons and you can only carry 5, each one evolves into a stronger form if you pair it with the right boost, and the cards you're offered change every time.
 - **Five bugs to unlock.** Each one starts with a different weapon and plays differently, like the fast, fragile Moth or the slow, armored Beetle. You unlock them by playing well.
@@ -27,17 +27,18 @@ Moth · 2:09 · the night won 🌙
 https://firefliers.vercel.app/
 ```
 
-## How the daily score works
+## How scoring works
 
-The score is built so that dragging a run out earns nothing.
+Every run gets a score, and it's built so that dragging a run out earns nothing.
 
 | What | Points |
 |---|---|
 | Time survived | 5 per second, and it stops counting at 6:00 |
 | Enemies squashed | 1 each, and it stops counting at 6:00 |
 | Bosses beaten | 400 each |
-| Fireflies in your flight at the end | 60 each |
+| Fireflies in your flight at the end | 60 each, not counting the 3 you start with |
 | Seeing the dawn | 2,000, plus 15 for every second you beat the last boss faster than 2:30 |
+| Nightmare mode | The whole total is multiplied by 1.5 |
 
 The last boss arrives at 6:00. From then on the only way to score more is to beat it quickly and keep your flight alive.
 
@@ -51,9 +52,9 @@ The last boss arrives at 6:00. From then on the only way to score more is to bea
 | Reroll the cards | R (twice per run) | Reroll button |
 | Pause and mute | Esc and M | Buttons in the top right |
 
-The first time you press Play you get a short tutorial that walks you through moving, dashing, rescuing a firefly, and flying a ring, and nothing can hurt you while you learn. You can replay it any time from How to play on the menu. The level-up and pause screens list every weapon and boost you've picked up so far. Hover over an upgrade (or one of your items) and the item it evolves with lights up if you have it.
+The first time you press Play you get a short tutorial that walks you through moving, dashing, rescuing a firefly, and dash flares, and nothing can hurt you while you learn. You can replay it any time from How to play on the menu. The level-up and pause screens list every weapon and boost you've picked up so far. Hover over an upgrade (or one of your items) and the item it evolves with lights up if you have it.
 
-Dashing makes you untouchable for a moment and hurts whatever you fly through, so it's your way out when you're surrounded. Your progress, unlocks, and best runs are saved in your browser.
+Dashing makes you untouchable for a moment, hurts whatever you fly through, and sets off a flare that burns everything between you and your firefly trail. Enemies sometimes drop pickups: a heart, a magnet, or one of four attacks (lightning on the toughest few enemies, a ring of fire around you, a freeze, or a few seconds of double fire rate). Your progress, unlocks, and best runs are saved in your browser.
 
 ## Where to find it
 
