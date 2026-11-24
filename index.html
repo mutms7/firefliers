@@ -618,7 +618,7 @@ function warpLand(e, pw) {
   const k = e.kind; e.x = e.tx; e.y = e.ty; e.mode = 'walk'; e.pop = .3; e.t = .6; shake(8); // straight into its next attack
   const pd2 = (P.x - e.x) ** 2 + (P.y - e.y) ** 2; burst(e.x, e.y, e.col, 34, 300);
   if (k !== 3 && k !== 5 && pd2 < (e.r * 1.6 + P.r) ** 2) hurtPlayer(16 * pw, 'boss landing');
-  if (k === 0) shock(e, pw); // the Gloom bursts up out of the ground in a shockwave
+  if (k === 0) { e.t = 1.5; e.echo = 0; } // the Gloom bursts up, then gives you a moment before it winds up its next slam
   else if (k === 1) { e.mode = 'inhale'; e.ct = 1.6; e.eat = .4; sfx('charge'); } // the Maw surfaces with its mouth already open
   else if (k === 2) { for (let i = 0; i < 14; i++) ebullet(e.x, e.y, i / 14 * TAU, 95); e.bt = .3; sfx('zap'); } // the wormhole spits out a ring of embers
   else if (k === 3) { // the Weaver drops off its silk line onto you
