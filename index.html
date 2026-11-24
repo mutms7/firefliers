@@ -650,6 +650,13 @@ function drawWarp(e) {
   }
   ctx.restore();
 }
+// the Gloom never sends rings closer together than your dash can recharge (1.6s), plus a second of slack
+const GLOOM_GAP = 2.6;
+function gloomShock(e, pw) {
+  const since = T - (e.lastShock === undefined ? -99 : e.lastShock);
+  if (since < GLOOM_GAP) { e.echo = Math.max(e.echo, GLOOM_GAP - since); return; } // hold it back until it's fair
+  e.lastShock = T; shock(e, pw);
+}
 function shock(e, pw) { shocks.push({ x: e.x, y: e.y, r: e.r, max: 440, v: 250, dmg: 12 * pw, hit: false }); sfx('nova'); shake(6); }
 function pickType() {
   const w = [['wisp', 10], ['dart', T > 25 ? 4 : 0], ['brute', T > 75 ? 2 + T / 150 : 0], ['spit', T > 130 ? 2.2 : 0], ['split', T > 185 ? 2.6 : 0], ['boom', T > 100 ? 1.6 : 0], ['ghost', T > 250 ? 1.8 : 0]];
@@ -703,8 +710,8 @@ function bossAI(e, dt, dx, dy, d) {
       e.split++; e.r *= .9; for (let i = 0; i < 4; i++) spawn('gloomling', e.x + rand(-40, 40), e.y + rand(-40, 40));
       burst(e.x, e.y, e.col, 30, 260); sfx('boom');
     }
-    if (e.echo > 0) { e.echo -= dt; if (e.echo <= 0) shock(e, pw); }
-    if (e.mode === 'slam') { e.ct -= dt; if (e.ct <= 0) { e.mode = 'walk'; shock(e, pw); if (hpf < .5) e.echo = 1.7; } return [0, 0]; }
+    if (e.echo > 0) { e.echo -= dt; if (e.echo <= 0) gloomShock(e, pw); }
+    if (e.mode === 'slam') { e.ct -= dt; if (e.ct <= 0) { e.mode = 'walk'; gloomShock(e, pw); if (hpf < .5) e.echo = Math.max(e.echo, GLOOM_GAP); } return [0, 0]; }
     e.t -= dt;
     if (e.t <= 0) {
       e.phase++; e.t = 3.6;
