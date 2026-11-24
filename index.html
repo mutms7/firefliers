@@ -359,7 +359,7 @@ function music() {
 /* ---------- data ---------- */
 const WEAPONS = {
   bolt:  { name: 'Spark Shot', icon: '➤', col: '#ffe066', max: 6, desc: l => ['', 'Fires sparks at the nearest enemy', 'More damage, faster fire', 'Fires 2 sparks', 'Sparks pierce through an enemy', 'Fires 3 sparks', 'Fires 4 sparks that pierce twice'][l] },
-  orbit: { name: 'Moon Guard', icon: '◉', col: '#7ad7ff', max: 6, desc: l => l === 1 ? '2 moons circle you and smack whatever they touch' : '+1 moon, more damage' },
+  orbit: { name: 'Moon Guard', icon: '◉', col: '#7ad7ff', max: 6, desc: l => l === 1 ? '2 moon scythes sweep around you and cut whatever they pass' : (l % 2 ? '' : '+1 scythe, ') + 'much more damage, longer blades' },
   nova:  { name: 'Pulse', icon: '✺', col: '#ff7ad9', max: 6, desc: l => l === 1 ? 'A shockwave bursts out of you and shoves enemies back' : 'Bigger, stronger, more often' },
   zap:   { name: 'Chain Zap', icon: '⚡', col: '#b69cff', max: 6, desc: l => l === 1 ? 'Lightning jumps between 3 enemies' : '+1 jump, more damage' },
   fly:   { name: 'Fireflies', icon: '✦', col: '#9dff8a', max: 6, desc: l => l === 1 ? 'A homing firefly hunts enemies down for you' : l === 3 ? 'Fireflies now explode on impact' : 'More fireflies, more damage' },
@@ -371,7 +371,7 @@ Object.assign(WEAPONS, {
 });
 const EVO = {
   bolt:  { name: 'Starstorm', req: 'haste', desc: 'Six piercing sparks at a blistering pace' },
-  orbit: { name: 'Saturn Ring', req: 'reach', desc: 'Eight heavy moons in a wider ring' },
+  orbit: { name: 'Harvest Moon', req: 'reach', desc: 'Five huge scythes sweep a giant circle and hit far harder' },
   nova:  { name: 'Supernova', req: 'power', desc: 'A huge blast every second and a half' },
   zap:   { name: 'Thunderhead', req: 'crit', desc: 'Lightning jumps 12 times and bursts on every strike' },
   fly:   { name: 'The Swarm', req: 'swift', desc: 'Seven explosive fireflies at a time' },
@@ -420,14 +420,14 @@ const BOSSES = [
   { name: 'The Shade', col: '#8a8cff', tip: 'It walks the trail you leave. Never double back', r: 34, sp: 0, dmg: 22, dark: .25 },
   { name: 'The Hive', col: '#ffc93b', tip: 'Flare its drones away to strip its shield', r: 52, sp: 54, dmg: 22, dark: 0 },
 ];
-const BOSS_HP = [800, 1700, 6000];
+const BOSS_HP = [950, 2000, 7200];
 const WIN_TIER = 2;
 
 /* ---------- state ---------- */
 let state = 'menu', T = 0, kills = 0, endless = false, won = false;
 let P, S, wl, pl, cds;
 let enemies = [], bullets = [], ebullets = [], gems = [], pickups = [], parts = [], texts = [], rings = [], arcs = [];
-let boss = null, bossCount = 0, nextBoss = 120, nextEvent = 45, spawnAcc = 0;
+let clearWave = null, boss = null, bossCount = 0, nextBoss = 120, nextEvent = 45, spawnAcc = 0;
 let cam = { x: 0, y: 0 }, shakeT = 0, flashT = 0, whiteT = 0, hitstop = 0, banner = null, dieT = 0, winT = 0;
 let pending = 0, luLock = 0, orbA = 0, frostT = 0, mvx = 0, mvy = 0, xpShow = 0;
 let best = { time: 0, kills: 0, won: false };
@@ -498,7 +498,7 @@ function reset() {
   dmgLog = {}; shocks = []; dark = 0; pathSer = 0; ringSer = 0; ringCd = 0; syncT = 2.4; strayT = 5; jarT = 12; ringsMade = 0; bossKills = 0; killsDawn = -1;
   enemies = []; bullets = []; ebullets = []; gems = []; pickups = []; parts = []; texts = []; rings = []; arcs = [];
   boss = null; bossCount = 0; nextBoss = 120; nextEvent = 45; spawnAcc = 0;
-  cam.x = cam.y = 0; shakeT = flashT = whiteT = hitstop = 0; pending = 0; orbA = 0; xpShow = 0; winT = 0;
+  cam.x = cam.y = 0; clearWave = null; shakeT = flashT = whiteT = hitstop = 0; pending = 0; orbA = 0; xpShow = 0; winT = 0;
   banner = daily ? { text: 'Daily #' + (dday - DAY0 + 1), sub: 'Same bug, same cards, same waves for everyone today', t: 4.5, max: 4.5 }
     : { text: 'Stay alive until dawn', sub: 'Rescue stray fireflies. Dash, and whatever is between you and your trail burns', t: 4.5, max: 4.5 };
 }
@@ -552,7 +552,7 @@ function mkArc(x0, y0, x1, y1) {
 }
 
 /* ---------- enemies ---------- */
-const hpMult = () => (1 + Math.pow(T / 60, 1.5) * 0.6) * (nm ? 1.5 : 1);
+const hpMult = () => (1 + Math.pow(T / 60, 1.5) * 0.74) * (nm ? 1.5 : 1);
 function spawn(type, x, y, opt) {
   const d = ET[type];
   if (x === undefined) { const a = rand(0, TAU), R = viewR() + 50; x = P.x + Math.cos(a) * R; y = P.y + Math.sin(a) * R; }
@@ -580,7 +580,7 @@ function spawnBoss() {
   const e = spawn('boss', P.x + Math.cos(a) * R, P.y + Math.sin(a) * R);
   e.boss = true; e.tier = tier; e.kind = kind; e.col = B.col;
   e.name = B.name + (tier >= BOSSES.length ? ' ' + 'I'.repeat(Math.floor(tier / BOSSES.length) + 1) : '');
-  e.hp = e.maxhp = (tier <= 2 ? BOSS_HP[tier] : 6000 * Math.pow(1.7, tier - 2)) * (nm ? 1.3 : 1);
+  e.hp = e.maxhp = (tier <= 2 ? BOSS_HP[tier] : 7200 * Math.pow(1.7, tier - 2)) * (nm ? 1.3 : 1);
   e.r = B.r; e.speed = B.sp * (1 + late * .1); e.dmg = B.dmg * [.85, 1, 1.15][Math.min(tier, 2)];
   e.mode = 'walk'; e.t = 2.5; e.phase = 0; e.ct = 0; e.split = 0; e.echo = 0; e.belly = 0; e.eat = 0; e.vol = 0;
   e.beam = 0; e.bt = 2.5; e.ba = rand(0, TAU); e.bdir = 1; e.stun = 0; e.born = T;
@@ -590,6 +590,53 @@ function spawnBoss() {
   if (kind === 5) { e.hp = e.maxhp = e.hp * .8; const n = tier >= 2 ? 8 : 6; for (let i = 0; i < n; i++) e.slots[i] = hiveDrone(e, i); }
   run.bossHurt = false;
   boss = e; say(e.name, B.tip, 3.6); sfx('warn'); shake(6);
+}
+// a boss you've left behind takes its own shortcut to where you're heading
+const WARP_T = [1.3, 1.2, 1.5, 1.1, 1, 1.3];
+function warpStart(e) {
+  const m = Math.hypot(mvx, mvy), V = viewR(); let ax, ay;
+  if (m > .1) { ax = mvx / m; ay = mvy / m; } else { const a = rand(0, TAU); ax = Math.cos(a); ay = Math.sin(a); }
+  const t = WARP_T[e.kind], ahead = Math.min(V * .9, P.speed * t + 130), side = rand(-.2, .2) * V;
+  e.mode = 'warp'; e.ct = e.wt = t; e.wx = e.x; e.wy = e.y; e.far = 0;
+  e.tx = P.x + ax * ahead - ay * side; e.ty = P.y + ay * ahead + ax * side;
+  if (e.kind === 2) { e.beam = 0; e.bt = 2; }
+  sfx('charge');
+}
+function warpLand(e, pw) {
+  const k = e.kind; e.x = e.tx; e.y = e.ty; e.mode = 'walk'; e.pop = .3; e.t = .6; shake(8); // straight into its next attack
+  const pd2 = (P.x - e.x) ** 2 + (P.y - e.y) ** 2; burst(e.x, e.y, e.col, 34, 300);
+  if (k !== 3 && k !== 5 && pd2 < (e.r * 1.6 + P.r) ** 2) hurtPlayer(16 * pw, 'boss landing');
+  if (k === 0) shock(e, pw); // the Gloom bursts up out of the ground in a shockwave
+  else if (k === 1) { e.mode = 'inhale'; e.ct = 1.6; e.eat = .4; sfx('charge'); } // the Maw surfaces with its mouth already open
+  else if (k === 2) { for (let i = 0; i < 14; i++) ebullet(e.x, e.y, i / 14 * TAU, 95); e.bt = .3; sfx('zap'); } // the wormhole spits out a ring of embers
+  else if (k === 3) { // the Weaver drops off its silk line onto you
+    rings.push({ x: e.x, y: e.y, r0: 20, r1: 105, life: .35, max: .35, col: e.col, w: 8 }); sfx('nova');
+    if (pd2 < 105 * 105) hurtPlayer(18 * pw, 'pounce');
+    if (webs.length < 10) webs.push({ x: e.x, y: e.y, r: 80, land: .6, life: 5 });
+  } else { // the Hive swarm lands and stings
+    rings.push({ x: e.x, y: e.y, r0: 20, r1: 95, life: .35, max: .35, col: e.col, w: 8 }); sfx('nova');
+    if (pd2 < 95 * 95) hurtPlayer(14 * pw, 'swarm');
+    for (let i = 0; i < 3; i++) spawn('dart', e.x + rand(-40, 40), e.y + rand(-40, 40));
+  }
+}
+function drawWarp(e) {
+  const q = 1 - Math.max(0, e.ct) / e.wt, k = e.kind, x = e.tx, y = e.ty, R = k === 3 ? 105 : k === 5 ? 95 : e.r * 1.6;
+  ctx.save();
+  if (k === 2) { // a wormhole at each end
+    for (const [px, py, sc] of [[e.wx, e.wy, 1 - q * .3], [x, y, .4 + q * .8]]) {
+      ctx.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < 4; i++) { ctx.strokeStyle = 'rgba(255,' + (150 + i * 25) + ',70,' + (.6 - i * .1).toFixed(2) + ')'; ctx.lineWidth = 6 - i; ctx.beginPath(); const rr = e.r * 1.6 * sc * (1 - i * .18), a0 = T * (3 + i) + i; ctx.arc(px, py, rr, a0, a0 + 4.4); ctx.stroke(); }
+      ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = 'rgba(5,6,12,.85)'; ctx.beginPath(); ctx.arc(px, py, e.r * .9 * sc, 0, TAU); ctx.fill();
+    }
+  } else {
+    if (k === 3) { ctx.strokeStyle = 'rgba(220,255,245,.75)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(e.wx, e.wy); ctx.lineTo(x, y); ctx.stroke(); } // the silk line it swings on
+    ctx.fillStyle = k === 0 ? 'rgba(26,11,46,' + (.35 + q * .4).toFixed(2) + ')' : 'rgba(0,0,0,' + (.15 + q * .2).toFixed(2) + ')';
+    ctx.beginPath(); ctx.arc(x, y, R * (.4 + q * .6), 0, TAU); ctx.fill();
+    ctx.strokeStyle = e.col; ctx.globalAlpha = .5 + q * .45; ctx.lineWidth = 3; ctx.setLineDash([9, 8]); ctx.lineDashOffset = -T * 30;
+    if (k === 5) poly(x, y, R, 6, T); else { ctx.beginPath(); ctx.arc(x, y, R, 0, TAU); }
+    ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+  }
+  ctx.restore();
 }
 function shock(e, pw) { shocks.push({ x: e.x, y: e.y, r: e.r, max: 440, v: 250, dmg: 12 * pw, hit: false }); sfx('nova'); shake(6); }
 function pickType() {
@@ -628,6 +675,13 @@ function director(dt) {
 function ebullet(x, y, a, sp) { ebullets.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: 6, life: 6 }); }
 function bossAI(e, dt, dx, dy, d) {
   const k = e.kind, pw = pwOf(e), hpf = e.hp / e.maxhp;
+  if (e.pop > 0) e.pop -= dt;
+  if (e.mode === 'warp') {
+    e.ct -= dt; const q = 1 - Math.max(0, e.ct) / e.wt;
+    if (k === 3 && q > .5) { const u = (q - .5) / .5; e.x = e.wx + (e.tx - e.wx) * u; e.y = e.wy + (e.ty - e.wy) * u - Math.sin(u * Math.PI) * 90; }
+    if (e.ct <= 0) warpLand(e, pw);
+    return [0, 0];
+  }
   if (e.stun > 0) { e.stun -= dt; return [0, 0]; }
   if (e.mode === 'charge') { e.ct -= dt; if (e.ct <= 0) e.mode = 'walk'; if (Math.random() < .6) burst(e.x, e.y, e.col, 1, 60); return [e.cx * 470, e.cy * 470]; }
   if (e.mode === 'wind') { e.ct -= dt; e.cx = dx; e.cy = dy; if (e.ct <= 0) { e.mode = 'charge'; e.ct = .6; } return [0, 0]; }
@@ -777,7 +831,7 @@ function dropPickup(x, y, kind) {
 function kill(e) {
   e.dead = true; if (e.type !== 'drone') { kills++; if (kills === 1000) award('k1000'); } sfx('kill');
   burst(e.x, e.y, e.col, e.boss ? 90 : e.elite ? 22 : 7, e.boss ? 420 : 170);
-  if (e.type === 'split') for (let i = 0; i < 3; i++) spawn('mini', e.x + rand(-12, 12), e.y + rand(-12, 12));
+  if (e.type === 'split' && !e.noSplit) for (let i = 0; i < 3; i++) spawn('mini', e.x + rand(-12, 12), e.y + rand(-12, 12));
   if (e.boss) {
     bossKills++; boss = null; shake(24); shocks = []; webs = [];
     const bn = BOSSES[e.kind].name; run.bosses.push(bn); save.stats.bossKills[bn] = (save.stats.bossKills[bn] || 0) + 1; persist();
@@ -786,6 +840,7 @@ function kill(e) {
     if (e.tier === WIN_TIER && T - e.born <= 40) award('fast');
     for (let i = 0; i < (e.belly || 0); i++) { const a = rand(0, TAU), R = rand(40, 110); strays.push({ x: e.x + Math.cos(a) * R, y: e.y + Math.sin(a) * R, ph: rand(0, TAU) }); } hitstop = .3; whiteT = .35; sfx('boom');
     rings.push({ x: e.x, y: e.y, r0: 20, r1: 420, life: .7, max: .7, col: e.col, w: 10 });
+    clearWave = { x: e.x, y: e.y, r: 0, max: Math.hypot(P.x - e.x, P.y - e.y) + viewR() * 1.4 }; // and it takes everything on screen down with it
     for (let i = 0; i < 28; i++) dropGem(e.x + rand(-70, 70), e.y + rand(-70, 70), 4 + e.tier * 3);
     dropPickup(e.x - 24, e.y, 'heart'); if (!nm) dropPickup(e.x + 24, e.y, 'magnet');
     ebullets.length = 0;
@@ -794,7 +849,7 @@ function kill(e) {
   } else {
     if (e.carry) { award('freed'); strays.push({ x: e.x, y: e.y, ph: rand(0, TAU) }); if (texts.length < 80) texts.push({ x: e.x, y: e.y - 18, t: 'Freed!', life: 1, max: 1, heal: true }); }
     if (e.xp > 0) dropGem(e.x, e.y, e.xp);
-    const r = Math.random() * (nm ? 2 : 1); if ((e.elite && r < .45) || r < .011) dropPickup(e.x, e.y); // Nightmare drops half as often
+    const r = Math.random() * (nm ? 2 : 1); if (!e.noDrop && ((e.elite && r < .45) || r < .011)) dropPickup(e.x, e.y); // Nightmare drops half as often
   }
 }
 let dmgLog = {};
@@ -855,7 +910,7 @@ function dropSpore() {
   if (z && (z.x - P.x) ** 2 + (z.y - P.y) ** 2 < r * r * .8) { z.life = z.max; return; }
   zones.push({ x: P.x, y: P.y, r, life, max: life, tick: 0, dps: ev ? 48 : 6 + 4.5 * l });
 }
-const orbSpec = () => wl.orbit >= 7 ? { n: 8, R: 98 * S.area, dmg: 40, s: 11 } : { n: 1 + wl.orbit, R: 72 * S.area, dmg: 7 + 4 * wl.orbit, s: 8 };
+const orbSpec = () => wl.orbit >= 7 ? { n: 5, Ri: 40, R: 210 * S.area, dmg: 120, w: .55 } : { n: 2 + (wl.orbit >> 1), Ri: 34, R: (105 + 9 * wl.orbit) * S.area, dmg: 2 * (7 + 4 * wl.orbit), w: .45 };
 const frostR = () => (wl.frost >= 7 ? 190 : 85 + 14 * wl.frost) * S.area;
 function weapons(dt) {
   const hs = frenzyT > 0 ? 2 : 1; for (const k in cds) cds[k] -= dt * hs;
@@ -870,11 +925,14 @@ function weapons(dt) {
   if (wl.zap && cds.zap <= 0) cds.zap = fireZap() ? (wl.zap >= 7 ? 1 : 1.5) * S.cd : .15;
   if (wl.fly && cds.fly <= 0) cds.fly = fireFly() ? 1.5 * S.cd : .2;
   if (wl.orbit) {
-    orbA += dt * 2.7; const os = orbSpec(), n = os.n, R = os.R, dmg = os.dmg;
-    for (let i = 0; i < n; i++) {
-      const a = orbA + i / n * TAU, x = P.x + Math.cos(a) * R, y = P.y + Math.sin(a) * R;
-      near(x, y, 60, e => { if (e.orbT <= 0 && (e.x - x) ** 2 + (e.y - y) ** 2 < (e.r + 11) ** 2) { e.orbT = .35; hit(e, dmg, Math.cos(a) * 160, Math.sin(a) * 160); } });
-    }
+    orbA += dt * 2.4; const os = orbSpec(), n = os.n, R = os.R, Ri = os.Ri, w = os.w, dmg = os.dmg;
+    // each scythe covers a wedge from Ri out to R, from its cutting edge back by w
+    near(P.x, P.y, R + 40, e => {
+      if (e.orbT > 0) return; const ex = e.x - P.x, ey = e.y - P.y, dd = Math.hypot(ex, ey) || 1;
+      if (dd > R + e.r || dd < Ri - e.r) return;
+      const ea = Math.atan2(ey, ex), tol = w * 1.2 + e.r / dd;
+      for (let i = 0; i < n; i++) { let df = (orbA + i / n * TAU + w * .2 - ea) % TAU; if (df < 0) df += TAU; if (df < tol) { e.orbT = .35; hit(e, dmg, ex / dd * 160, ey / dd * 160); break; } }
+    });
   }
   if (wl.frost) {
     frostT -= dt;
@@ -1106,7 +1164,11 @@ function update(dt) {
     let vx = dx * sp, vy = dy * sp;
     if (e.boss) {
       const v = bossAI(e, dt, dx, dy, d), f = e.slowT > 0 ? e.slowF : 1; vx = v[0] * f; vy = v[1] * f;
-      if (d > viewR() * 1.05 && e.mode === 'walk' && !(e.stun > 0) && e.kind !== 4) { vx = dx * 340; vy = dy * 340; } // a boss left behind hurries back into view
+      if (e.kind !== 4 && e.mode === 'walk' && !(e.stun > 0)) { // a boss left behind catches up (the Shade already walks your trail)
+        const far = d > viewR() * .8;
+        if (far && T - e.born < 5) { vx = dx * 340; vy = dy * 340; } // still walking in at the start of the fight
+        else { e.far = far ? (e.far || 0) + dt : 0; if (e.far > .8) warpStart(e); }
+      }
     }
     else {
       if (e.type === 'jar') {
@@ -1181,6 +1243,11 @@ function update(dt) {
     });
   }
   for (const w of webs) { if (w.land > 0) w.land -= dt; else w.life -= dt; } webs = webs.filter(w => w.life > 0);
+  if (clearWave) {
+    const w = clearWave; w.r += 1300 * dt;
+    for (const o of enemies) if (!o.dead && !o.boss && (o.x - w.x) ** 2 + (o.y - w.y) ** 2 < w.r * w.r) { o.noSplit = o.noDrop = true; o.xp = 0; kill(o); } // no sparks or pickups, or every boss would hand out a free level
+    if (w.r >= w.max) clearWave = null;
+  }
   // boss shockwaves: dash through them or stay out of reach
   for (const w of shocks) {
     w.r += w.v * dt;
@@ -1692,7 +1759,13 @@ function render() {
     ctx.beginPath(); ctx.arc(w.x, w.y, w.r * .62, 0, TAU); ctx.stroke(); ctx.beginPath(); ctx.arc(w.x, w.y, w.r * .32, 0, TAU); ctx.stroke();
   }
   // enemies
-  for (const e of enemies) if (vis(e.x, e.y, e.boss ? 700 : e.r * 2)) drawEnemy(e);
+  if (boss && boss.mode === 'warp') drawWarp(boss);
+  for (const e of enemies) if (vis(e.x, e.y, e.boss ? 700 : e.r * 2)) {
+    // a warping boss shrinks away into the ground (or the wormhole), then pops up a bit big
+    const sc = e.boss ? (e.mode === 'warp' && e.kind !== 3 ? Math.max(.02, Math.min(1, e.ct / e.wt * 1.4)) : 1 + Math.max(0, e.pop || 0) * 1.2) : 1;
+    if (sc !== 1) { ctx.save(); ctx.translate(e.x, e.y); ctx.scale(sc, sc); if (e.kind === 2 && e.mode === 'warp') ctx.rotate((1 - sc) * 6); ctx.translate(-e.x, -e.y); drawEnemy(e); ctx.restore(); }
+    else drawEnemy(e);
+  }
   // boss charge telegraph
   if (boss && boss.mode === 'wind') { ctx.strokeStyle = '#ff3b5c66'; ctx.lineWidth = boss.r * 1.6; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(boss.x, boss.y); ctx.lineTo(boss.x + boss.cx * 300, boss.y + boss.cy * 300); ctx.stroke(); ctx.lineCap = 'butt'; }
   // enemy bullets
@@ -1707,12 +1780,26 @@ function render() {
   for (const a of arcs) { ctx.globalAlpha = a.life / a.max; ctx.strokeStyle = '#d9ccff'; ctx.lineWidth = 3; ctx.beginPath(); a.pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.stroke(); }
   ctx.globalAlpha = 1; ctx.lineCap = 'butt';
   // moons
-  if (wl.orbit && alive) { const os = orbSpec(), n = os.n, Rr = os.R; for (let i = 0; i < n; i++) { const a = orbA + i / n * TAU, x = P.x + Math.cos(a) * Rr, y = P.y + Math.sin(a) * Rr; ctx.drawImage(glow('#7ad7ff'), x - 22, y - 22, 44, 44); ctx.fillStyle = '#e4f6ff'; ctx.beginPath(); ctx.arc(x, y, os.s, 0, TAU); ctx.fill(); } }
+  if (wl.orbit && alive) {
+    const os = orbSpec(), n = os.n, Ro = os.R, Ri = os.Ri, w = os.w, Rm = (Ri + Ro) / 2, evo = wl.orbit >= 7, pt = (r, a) => [P.x + Math.cos(a) * r, P.y + Math.sin(a) * r];
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < n; i++) {
+      const a = orbA + i / n * TAU;
+      ctx.fillStyle = evo ? 'rgba(170,210,255,.11)' : 'rgba(122,215,255,.08)'; ctx.beginPath(); ctx.arc(P.x, P.y, Ro, a - w * 1.7, a); ctx.arc(P.x, P.y, Ri, a, a - w * 1.7, true); ctx.closePath(); ctx.fill(); // the sweep it leaves behind
+      // the blade: a crescent whose cutting edge bows forward
+      const p0 = pt(Ri, a - w * .55), c1 = pt(Rm * 1.05, a + w * .5), p1 = pt(Ro, a), c2 = pt(Rm * .95, a - w * .05);
+      ctx.fillStyle = evo ? 'rgba(225,238,255,.85)' : 'rgba(200,240,255,.72)'; ctx.beginPath(); ctx.moveTo(p0[0], p0[1]); ctx.quadraticCurveTo(c1[0], c1[1], p1[0], p1[1]); ctx.quadraticCurveTo(c2[0], c2[1], p0[0], p0[1]); ctx.fill();
+      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = evo ? 3 : 2; ctx.beginPath(); ctx.moveTo(p0[0], p0[1]); ctx.quadraticCurveTo(c1[0], c1[1], p1[0], p1[1]); ctx.stroke();
+      ctx.drawImage(glow('#7ad7ff'), p0[0] - 18, p0[1] - 18, 36, 36);
+    }
+    ctx.globalCompositeOperation = 'source-over';
+  }
   ctx.globalCompositeOperation = 'source-over';
 
   // the flight: rings of light, the rope, followers, strays
   ctx.globalCompositeOperation = 'lighter';
   for (const w of shocks) { const k = 1 - w.r / w.max; ctx.strokeStyle = 'rgba(190,150,255,' + Math.min(1, k * 2.2).toFixed(3) + ')'; ctx.lineWidth = 10; ctx.beginPath(); ctx.arc(w.x, w.y, w.r, 0, TAU); ctx.stroke(); ctx.strokeStyle = 'rgba(255,255,255,' + Math.min(1, k * 2.2).toFixed(3) + ')'; ctx.lineWidth = 2.5; ctx.stroke(); }
+  if (clearWave) { const w = clearWave, k = 1 - w.r / w.max; ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = 'rgba(255,240,190,' + (.25 + k * .6).toFixed(3) + ')'; ctx.lineWidth = 26; ctx.beginPath(); ctx.arc(w.x, w.y, w.r, 0, TAU); ctx.stroke(); ctx.strokeStyle = 'rgba(255,255,255,' + (.4 + k * .5).toFixed(3) + ')'; ctx.lineWidth = 5; ctx.stroke(); ctx.globalCompositeOperation = 'source-over'; }
   for (const rf of ringFx) {
     const k = rf.life / rf.max, m = rf.soft ? .35 : 1;
     ctx.beginPath(); rf.poly.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath();
