@@ -89,6 +89,12 @@
   .chip.syn{border-color:var(--gold);box-shadow:0 0 16px -2px var(--gold);color:var(--ink);background:#3a3210}
   .card.syn{border-color:var(--gold);box-shadow:0 0 28px -4px var(--gold)}
   .card .ev.have{color:var(--mint)}
+  .dmg{width:min(460px,100%);margin:12px auto 0;display:flex;flex-direction:column;gap:6px}
+  .dmgRow{display:grid;grid-template-columns:minmax(0,9.5em) 1fr 4.2em 2.6em;gap:8px;align-items:center;font-size:13px;text-align:left}
+  .dmgRow .dn{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dmgRow i{font-style:normal;color:var(--c);margin-right:6px}
+  .dmgRow .db{height:8px;border-radius:99px;background:#ffffff12;overflow:hidden}.dmgRow .db span{display:block;height:100%;border-radius:99px;background:var(--c);box-shadow:0 0 10px var(--c)}
+  .dmgRow b{font-weight:500;text-align:right;color:var(--ink)}.dmgRow em{font-style:normal;color:var(--dim);text-align:right;font-size:12px}
+  .dmgEmpty{color:var(--dim);font-size:13px}
   .build-h{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-top:20px}
   .build{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:760px;margin:8px auto 0}
   .chip{font-size:12.5px;padding:4px 10px;border-radius:999px;background:#0f1a2bcc;border:1px solid var(--line);color:var(--dim);display:inline-flex;gap:6px;align-items:center}
@@ -157,6 +163,8 @@
     <button class="btn ghost" id="quitBtn">Menu</button>
   </div>
   <div id="pauseBuild"></div>
+  <div class="build-h">Damage dealt</div>
+  <div id="pauseDmg" class="dmg"></div>
 </div>
 
 <div id="over" class="screen hidden">
@@ -172,10 +180,12 @@
   </div>
   <div class="best" id="bestOver"></div>
   <div class="best" id="unlockLine" style="color:#7dff9a"></div>
+  <div id="overDmg" class="dmg hidden"></div>
   <div class="row">
     <button class="btn" id="againBtn">Play again</button>
     <button class="btn ghost hidden" id="endlessBtn">Keep going</button>
     <button class="btn daily hidden" id="shareBtn">Copy result</button>
+    <button class="btn ghost" id="dmgBtn">Damage</button>
     <button class="btn ghost" id="menuBtn">Menu</button>
   </div>
 </div>
@@ -359,7 +369,7 @@ function music() {
 /* ---------- data ---------- */
 const WEAPONS = {
   bolt:  { name: 'Spark Shot', icon: '➤', col: '#ffe066', max: 6, desc: l => ['', 'Fires sparks at the nearest enemy', 'More damage, faster fire', 'Fires 2 sparks', 'Sparks pierce through an enemy', 'Fires 3 sparks', 'Fires 4 sparks that pierce twice'][l] },
-  orbit: { name: 'Moon Guard', icon: '◉', col: '#7ad7ff', max: 6, desc: l => l === 1 ? '2 moon scythes sweep around you and cut whatever they pass' : (l % 2 ? '' : '+1 scythe, ') + 'much more damage, longer blades' },
+  orbit: { name: 'Moon Guard', icon: '◉', col: '#7ad7ff', max: 6, desc: l => l === 1 ? '2 moon scythes sweep around you and cut whatever they pass' : (l % 2 ? '+1 scythe, ' : '') + 'more damage, longer blades' },
   nova:  { name: 'Pulse', icon: '✺', col: '#ff7ad9', max: 6, desc: l => l === 1 ? 'A shockwave bursts out of you and shoves enemies back' : 'Bigger, stronger, more often' },
   zap:   { name: 'Chain Zap', icon: '⚡', col: '#b69cff', max: 6, desc: l => l === 1 ? 'Lightning jumps between 3 enemies' : '+1 jump, more damage' },
   fly:   { name: 'Fireflies', icon: '✦', col: '#9dff8a', max: 6, desc: l => l === 1 ? 'A homing firefly hunts enemies down for you' : l === 3 ? 'Fireflies now explode on impact' : 'More fireflies, more damage' },
@@ -429,6 +439,7 @@ let P, S, wl, pl, cds;
 let enemies = [], bullets = [], ebullets = [], gems = [], pickups = [], parts = [], texts = [], rings = [], arcs = [];
 let clearWave = null, boss = null, bossCount = 0, nextBoss = 120, nextEvent = 45, spawnAcc = 0;
 let cam = { x: 0, y: 0 }, shakeT = 0, flashT = 0, whiteT = 0, hitstop = 0, banner = null, dieT = 0, winT = 0;
+let src = 'bolt', dmgDone = {}; // which weapon the next hit() comes from, and the damage each one has dealt this run
 let pending = 0, luLock = 0, orbA = 0, frostT = 0, mvx = 0, mvy = 0, xpShow = 0;
 let best = { time: 0, kills: 0, won: false };
 try { best = Object.assign(best, JSON.parse(localStorage.getItem('firefliers.best') || '{}')); } catch (e) {}
@@ -486,6 +497,7 @@ function copyResult() {
 }
 
 function reset() {
+  dmgDone = {}; src = 'bolt';
   T = 0; kills = 0; endless = false; won = false;
   ch = daily ? CHARS[dailyCharId(dday)] : CHARS[save.char] || CHARS.glow; nm = !daily && !!(save.nm && save.won); offerN = 0; spawnN = 0;
   P = { x: 0, y: 0, r: 12, hp: 100, maxhp: 100, speed: 190, inv: 0, dashT: 0, dashCd: 0, dvx: 1, dvy: 0, face: 0, level: 1, xp: 0, next: 6, wing: 0, armor: ch.armor || 0 };
@@ -810,6 +822,7 @@ function hit(e, base, kx, ky, quiet) {
   let d = base * S.dmg; const crit = !quiet && Math.random() < S.crit; if (crit) d *= 2;
   if (e.boss && e.mode === 'inhale') d *= 1.5;
   if (e.boss && e.shield) d *= .8; // the Hive behind its drones // the Maw is soft while its mouth is open
+  dmgDone[src] = (dmgDone[src] || 0) + Math.min(d, Math.max(0, e.hp));
   e.hp -= d; e.flash = .08;
   if (!e.boss && kx !== undefined) { e.kx += kx; e.ky += ky; }
   if (!quiet) {
@@ -877,7 +890,7 @@ function fireBolt() {
 }
 function fireNova() {
   const l = wl.nova, ev = l >= 7, R = (ev ? 300 : 100 + 22 * l) * S.area, dmg = ev ? 100 : 16 + 9 * l;
-  near(P.x, P.y, R + 50, e => { const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1; if (d < R + e.r) hit(e, dmg, dx / d * 430, dy / d * 430); });
+  src = 'nova'; near(P.x, P.y, R + 50, e => { const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1; if (d < R + e.r) hit(e, dmg, dx / d * 430, dy / d * 430); });
   rings.push({ x: P.x, y: P.y, r0: 10, r1: R, life: .35, max: .35, col: '#ff7ad9', w: 7 }); sfx('nova'); shake(3);
 }
 function fireZap() {
@@ -885,7 +898,7 @@ function fireZap() {
   const ev = l >= 7, done = [], dmg = ev ? 55 : 12 + 6 * l; let px = P.x, py = P.y;
   for (let i = 0; i < (ev ? 12 : 2 + l) && cur; i++) {
     arcs.push(mkArc(px, py, cur.x, cur.y)); done.push(cur); px = cur.x; py = cur.y;
-    hit(cur, dmg); burst(px, py, '#b69cff', 3, 120);
+    src = 'zap'; hit(cur, dmg); burst(px, py, '#b69cff', 3, 120);
     if (ev) { const c = cur, bx = px, by = py; rings.push({ x: bx, y: by, r0: 5, r1: 50, life: .2, max: .2, col: '#b69cff', w: 4 }); near(bx, by, 100, o => { if (o !== c && (o.x - bx) ** 2 + (o.y - by) ** 2 < (50 + o.r) ** 2) hit(o, dmg * .4); }); }
     cur = nearest(px, py, 190 * S.area, done);
   }
@@ -910,7 +923,8 @@ function dropSpore() {
   if (z && (z.x - P.x) ** 2 + (z.y - P.y) ** 2 < r * r * .8) { z.life = z.max; return; }
   zones.push({ x: P.x, y: P.y, r, life, max: life, tick: 0, dps: ev ? 48 : 6 + 4.5 * l });
 }
-const orbSpec = () => wl.orbit >= 7 ? { n: 5, Ri: 40, R: 210 * S.area, dmg: 120, w: .55 } : { n: 2 + (wl.orbit >> 1), Ri: 34, R: (105 + 9 * wl.orbit) * S.area, dmg: 2 * (7 + 4 * wl.orbit), w: .45 };
+// scythe blades only cover the outer half of their reach, so anything that gets in close slips under them
+const orbSpec = () => { const o = wl.orbit >= 7 ? { n: 5, R: 190 * S.area, dmg: 70, w: .5 } : { n: 2 + ((wl.orbit - 1) >> 1), R: (100 + 8 * wl.orbit) * S.area, dmg: 8 + 6 * (wl.orbit - 1), w: .45 }; o.Ri = o.R * .5; return o; };
 const frostR = () => (wl.frost >= 7 ? 190 : 85 + 14 * wl.frost) * S.area;
 function weapons(dt) {
   const hs = frenzyT > 0 ? 2 : 1; for (const k in cds) cds[k] -= dt * hs;
@@ -925,9 +939,9 @@ function weapons(dt) {
   if (wl.zap && cds.zap <= 0) cds.zap = fireZap() ? (wl.zap >= 7 ? 1 : 1.5) * S.cd : .15;
   if (wl.fly && cds.fly <= 0) cds.fly = fireFly() ? 1.5 * S.cd : .2;
   if (wl.orbit) {
-    orbA += dt * 2.4; const os = orbSpec(), n = os.n, R = os.R, Ri = os.Ri, w = os.w, dmg = os.dmg;
+    orbA += dt * 2.4 * hs / S.cd; const os = orbSpec(), n = os.n, R = os.R, Ri = os.Ri, w = os.w, dmg = os.dmg;
     // each scythe covers a wedge from Ri out to R, from its cutting edge back by w
-    near(P.x, P.y, R + 40, e => {
+    src = 'orbit'; near(P.x, P.y, R + 40, e => {
       if (e.orbT > 0) return; const ex = e.x - P.x, ey = e.y - P.y, dd = Math.hypot(ex, ey) || 1;
       if (dd > R + e.r || dd < Ri - e.r) return;
       const ea = Math.atan2(ey, ex), tol = w * 1.2 + e.r / dd;
@@ -938,7 +952,7 @@ function weapons(dt) {
     frostT -= dt;
     if (frostT <= 0) {
       frostT = .25; const l = wl.frost, R = frostR();
-      near(P.x, P.y, R + 50, e => { if ((e.x - P.x) ** 2 + (e.y - P.y) ** 2 < (R + e.r) ** 2) { e.slowT = .5; e.slowF = e.boss ? .85 : 1 - (.25 + .05 * l); hit(e, (6 + 5 * l) * .25, undefined, undefined, true); } });
+      src = 'frost'; near(P.x, P.y, R + 50, e => { if ((e.x - P.x) ** 2 + (e.y - P.y) ** 2 < (R + e.r) ** 2) { e.slowT = .5; e.slowF = e.boss ? .85 : 1 - (.25 + .05 * l); hit(e, (6 + 5 * l) * .25, undefined, undefined, true); } });
     }
   }
 }
@@ -968,7 +982,7 @@ function ringOfLight(poly) {
   for (const e of enemies.slice()) if (!e.dead && inPoly(e.x, e.y, poly)) {
     c++; const ready = e.boss && !(e.flareCd > T), corona = ready && e.kind === 2; // bosses shrug off the special effect for a while after it lands
     if (corona) { e.stun = 2.5; e.beam = 0; e.bt = 3; e.flareCd = T + 9; say('Corona broken!', '', 1.6); award('corona'); } else if (ready && e.kind === 4) { e.stun = 1.5; e.flareCd = T + 6; }
-    hit(e, tut ? 99999 : corona ? dmg * 3 : dmg);
+    src = 'flare'; hit(e, tut ? 99999 : corona ? dmg * 3 : dmg);
   }
   webs = webs.filter(w => !inPoly(w.x, w.y, poly));
   for (const g of gems) if (inPoly(g.x, g.y, poly)) { g.pull = true; g.sp = g.sp || 300; }
@@ -1004,7 +1018,7 @@ function flightUpdate(dt) {
     syncT = 2.4;
     if (flight.length) {
       const dmg = 5 + .4 * flight.length;
-      for (const f of flight) { f.fl = .3; near(f.x, f.y, 90, e => { if ((e.x - f.x) ** 2 + (e.y - f.y) ** 2 < (40 + e.r) ** 2) hit(e, dmg, undefined, undefined, true); }); }
+      src = 'flight'; for (const f of flight) { f.fl = .3; near(f.x, f.y, 90, e => { if ((e.x - f.x) ** 2 + (e.y - f.y) ** 2 < (40 + e.r) ** 2) hit(e, dmg, undefined, undefined, true); }); }
     }
   }
   // strays wait out in the dark to be rescued
@@ -1135,7 +1149,7 @@ function update(dt) {
   if (P.dashT > 0) {
     P.dashT -= dt; P.x += P.dvx * 840 * dt; P.y += P.dvy * 840 * dt; if (P.dashT <= 0) flare();
     parts.push({ x: P.x, y: P.y, vx: 0, vy: 0, life: .25, max: .25, col: '#ffe066', s: 10 });
-    near(P.x, P.y, 60, e => { if (e.orbT <= 0 && (e.x - P.x) ** 2 + (e.y - P.y) ** 2 < (e.r + 20) ** 2) { e.orbT = .3; hit(e, 18, P.dvx * 300, P.dvy * 300); } });
+    near(P.x, P.y, 60, e => { if (e.orbT <= 0 && (e.x - P.x) ** 2 + (e.y - P.y) ** 2 < (e.r + 20) ** 2) { e.orbT = .3; src = 'dash'; hit(e, 18, P.dvx * 300, P.dvy * 300); } });
   } else { P.x += ix * mag * P.speed * ws * dt; P.y += iy * mag * P.speed * ws * dt; }
   frameMove = Math.hypot(P.x - ox, P.y - oy);
   P.wing += dt * (mag ? 34 : 18);
@@ -1233,7 +1247,7 @@ function update(dt) {
     near(b.x, b.y, b.r + 60, e => {
       if (b.dead || b.hit.includes(e)) return; const rr = b.r + e.r;
       if ((e.x - b.x) ** 2 + (e.y - b.y) ** 2 < rr * rr) {
-        hit(e, b.dmg, b.vx * .12, b.vy * .12);
+        src = b.k; hit(e, b.dmg, b.vx * .12, b.vy * .12);
         if (b.boom) {
           const R = 52 * S.area; rings.push({ x: b.x, y: b.y, r0: 6, r1: R, life: .22, max: .22, col: '#9dff8a', w: 4 });
           near(b.x, b.y, R + 50, o => { if (o !== e && (o.x - b.x) ** 2 + (o.y - b.y) ** 2 < (R + o.r) ** 2) hit(o, b.dmg * .5); });
@@ -1257,7 +1271,7 @@ function update(dt) {
   // spore clouds
   for (const z of zones) {
     z.life -= dt; z.tick -= dt;
-    if (z.tick <= 0) { z.tick = .25; near(z.x, z.y, z.r + 50, e => { if ((e.x - z.x) ** 2 + (e.y - z.y) ** 2 < (z.r + e.r) ** 2) hit(e, z.dps * .25, undefined, undefined, true); }); }
+    if (z.tick <= 0) { z.tick = .25; src = 'spore'; near(z.x, z.y, z.r + 50, e => { if ((e.x - z.x) ** 2 + (e.y - z.y) ** 2 < (z.r + e.r) ** 2) hit(e, z.dps * .25, undefined, undefined, true); }); }
   }
   zones = zones.filter(z => z.life > 0);
   // enemy bullets
@@ -1284,11 +1298,11 @@ function update(dt) {
       else if (k.kind === 'magnet') { for (const g of gems) { g.pull = true; g.sp = g.sp || 300; } rings.push({ x: P.x, y: P.y, r0: 500, r1: 20, life: .5, max: .5, col: '#6fd3ff', w: 5 }); }
       else if (k.kind === 'zap') { // thunderclap: lightning finds the toughest few on screen
         const R = viewR(), tg = enemies.filter(e => !e.dead && (e.x - P.x) ** 2 + (e.y - P.y) ** 2 < R * R).sort((a, b) => b.hp - a.hp).slice(0, 7);
-        for (const e of tg) { arcs.push(mkArc(P.x, P.y, e.x, e.y)); burst(e.x, e.y, '#b69cff', 8, 200); hit(e, (140 + T * .6) / S.dmg); }
+        for (const e of tg) { arcs.push(mkArc(P.x, P.y, e.x, e.y)); burst(e.x, e.y, '#b69cff', 8, 200); src = 'power'; hit(e, (140 + T * .6) / S.dmg); }
         sfx('zap'); shake(8);
       } else if (k.kind === 'blast') { // fire ring: a burst around you that shoves things back
         const R = 270, dmg = (45 + T * .3) / S.dmg; rings.push({ x: P.x, y: P.y, r0: 20, r1: R, life: .45, max: .45, col: '#ff9a4d', w: 12 }); shake(10); sfx('boom');
-        for (const e of enemies.slice()) { const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1; if (!e.dead && d < R + e.r) hit(e, dmg, dx / d * 520, dy / d * 520); }
+        for (const e of enemies.slice()) { const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1; if (!e.dead && d < R + e.r) { src = 'power'; hit(e, dmg, dx / d * 520, dy / d * 520); } }
       } else if (k.kind === 'freeze') { // cold snap: everything on screen stops for a moment
         const R = viewR() + 40; rings.push({ x: P.x, y: P.y, r0: 20, r1: R, life: .5, max: .5, col: '#9ff0ff', w: 10 }); sfx('nova');
         for (const e of enemies) if ((e.x - P.x) ** 2 + (e.y - P.y) ** 2 < R * R) { if (e.boss) { e.slowT = 3; e.slowF = .5; } else e.frz = 3; }
@@ -1416,6 +1430,16 @@ function saveBest() {
   return nb;
 }
 function bestLine() { return best.time > 0 ? 'Best: ' + (best.score ? num(best.score) + ' pts · ' : '') + fmt(best.time) + ' · ' + num(best.kills) + ' squashed' + (best.won ? ' ★ saw the dawn' : '') : ''; }
+const DMG_SRC = { flare: ['Dash flare', '#ffe9a0'], dash: ['Dash', '#ffd76a'], flight: ['Firefly flash', '#fff3b0'], power: ['Pickups', '#ff9a4d'] };
+// bars for every source of damage this run, biggest first
+function dmgHTML() {
+  const rows = Object.entries(dmgDone).filter(r => r[1] >= 1).sort((a, b) => b[1] - a[1]), top = rows.length ? rows[0][1] : 1, tot = rows.reduce((a, r) => a + r[1], 0) || 1;
+  if (!rows.length) return '<div class="dmgEmpty">Nothing hit yet.</div>';
+  return rows.map(([k, v]) => {
+    const w = WEAPONS[k], nm = w ? (wl[k] >= 7 && EVO[k] ? EVO[k].name : w.name) : DMG_SRC[k] ? DMG_SRC[k][0] : k, col = w ? w.col : DMG_SRC[k] ? DMG_SRC[k][1] : '#ffffff', ic = w ? w.icon : '✦';
+    return '<div class="dmgRow" style="--c:' + col + '"><span class="dn"><i>' + ic + '</i>' + nm + '</span><span class="db"><span style="width:' + (v / top * 100).toFixed(1) + '%"></span></span><b>' + num(Math.round(v)) + '</b><em>' + Math.round(v / tot * 100) + '%</em></div>';
+  }).join('');
+}
 function finish(win) {
   if (win) wonW = scoreParts(true).w; // kept so an endless run after the win still counts its dawn bonus
   if (win) { award('dawn'); if (nm) award('nm'); if (Object.keys(wl).length <= 3) award('mini'); }
@@ -1442,6 +1466,7 @@ function finish(win) {
     $('shareBtn').textContent = 'Copy result';
 
   }
+  $('overDmg').innerHTML = dmgHTML(); $('overDmg').classList.add('hidden'); $('dmgBtn').textContent = 'Damage';
   $('over').classList.remove('hidden'); $('topbtns').classList.add('hidden'); $('dashBtn').classList.add('hidden');
   if (win) sfx('win');
 }
@@ -1452,7 +1477,7 @@ function start(d, tutorial) {
   $('topbtns').classList.remove('hidden'); $('dashBtn').classList.toggle('hidden', !touchUI);
 }
 function togglePause(force) {
-  if (state === 'play' && force !== false) { state = 'pause'; $('pauseBuild').innerHTML = buildHTML(); $('pause').classList.remove('hidden'); }
+  if (state === 'play' && force !== false) { state = 'pause'; $('pauseBuild').innerHTML = buildHTML(); $('pauseDmg').innerHTML = dmgHTML(); $('pause').classList.remove('hidden'); }
   else if (state === 'pause' && force !== true) { state = 'play'; $('pause').classList.add('hidden'); last = performance.now(); }
 }
 function toggleMute() {
@@ -1489,6 +1514,7 @@ function toMenu() {
 buildStart();
 (() => { const f = $('flies'); for (let i = 0; i < 18; i++) { const e = document.createElement('i'); e.style.cssText = 'left:' + rand(2, 96) + '%;top:' + rand(4, 94) + '%;--d:' + rand(7, 15).toFixed(1) + 's;--dl:-' + rand(0, 15).toFixed(1) + 's;--dx:' + rand(-70, 70).toFixed(0) + 'px;--dy:' + rand(-60, 30).toFixed(0) + 'px'; f.appendChild(e); } })();
 $('nmBtn').onclick = () => { if (!save.won) return; save.nm = !save.nm; persist(); buildStart(); };
+$('dmgBtn').onclick = () => { const h = $('overDmg').classList.toggle('hidden'); $('dmgBtn').textContent = h ? 'Damage' : 'Hide damage'; };
 $('menuBtn').onclick = toMenu; $('quitBtn').onclick = toMenu; $('rerollBtn').onclick = reroll;
 $('howBtn').onclick = () => start(false, true);
 $('statsBtn').onclick = showStats; $('statsBack').onclick = () => { $('stats').classList.add('hidden'); $('start').classList.remove('hidden'); };
@@ -1785,11 +1811,12 @@ function render() {
     ctx.globalCompositeOperation = 'lighter';
     for (let i = 0; i < n; i++) {
       const a = orbA + i / n * TAU;
-      ctx.fillStyle = evo ? 'rgba(170,210,255,.11)' : 'rgba(122,215,255,.08)'; ctx.beginPath(); ctx.arc(P.x, P.y, Ro, a - w * 1.7, a); ctx.arc(P.x, P.y, Ri, a, a - w * 1.7, true); ctx.closePath(); ctx.fill(); // the sweep it leaves behind
+      ctx.fillStyle = evo ? 'rgba(170,210,255,.11)' : 'rgba(122,215,255,.08)'; ctx.beginPath(); ctx.arc(P.x, P.y, Ro, a - w * 1.05, a); ctx.arc(P.x, P.y, Ri, a, a - w * 1.05, true); ctx.closePath(); ctx.fill(); // the sweep it leaves behind
       // the blade: a crescent whose cutting edge bows forward
       const p0 = pt(Ri, a - w * .55), c1 = pt(Rm * 1.05, a + w * .5), p1 = pt(Ro, a), c2 = pt(Rm * .95, a - w * .05);
       ctx.fillStyle = evo ? 'rgba(225,238,255,.85)' : 'rgba(200,240,255,.72)'; ctx.beginPath(); ctx.moveTo(p0[0], p0[1]); ctx.quadraticCurveTo(c1[0], c1[1], p1[0], p1[1]); ctx.quadraticCurveTo(c2[0], c2[1], p0[0], p0[1]); ctx.fill();
       ctx.strokeStyle = '#ffffff'; ctx.lineWidth = evo ? 3 : 2; ctx.beginPath(); ctx.moveTo(p0[0], p0[1]); ctx.quadraticCurveTo(c1[0], c1[1], p1[0], p1[1]); ctx.stroke();
+      const h = pt(P.r + 6, a - w * .55); ctx.strokeStyle = 'rgba(160,215,255,.35)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(h[0], h[1]); ctx.lineTo(p0[0], p0[1]); ctx.stroke(); // the handle
       ctx.drawImage(glow('#7ad7ff'), p0[0] - 18, p0[1] - 18, 36, 36);
     }
     ctx.globalCompositeOperation = 'source-over';
@@ -1946,7 +1973,7 @@ reset(); state = 'menu';
 requestAnimationFrame(frame);
 
 // small hook for automated playtests
-window.__glow = { get state() { return state; }, get T() { return T; }, get P() { return P; }, get enemies() { return enemies; }, get ebullets() { return ebullets; },
+window.__glow = { get dmgDone() { return dmgDone; }, get state() { return state; }, get T() { return T; }, get P() { return P; }, get enemies() { return enemies; }, get ebullets() { return ebullets; },
   get kills() { return kills; }, get wl() { return wl; }, get pl() { return pl; }, get gems() { return gems; }, get pickups() { return pickups; }, get flight() { return flight; }, get strays() { return strays; }, get shocks() { return shocks; }, get dmgLog() { return dmgLog; }, get webs() { return webs; }, get bossOrder() { return bossOrder; }, setBosses: a => { bossOrder = a; }, award, showStats, get rings() { return ringsMade; }, scoreParts, get boss() { return boss; }, keys, update, choose, start, dash, render, save, reroll, toMenu, music, shareText, get lastDaily() { return lastDaily; } };
 })();
 </script>
