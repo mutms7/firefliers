@@ -1811,12 +1811,11 @@ function render() {
     ctx.globalCompositeOperation = 'lighter';
     for (let i = 0; i < n; i++) {
       const a = orbA + i / n * TAU;
-      ctx.fillStyle = evo ? 'rgba(170,210,255,.11)' : 'rgba(122,215,255,.08)'; ctx.beginPath(); ctx.arc(P.x, P.y, Ro, a - w * 1.05, a); ctx.arc(P.x, P.y, Ri, a, a - w * 1.05, true); ctx.closePath(); ctx.fill(); // the sweep it leaves behind
+      ctx.fillStyle = evo ? 'rgba(170,210,255,.11)' : 'rgba(122,215,255,.08)'; ctx.beginPath(); ctx.arc(P.x, P.y, Ro, a - w * .5, a); ctx.arc(P.x, P.y, Ri, a, a - w * .5, true); ctx.closePath(); ctx.fill(); // the sweep it leaves behind
       // the blade: a crescent whose cutting edge bows forward
-      const p0 = pt(Ri, a - w * .55), c1 = pt(Rm * 1.05, a + w * .5), p1 = pt(Ro, a), c2 = pt(Rm * .95, a - w * .05);
+      const p0 = pt(Ri, a - w * .12), c1 = pt(Rm, a + w * .38), p1 = pt(Ro, a), c2 = pt(Rm, a + w * .1); // a crescent lying along the front edge of the sweep
       ctx.fillStyle = evo ? 'rgba(225,238,255,.85)' : 'rgba(200,240,255,.72)'; ctx.beginPath(); ctx.moveTo(p0[0], p0[1]); ctx.quadraticCurveTo(c1[0], c1[1], p1[0], p1[1]); ctx.quadraticCurveTo(c2[0], c2[1], p0[0], p0[1]); ctx.fill();
       ctx.strokeStyle = '#ffffff'; ctx.lineWidth = evo ? 3 : 2; ctx.beginPath(); ctx.moveTo(p0[0], p0[1]); ctx.quadraticCurveTo(c1[0], c1[1], p1[0], p1[1]); ctx.stroke();
-      const h = pt(P.r + 6, a - w * .55); ctx.strokeStyle = 'rgba(160,215,255,.35)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(h[0], h[1]); ctx.lineTo(p0[0], p0[1]); ctx.stroke(); // the handle
       ctx.drawImage(glow('#7ad7ff'), p0[0] - 18, p0[1] - 18, 36, 36);
     }
     ctx.globalCompositeOperation = 'source-over';
