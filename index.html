@@ -924,7 +924,7 @@ function dropSpore() {
   zones.push({ x: P.x, y: P.y, r, life, max: life, tick: 0, dps: ev ? 48 : 6 + 4.5 * l });
 }
 // scythe blades only cover the outer half of their reach, so anything that gets in close slips under them
-const orbSpec = () => { const o = wl.orbit >= 7 ? { n: 5, R: 190 * S.area, dmg: 70, w: .5 } : { n: 2 + ((wl.orbit - 1) >> 1), R: (100 + 8 * wl.orbit) * S.area, dmg: 8 + 6 * (wl.orbit - 1), w: .45 }; o.Ri = o.R * .5; return o; };
+const orbSpec = () => { const o = wl.orbit >= 7 ? { n: 5, R: 190 * S.area, dmg: 70, w: .5 } : { n: 2 + ((wl.orbit - 1) >> 1), R: (100 + 8 * wl.orbit) * S.area, dmg: 14 + 6 * (wl.orbit - 1), w: .45 }; o.Ri = o.R * .5; return o; };
 const frostR = () => (wl.frost >= 7 ? 190 : 85 + 14 * wl.frost) * S.area;
 function weapons(dt) {
   const hs = frenzyT > 0 ? 2 : 1; for (const k in cds) cds[k] -= dt * hs;
