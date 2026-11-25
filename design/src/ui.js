@@ -53,7 +53,7 @@ const IMG = {
 function kitCSS() {
   const b = (img, slice) => 'border-style:solid;border-image:url(' + uri(img) + ') ' + slice + ' fill / ' + (slice * U) + 'px stretch;image-rendering:pixelated;';
   return `
-  .k-btn{font:inherit;font-size:16px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:#1d1404;padding:6px 18px 9px;${b(KIT.btn, 3)}background:none;cursor:pointer;min-height:42px}
+  .k-btn{font:inherit;font-size:20px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:#1d1404;padding:6px 18px 9px;${b(KIT.btn, 3)}background:none;cursor:pointer;min-height:42px}
   .k-btn:hover,.k-btn.is-hover{${b(KIT.btnHover, 3)}} .k-btn:active,.k-btn.is-down{${b(KIT.btnDown, 3)}padding:9px 18px 6px}
   .k-btn:disabled,.k-btn.is-off{${b(KIT.btnOff, 3)}color:#5d6563;cursor:not-allowed}
   .k-btn.stone{color:#e9e4d6;${b(KIT.stone, 3)}} .k-btn.stone:hover,.k-btn.stone.is-hover{${b(KIT.stoneHover, 3)}} .k-btn.stone:active,.k-btn.stone.is-down{${b(KIT.stoneDown, 3)}}
@@ -66,7 +66,7 @@ function kitCSS() {
   .k-tabs{display:flex;gap:4px;margin-bottom:-3px;position:relative;z-index:1}
   .k-tab{font:inherit;color:#8d9491;padding:6px 14px 4px;${b(KIT.tabOff, 3)}border-bottom-width:0;background:none;cursor:pointer}
   .k-tab[aria-selected="true"]{color:#e9e4d6;${b(KIT.tab, 3)}border-bottom-width:0}
-  .k-key{display:inline-grid;place-items:center;min-width:30px;height:30px;padding:0 6px 3px;font-size:14px;color:#1a1e20;${b(KIT.key, 3)}}
+  .k-key{display:inline-grid;place-items:center;min-width:30px;height:30px;padding:0 6px 3px;font-size:18px;color:#1a1e20;${b(KIT.key, 3)}}
   .k-toggle{appearance:none;width:${22 * U}px;height:${12 * U}px;background:url(${uri(IMG.toggleOff)}) 0 0/100% 100%;image-rendering:pixelated;cursor:pointer;margin:0}
   .k-toggle:checked{background-image:url(${uri(IMG.toggleOn)})} .k-toggle:focus-visible,.k-check:focus-visible,.k-radio:focus-visible{outline:3px solid #e9e4d6;outline-offset:3px}
   .k-check{appearance:none;width:${11 * U}px;height:${11 * U}px;background:url(${uri(IMG.boxOff)}) 0 0/100% 100%;image-rendering:pixelated;cursor:pointer;margin:0}
@@ -83,7 +83,7 @@ function kitCSS() {
   .k-selwrap{position:relative;display:block}.k-selwrap::after{content:"";position:absolute;right:14px;top:50%;width:${5 * U}px;height:${3 * U}px;margin-top:${-1.5 * U}px;background:url(${uri(IMG.arrowDown)}) 0 0/100% 100%;image-rendering:pixelated;pointer-events:none}
   .k-bar.boss{${b(KIT.bossBar, 3)}border-width:${3 * U}px}
   .k-bar{position:relative;height:${8 * U}px;${b(KIT.inset, 3)}border-width:${3 * U}px} .k-bar i{position:absolute;inset:0 auto 0 0;display:block}
-  .k-tip{position:relative;display:inline-block;padding:6px 10px 7px;font-size:13px;${b(KIT.tip, 3)}}
+  .k-tip{position:relative;display:inline-block;padding:6px 10px 7px;font-size:17px;${b(KIT.tip, 3)}}
   .k-tip::after{content:"";position:absolute;left:50%;bottom:${-6 * U}px;width:${7 * U}px;height:${5 * U}px;margin-left:${-3.5 * U}px;background:url(${uri(IMG.tipPoint)}) 0 0/100% 100%;image-rendering:pixelated}
   .k-toast{display:inline-flex;gap:10px;align-items:center;padding:6px 14px 8px;${b(KIT.toast, 4)}}
   .k-pips{display:inline-flex;gap:3px} .k-pips i{width:${7 * U}px;height:${7 * U}px;background:url(${uri(IMG.pipOff)}) 0 0/100% 100%;image-rendering:pixelated}

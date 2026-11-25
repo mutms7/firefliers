@@ -49,8 +49,8 @@ function TreeView(host) {
   function draw() {
     const c = cv.getContext('2d'); c.imageSmoothingEnabled = false; c.fillStyle = '#06090a'; c.fillRect(0, 0, cv.width, cv.height);
     c.drawImage(lowres, Math.round(pan[0]), Math.round(pan[1]), LW * S, LH * S);
-    c.font = '16px "DotGothic16", monospace'; c.textAlign = 'center'; c.textBaseline = 'top';
-    for (const t of TREE) { const n = NODE[t[0]], [x, y] = at(n), s = nodeState(n), sx = pan[0] + x * S, sy = pan[1] + y * S + 38; c.fillStyle = '#000c'; c.fillText(n.name, sx, sy + 2); c.fillStyle = s === 'owned' ? '#e9e4d6' : s === 'open' ? BR[n.br].col : '#5d6563'; c.fillText(n.name, sx, sy); }
+    c.font = '20px "Jersey 20", monospace'; c.textAlign = 'center'; c.textBaseline = 'top';
+    for (const t of TREE) { const n = NODE[t[0]], [x, y] = at(n), s = nodeState(n), sx = pan[0] + x * S, sy = pan[1] + y * S + 36; c.fillStyle = '#000c'; c.fillText(n.name, sx, sy + 2); c.fillStyle = s === 'owned' ? '#e9e4d6' : s === 'open' ? BR[n.br].col : '#5d6563'; c.fillText(n.name, sx, sy); }
     if (sel) { const [x, y] = at(sel), sx = pan[0] + x * S, sy = pan[1] + y * S; c.strokeStyle = '#ffffff'; c.lineWidth = 2; c.setLineDash([6, 6]); c.lineDashOffset = -(performance.now() / 60); c.beginPath(); c.arc(sx, sy, 42, 0, TAU); c.stroke(); c.setLineDash([]); }
   }
   function showCard() {
