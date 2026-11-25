@@ -3,128 +3,117 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  /* Layout: one long review sheet, a section per family of assets, pixel art always at whole-number scale. Single dark look, matching the game. */
+  /* Layout: a walkable hub up top, then the tree, then everything else as a review sheet. Pixel art always at whole-number scale. Single dark look, matching the game. */
   :root{--bg:#0a0c0d;--panel:#0e1213;--stage:#111a1b;--ink:#e9e4d6;--dim:#8d9491;--mute:#5d6563;--line:#283030;--line2:#465150;--gold:#f2c14e;--mint:#7fd6c2;--red:#e8604c;
     --px:"Pixelify Sans",ui-monospace,Consolas,monospace;color-scheme:dark}
   *{box-sizing:border-box}
+  [hidden]{display:none!important}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--px);font-variant-ligatures:none;line-height:1.45}
-  .wrap{max-width:1180px;margin:0 auto;padding-block:28px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-  header{display:grid;gap:10px;margin-bottom:10px}
-  h1{margin:0;font-size:clamp(34px,6vw,58px);letter-spacing:.04em;line-height:1;color:var(--gold);text-shadow:0 4px 0 #140c03;text-wrap:balance}
-  .lede{max-width:68ch;color:var(--dim);margin:0;font-size:16px}
-  .lede b{color:var(--ink);font-weight:500}
-  nav{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 6px}
+  .wrap{max-width:1180px;margin:0 auto;padding-block:26px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  h1{margin:0;font-size:clamp(34px,6vw,56px);letter-spacing:.04em;line-height:1;color:var(--gold);text-shadow:0 4px 0 #140c03}
+  .lede{max-width:62ch;color:var(--dim);margin:10px 0 0;font-size:16px}
+  nav{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 0}
   nav a{color:var(--ink);text-decoration:none;font-size:13px;padding:4px 9px;border:1px solid var(--line2);background:#0c1011}
   nav a:hover,nav a:focus-visible{border-color:var(--gold);color:var(--gold);outline:none}
-  section{padding-top:30px;margin-top:22px;border-top:1px solid var(--line)}
-  h2{margin:0 0 4px;font-size:26px;letter-spacing:.05em;text-transform:uppercase;text-wrap:balance}
-  h2 small{font-size:13px;color:var(--mute);letter-spacing:.2em;margin-left:8px}
-  h3{margin:20px 0 8px;font-size:15px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute);font-weight:500}
-  .intro{color:var(--dim);max-width:70ch;margin:0 0 12px}
+  section{padding-top:28px;margin-top:22px;border-top:1px solid var(--line)}
+  h2{margin:0 0 4px;font-size:26px;letter-spacing:.05em;text-transform:uppercase}
+  h3{margin:18px 0 8px;font-size:14px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute);font-weight:500}
+  .intro{color:var(--dim);max-width:66ch;margin:0 0 12px}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+  .grid.wide{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
   .card{margin:0;background:var(--panel);border:1px solid var(--line);display:flex;flex-direction:column;min-width:0}
-  .card.wide{grid-column:span 2}
+  .card.big{grid-column:span 2}
   .stage{flex:1;display:grid;place-items:center;padding:14px 8px;min-height:120px;background:var(--stage);overflow:hidden}
-  .stage canvas{max-width:100%}
+  .stage canvas{max-width:100%;height:auto}
   figcaption{padding:7px 9px 9px;display:grid;gap:2px;border-top:1px solid var(--line)}
-  figcaption b{font-weight:600;font-size:14px}
-  figcaption span{font-size:12px;color:var(--dim);line-height:1.35}
-  canvas.px,img.pxi{image-rendering:pixelated;image-rendering:crisp-edges}
-  img.pxi{vertical-align:middle}
-  .mapwrap{position:relative;overflow-x:auto;border:1px solid var(--line);background:#06090a}
-  .mapin{position:relative;width:max(100%,760px)}
-  canvas.map{display:block;width:100%;height:auto}
-  .pin{position:absolute;transform:translate(-50%,-50%);width:26px;height:26px;display:grid;place-items:center;font-size:14px;font-weight:700;color:#1d1404;background:var(--gold);border:2px solid #1d1404;box-shadow:0 3px 0 #000a}
-  .pin.locked{background:#465150;color:#e9e4d6}
-  ol.legend{list-style:none;padding:0;margin:14px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
-  ol.legend li{display:flex;gap:10px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);padding:9px 10px}
-  ol.legend li .pin{position:static;transform:none;flex:none}
-  ol.legend li b{display:block;font-size:15px}ol.legend li span{font-size:13px;color:var(--dim)}
-  ol.legend li.locked b{color:var(--dim)}
-  .rule{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin:0 0 14px}
-  .rule div{background:var(--panel);border:1px solid var(--line);padding:9px 11px;font-size:13px;color:var(--dim)}
-  .rule b{display:block;color:var(--ink);font-size:14px;font-weight:600;margin-bottom:2px}
-  .kitgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
+  figcaption b{font-weight:600;font-size:14px} figcaption span{font-size:12px;color:var(--dim)}
+  canvas.px,img.pxi{image-rendering:pixelated;image-rendering:crisp-edges} img.pxi{vertical-align:middle}
+  /* the walkable hub */
+  .hollow{position:relative;height:clamp(380px,62vh,620px);border:2px solid var(--line2);background:#06090a;overflow:hidden;outline:none;touch-action:none}
+  .hollow:focus-visible{border-color:var(--gold)}
+  .hollow-cv{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+  .hollow-start{z-index:2;position:absolute;inset:0;margin:auto;width:max-content;height:max-content;font:inherit;font-size:16px;color:#1d1404;background:var(--gold);border:2px solid #1d1404;padding:10px 18px;box-shadow:0 4px 0 #000a;cursor:pointer}
+  .hollow-hint{z-index:2;position:absolute;left:50%;bottom:16px;transform:translateX(-50%)}
+  .hint-btn{font:inherit;font-size:15px;color:var(--ink);display:inline-flex;gap:8px;align-items:center;background:rgba(6,9,10,.75);border:1px solid var(--line2);padding:5px 12px 5px 6px;cursor:pointer;text-shadow:0 2px 0 #000}
+  .hollow-toast{z-index:2;position:absolute;left:50%;top:16px;transform:translateX(-50%);background:#141410;border:1px solid #7c6630;border-left:3px solid var(--gold);padding:7px 14px;font-size:14px;display:flex;gap:8px;align-items:center;white-space:nowrap}
+  .hollow-ov{z-index:2;position:absolute;inset:0;background:rgba(4,6,7,.62);display:grid;place-items:center;padding:14px}
+  .ov-panel{width:min(820px,100%);max-height:100%;display:flex;flex-direction:column;gap:10px}
+  .ov-head{display:flex;justify-content:space-between;align-items:center;gap:10px} .ov-head h3{margin:0;color:var(--gold);font-size:18px;letter-spacing:.08em}
+  .ov-tree{height:min(420px,52vh)}
+  .controls{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;color:var(--dim);font-size:14px;align-items:center}
+  .stations{list-style:none;padding:0;margin:12px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px}
+  .stations li{background:var(--panel);border:1px solid var(--line);padding:7px 10px;font-size:14px} .stations li span{color:var(--dim)} .stations li.locked{color:var(--mute)}
+  .pick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .pick-b{font:inherit;color:var(--ink);display:grid;justify-items:center;gap:4px;padding:12px 6px;background:#0c1011;border:1px solid var(--line2);cursor:pointer}
+  .pick-b.on{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)} .pick-b:disabled{cursor:not-allowed;color:var(--mute)} .pick-b span{font-size:12px;color:var(--dim)}
+  .daily{display:flex;gap:14px;align-items:center} .daily b{display:block;font-size:17px} .daily span{display:block;font-size:13px;color:var(--dim)}
+  .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+  .stats div{background:#0c1011;padding:10px 6px;font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;text-align:center} .stats b{display:block;font-size:24px;color:var(--ink);letter-spacing:0}
+  /* the tree */
+  .tree{position:relative;height:100%;min-height:360px;border:1px solid var(--line);background:#06090a;overflow:hidden;cursor:grab;touch-action:none;outline:none}
+  .tree:focus-visible{border-color:var(--gold)} .tree canvas{position:absolute;inset:0;width:100%;height:100%}
+  .tree-bal{position:absolute;left:12px;top:10px;font-size:20px;text-shadow:0 2px 0 #000}
+  .tree-card{position:absolute;right:10px;bottom:10px;width:min(300px,calc(100% - 20px));display:grid;gap:8px}
+  .tc{display:flex;gap:10px;align-items:center} .tc b{display:block;font-size:16px} .tc span{font-size:13px;color:var(--dim)}
+  .tc-own{color:var(--mint);display:flex;gap:6px;align-items:center;font-size:14px} .tc-need{color:var(--dim);font-size:13px} .tc-hint{margin:0;color:var(--dim);font-size:13px}
+  .tree-card .k-btn{display:inline-flex;gap:6px;align-items:center;justify-content:center}
+  #tree{height:clamp(420px,64vh,600px)}
+  .branches{display:flex;flex-wrap:wrap;gap:6px 16px;margin:0 0 10px;font-size:14px;color:var(--dim)} .branches b{font-weight:600}
+  .mapwrap{overflow-x:auto;border:1px solid var(--line);background:#06090a} .mapin{width:max(100%,760px)} canvas.map{display:block;width:100%;height:auto}
+  .kitgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:12px}
   .kitbox{background:var(--panel);border:1px solid var(--line);padding:14px;display:grid;gap:12px;align-content:start;min-width:0}
-  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-  .row.end{justify-content:flex-end;margin-top:10px}
-  .field{display:grid;grid-template-columns:110px minmax(0,1fr) 34px;gap:10px;align-items:center;font-size:14px}
-  .field output{color:var(--dim);font-variant-numeric:tabular-nums;text-align:right}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center} .row.end{justify-content:flex-end}
+  .field{display:grid;grid-template-columns:80px minmax(0,1fr) 30px;gap:10px;align-items:center;font-size:14px} .field output{color:var(--dim);text-align:right;font-variant-numeric:tabular-nums}
   .opt{display:inline-flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
-  .bars{display:grid;gap:8px} .bars small{color:var(--dim);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
-  .price{display:inline-flex;gap:6px;align-items:center;font-size:16px;color:var(--gold)} .price.poor{color:var(--red)}
+  .bars{display:grid;gap:8px}
+  .price{display:inline-flex;gap:6px;align-items:center;font-size:16px;color:var(--gold)}
   .prompt{display:inline-flex;gap:8px;align-items:center;font-size:14px}
-  .curs{display:inline-flex;gap:10px;align-items:center;padding:10px 12px;border:1px dashed var(--line2);font-size:13px;color:var(--dim)}
-  .screens{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:14px}
-  .screens>div{min-width:0}
-  .screen-shop .shop-head{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;margin-bottom:10px}
-  .shop-head h3,.screen-set h3,.screen-lock h3,.screen-sum h3{margin:0;color:var(--gold);font-size:20px;letter-spacing:.06em}
-  .say{margin:4px 0 0;color:var(--dim);font-size:14px}
-  .balance{display:inline-flex;gap:6px;align-items:center;font-size:20px;color:var(--gold);align-self:start}
-  .shop-list{display:grid;gap:4px;max-height:430px;overflow-y:auto}
-  .shop-row{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 4px;border-bottom:1px solid var(--line)}
-  .sr-t{display:grid;gap:3px}.sr-t b{font-size:15px}.sr-t span{font-size:12.5px;color:var(--dim)}
-  .shop-row .k-btn{display:inline-flex;gap:6px;align-items:center;font-size:15px;padding-inline:12px}
-  .maxed{display:inline-flex;gap:6px;align-items:center;color:var(--mint);font-size:14px}
-  .screen-set h3{display:flex;gap:8px;align-items:center;margin-bottom:10px}
-  .set-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
-  .set-grid>div{display:grid;gap:10px;align-content:start}
-  .set-grid h4{margin:0;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute);font-weight:500}
-  .set-grid .field{grid-template-columns:minmax(0,1fr) 30px}.set-grid .field>span{grid-column:1/-1}
-  .note{margin:0;font-size:13px;color:var(--dim)}
-  .screen-lock{display:flex;gap:16px;align-items:center}.screen-lock p{color:var(--dim);margin:6px 0 12px}
-  .screen-dialog{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:start}
-  .portrait{padding:6px;background:#06090a;border:2px solid #465150}
-  .nameplate{display:inline-block;background:var(--gold);color:#1d1404;padding:2px 10px;font-size:14px;letter-spacing:.06em}
-  .screen-dialog p{margin:8px 0 10px;font-size:15px}
-  .hudmock{position:relative;height:190px;border:1px solid var(--line);background-color:#0d1715}
-  .hudmock .amt{position:absolute;left:12px;top:12px;display:inline-flex;gap:6px;align-items:center;font-size:20px;color:var(--gold);text-shadow:0 2px 0 #000}
-  .hudmock .right{position:absolute;right:10px;top:10px}
-  .hudmock .hint{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);display:inline-flex;gap:8px;align-items:center;font-size:15px;text-shadow:0 2px 0 #000;white-space:nowrap}
-  .sum-amber{display:flex;gap:14px;align-items:center;margin-top:10px}.sum-amber b{display:block;font-size:24px;color:var(--gold)}.sum-amber span{font-size:13px;color:var(--dim)}
-  .ask{margin-top:30px;background:#141410;border:1px solid #7c6630;border-left:4px solid var(--gold);padding:14px 16px;max-width:76ch}
-  .ask b{color:var(--gold)}
-  @media (max-width:560px){.card.wide{grid-column:auto}.field{grid-template-columns:90px minmax(0,1fr) 30px}.screen-dialog{grid-template-columns:1fr}}
-  @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+  .screens{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px;align-items:start}
+  .screens h3{margin-top:0}
+  .set-min{display:grid;gap:12px} .set-min h3,.sum h3,.lu h3{margin:0;color:var(--gold);font-size:18px;letter-spacing:.06em;display:flex;gap:8px;align-items:center}
+  .sum{display:grid;gap:10px} .sum-amber{display:flex;gap:14px;align-items:center} .sum-amber b{font-size:30px;color:var(--gold)}
+  .lu{display:grid;gap:6px} .lu-row{font:inherit;color:var(--ink);display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;background:#0c1011;border:1px solid var(--line);border-left:3px solid var(--gold);padding:6px 10px;cursor:pointer;text-align:left}
+  .lu-row:hover{background:#16180f} .lu-row .tag{font-size:12px;color:var(--gold)}
+  .ask{margin-top:30px;background:#141410;border:1px solid #7c6630;border-left:4px solid var(--gold);padding:14px 16px;max-width:72ch} .ask b{color:var(--gold)}
+  @media (max-width:560px){.card.big{grid-column:auto}.pick{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
 </style>
 <style id="kit"></style>
 
 <div class="wrap">
-  <header>
-    <h1>The Hollow</h1>
-    <p class="lede">Every new piece of art for Firefliers, drawn and ready for your sign-off before any of it goes into the game: <b>the hub you'll walk around</b>, its merchant and locked areas, the <b>permanent upgrades</b>, <b>projectiles</b>, the run's <b>level tiles</b>, and a working <b>UI kit</b> down to the sliders and checkboxes. Animated pieces play their frames. Everything is drawn at whole-pixel scale.</p>
-    <nav aria-label="Sections"><a href="#hub">The Hollow</a><a href="#cast">Characters</a><a href="#hubart">Hub props and tiles</a><a href="#shopart">Upgrades and icons</a><a href="#shotsart">Projectiles</a><a href="#levelart">The run</a><a href="#kitart">UI kit</a><a href="#screensart">Screens</a></nav>
-  </header>
+  <h1>The Hollow</h1>
+  <p class="lede">Walk around the hub, grow the Root Tree, and check every new piece of art. Nothing here is in the game yet.</p>
+  <nav aria-label="Sections"><a href="#walk">Walk around</a><a href="#stationsart">Stations</a><a href="#treeart">Root Tree</a><a href="#cast">Bugs</a><a href="#iconsart">Icons</a><a href="#shotsart">Projectiles</a><a href="#levelart">The run</a><a href="#kitart">UI</a></nav>
 
-  <section id="hub"><h2>The Hollow <small>hub</small></h2>
-    <p class="intro">A sheltered nook under the roots of an old tree at the meadow's edge, where the fireflies rest by day. You walk around it between runs. Lit areas work today; the three foggy corners are locked, with a padlocked gate and a coming-soon board, ready for new modes and merchants.</p>
-    <div class="mapwrap"><div class="mapin" id="map"></div></div>
-    <ol class="legend" id="legend"></ol>
+  <section id="walk"><h2>Walk around</h2>
+    <div class="hollow" id="hollow" aria-label="The Hollow. Move with WASD or the arrow keys, or drag. Press E at a station."></div>
+    <div class="controls"><span><span class="k-key">W</span><span class="k-key">A</span><span class="k-key">S</span><span class="k-key">D</span> or drag to move</span><span><span class="k-key">E</span> or tap the prompt to use a station</span></div>
+    <ul class="stations"><li>Lantern Gate <span>fly out</span></li><li>Old Glim <span>the Root Tree</span></li><li>The Roost <span>choose your bug</span></li><li>Moonstone <span>daily run</span></li><li>Records <span>your best</span></li><li class="locked">Pond <span>locked: modes</span></li><li class="locked">Market <span>locked: a shop</span></li></ul>
   </section>
 
-  <section id="cast"><h2>Characters</h2><p class="intro">Your five bugs as pixel sprites to match the enemies, the two merchants, and the fireflies. Locked bugs sit on the Roost as shadows.</p><div id="chars"></div></section>
+  <section id="stationsart"><h2>Stations</h2><p class="intro">Five stations and two locked spots. That's the whole hub.</p>
+    <div id="stations"></div><h3>Scenery</h3><div id="scenery"></div><h3>Tiles</h3><div id="tiles"></div></section>
 
-  <section id="hubart"><h2>Hub props and tiles</h2><p class="intro">Warmer and greener than the run, because this is home. Tiles are 16 by 16 with clusters that wrap across their edges so the grid doesn't show.</p>
-    <h3>Props</h3><div id="props"></div><h3>Tiles</h3><div id="tiles"></div></section>
+  <section id="treeart"><h2>The Root Tree</h2>
+    <p class="intro">Your amber grows one tree. Nodes add something new more often than a bigger number.</p>
+    <div class="branches"><span><b style="color:#f2c14e">Light</b> attacks</span><span><b style="color:#7fd6c2">Wing</b> dashing and fireflies</span><span><b style="color:#8fd06a">Root</b> staying alive and amber</span><span>Bridges unlock weapons</span></div>
+    <div id="tree"></div></section>
 
-  <section id="shopart"><h2>Upgrades and icons</h2>
-    <p class="intro">Old Glim sells twelve permanent upgrades for amber, which you bring home from every run. Prices are a first pass and can be tuned. All the old font symbols in the game get replaced by drawn icons.</p>
-    <h3>Permanent upgrades</h3><div id="upgrades"></div><h3>Amber</h3><div id="currency"></div><h3>Weapons and their evolutions</h3><div id="weapons"></div>
-    <h3>Run boosts</h3><div id="passives"></div><h3>Pickups and sparks</h3><div id="pickups"></div><h3>HUD and menu icons</h3><div id="hudicons"></div></section>
+  <section id="cast"><h2>Bugs</h2><p class="intro">Three bugs. The Moth and the Beetle are grown on the tree.</p><div id="chars"></div></section>
 
-  <section id="shotsart"><h2>Projectiles and effects</h2>
-    <div class="rule"><div><b>Yours</b>Warm, bright and pointed the way they fly.</div><div><b>Enemies'</b>Round, deep red or magenta, with a dark core and a bright rim.</div><div><b>Why</b>They should never read alike, even in a crowd of both.</div></div>
-    <h3>Your shots</h3><div id="shots"></div><h3>Enemy shots</h3><div id="eshots"></div><h3>Effects</h3><div id="effects"></div></section>
+  <section id="iconsart"><h2>Icons</h2>
+    <h3>Weapons</h3><div id="weapons"></div><h3>Boosts</h3><div id="passives"></div><h3>Pickups</h3><div id="pickups"></div><h3>HUD</h3><div id="hudicons"></div></section>
 
-  <section id="levelart"><h2>The run</h2><p class="intro">The meadow ruin as real 16 by 16 tiles instead of a painted backdrop: colder and darker than the Hollow, so the creatures and your light stand out. This mock shows your bug, its trail, your shots and enemy shots together.</p>
-    <div class="mapwrap"><div class="mapin" id="level"></div></div><h3>Run tiles and props</h3><div id="runtiles"></div></section>
+  <section id="shotsart"><h2>Projectiles</h2><p class="intro">Yours are warm and pointed. Theirs are round and red.</p>
+    <h3>Yours</h3><div id="shots"></div><h3>Theirs</h3><div id="eshots"></div><h3>Effects</h3><div id="effects"></div></section>
 
-  <section id="kitart"><h2>UI kit</h2><p class="intro">Every control is built from small pixel pieces that stretch as 9-slice frames, so they work at any size. These are live: hover, press, drag and tick them.</p>
-    <div class="kitgrid"><div class="kitbox"><h3 style="margin:0">Buttons</h3><div id="k-buttons"></div></div><div class="kitbox"><h3 style="margin:0">Sliders, toggles, checkboxes, radios, dropdown</h3><div id="k-inputs" style="display:grid;gap:12px"></div></div><div class="kitbox"><h3 style="margin:0">Tabs, bars, pips, prices, tooltip, toast, keys, scrolling, cursor</h3><div id="k-misc" style="display:grid;gap:12px"></div></div></div></section>
+  <section id="levelart"><h2>The run</h2><p class="intro">The meadow as tiles: colder than the Hollow, so creatures and your light pop.</p>
+    <div class="mapwrap"><div class="mapin" id="level"></div></div><h3>Tiles and props</h3><div id="runtiles"></div></section>
 
-  <section id="screensart"><h2>Screens</h2><p class="intro">The kit put together into the screens the hub needs.</p>
-    <div class="screens"><div><h3>Old Glim's shop</h3><div id="shop"></div></div><div><h3>Settings</h3><div id="settings"></div></div><div><h3>Talking to Glim</h3><div id="dialog"></div></div><div><h3>Locked area</h3><div id="locked"></div></div><div><h3>Hub HUD</h3><div id="hubhud"></div></div><div><h3>After a run</h3><div id="summary"></div></div></div>
-    <div class="ask"><b>Your call.</b> Tell me what to change, cut or redraw. Once you're happy with these, I'll build the Hollow, the shop and the upgrades into the game.</div></section>
+  <section id="kitart"><h2>UI</h2><p class="intro">Only the pieces the game uses. All live.</p>
+    <div class="kitgrid"><div class="kitbox" id="kit-a"></div><div class="kitbox" id="kit-b"></div></div>
+    <h3>Screens</h3>
+    <div class="screens"><div><h3>Settings</h3><div id="settings"></div></div><div><h3>Level up</h3><div id="levelup"></div></div><div><h3>After a run</h3><div id="summary"></div></div></div>
+    <div class="ask"><b>Your call.</b> Tell me what to change or cut. Once you like it, I'll build it into the game.</div></section>
 </div>
 
 <script>
@@ -627,6 +616,316 @@ function kitCSS() {
   `;
 }
 
+// ---------- big stations and scenery for the walkable Hollow ----------
+const blob = (g, pts, r0, r1, ch) => { for (let i = 0; i < pts.length - 1; i++) { const [x0, y0] = pts[i], [x1, y1] = pts[i + 1]; for (let t = 0; t <= 1; t += .02) { const k = (i + t) / (pts.length - 1), r = r0 + (r1 - r0) * k; ell(g, x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, r, r, ch); } } };
+const bez = (p0, p1, p2, n = 16) => Array.from({ length: n + 1 }, (_, i) => { const t = i / n, u = 1 - t; return [u * u * p0[0] + 2 * u * t * p1[0] + t * t * p2[0], u * u * p0[1] + 2 * u * t * p1[1] + t * t * p2[1]]; });
+const sprinkle = (g, ch, onto, n, seed) => { reseed(seed); let k = 0; for (let i = 0; i < n * 40 && k < n; i++) { const x = (rnd() * g[0].length) | 0, y = (rnd() * g.length) | 0; if (g[y][x] === onto) { g[y][x] = ch; k++; } } };
+
+// the Lantern Gate: a tall stone lantern with a living flame. Step into its light to fly out.
+function bigGate(f) {
+  const g = pg(52, 82);
+  for (let y = 0; y <= 13; y++) { const h = 3 + y * 1.55 + (y > 9 ? (y - 9) * 1.3 : 0); rect(g, Math.round(26 - h), y + 3, Math.round(25 + h), y + 3, 'R'); }
+  for (let y = 5; y <= 16; y += 3) for (let x = 0; x < 52; x++) if (g[y][x] === 'R' && x % 2) g[y][x] = 'r';
+  rect(g, 24, 0, 27, 3, 'S'); ell(g, 26, 1.5, 2.6, 2, 'S');
+  rect(g, 6, 17, 45, 18, 'D');
+  rect(g, 10, 19, 41, 44, 'S'); rect(g, 13, 22, 38, 41, 'g'); // the fire chamber
+  rect(g, 25, 22, 26, 41, 'S'); rect(g, 13, 31, 38, 31, 'S'); for (const x of [13, 38]) rect(g, x, 22, x, 41, 's');
+  const fl = [[[19, 39], [17, 33], [20, 27], [22, 33], [24, 25], [23, 39]], [[18, 39], [19, 31], [21, 26], [23, 31], [24, 27], [24, 39]], [[18, 39], [17, 34], [21, 28], [21, 33], [24, 28], [23, 39]]][f];
+  polyFill(g, fl, 'F'); polyFill(g, fl.map(([x, y]) => [x, y + 3]).map(([x, y], i) => [x + (i < 3 ? 1 : -1), y]), 'W');
+  polyFill(g, fl.map(([x, y]) => [52 - x - 1, y]), 'F'); polyFill(g, fl.map(([x, y]) => [52 - x - 1, y + 3]).map(([x, y], i) => [x + (i < 3 ? -1 : 1), y]), 'W');
+  rect(g, 7, 45, 44, 47, 'R'); for (let x = 8; x < 44; x += 3) put(g, x, 47, 'r');
+  rect(g, 19, 48, 32, 69, 'S'); for (const y of [53, 54, 62]) rect(g, 19, y, 32, y, 's'); rect(g, 23, 56, 28, 59, 'd'); put(g, 25, 57, 'g'); put(g, 26, 57, 'g'); put(g, 25, 58, 'g'); put(g, 26, 58, 'g');
+  rect(g, 13, 70, 38, 73, 'S'); rect(g, 6, 74, 45, 81, 'B'); rect(g, 6, 74, 45, 74, 's');
+  for (const [x0, y0, x1, y1] of [[22, 20, 20, 25], [36, 62, 34, 68], [10, 78, 14, 80]]) line(g, x0, y0, x1, y1, 'd');
+  sprinkle(g, 'm', 'R', 26, 3); sprinkle(g, 'M', 'B', 14, 4); sprinkle(g, 'm', 'S', 8, 5);
+  return g;
+}
+const BIG_GATE = [0, 1, 2].map(f => bake({ R: P.mossStone, r: '#1e2c26', S: P.stone, s: '#262a32', D: '#0e1014', B: P.mossStone, d: '#121418', g: '#ffb83a', F: '#ffe066', W: '#fff8d0', m: '#4a7a46', M: '#2e5a32' }, bigGate(f)));
+
+// the Elder Root: a great root arch hung with amber pods. Old Glim tends it. This is the skill tree.
+function elderRoot(f) {
+  const g = pg(104, 90);
+  ell(g, 52, 56, 22, 30, 'h');
+  for (const pts of [bez([20, 89], [6, 30], [52, 12]), bez([84, 89], [100, 30], [52, 12])]) blob(g, pts, 10, 6, 'B');
+  for (const [a, b, c] of [[[20, 86], [2, 88], [0, 80]], [[24, 88], [34, 82], [40, 89]], [[84, 86], [100, 88], [103, 80]], [[80, 88], [70, 82], [64, 89]], [[16, 70], [4, 66], [2, 58]], [[88, 68], [100, 62], [102, 54]]]) blob(g, bez(a, b, c, 8), 3.4, 1.6, 'B');
+  for (const side of [-1, 1]) { const pts = bez([52 + side * 32, 88], [52 + side * 48, 32], [52, 18]); for (const [x, y] of pts) { put(g, Math.round(x + side * 3), Math.round(y), 'd'); put(g, Math.round(x - side * 4), Math.round(y + 2), 'd'); } }
+  for (const [x, y, r] of [[52, 32, 1], [43, 44, 2], [60, 40, 1.5], [37, 58, 1], [66, 56, 2], [50, 62, 1], [57, 72, 1.5], [44, 74, 1]]) { ell(g, x, y, r + .4, r + .4, 'y'); }
+  for (const [x, y] of [[36, 24], [68, 24], [26, 36], [79, 38], [52, 19], [45, 20]]) { line(g, x, y, x, y + 5, 'k'); ell(g, x + .5, y + 9, 3.2, 4.2, 'A'); put(g, x - 1, y + 7, f ? 'G' : 'w'); }
+  sprinkle(g, 'm', 'B', 70, 11); sprinkle(g, 'n', 'B', 30, 12);
+  for (const [x, y] of [[30, 13], [33, 12], [72, 14], [60, 10]]) { ell(g, x, y, 2.4, 1.6, 'c'); put(g, x, y + 2, 'C'); }
+  return g;
+}
+const ELDER = [0, 1].map(f => bake({ B: P.bark, d: '#0c0706', h: '#07090a', y: '#c88a2a', k: '#2a1a10', A: P.amber, w: '#fff6d8', G: '#ffffff', m: '#3a6a3a', n: '#264a2a', c: '#7fd6c2', C: '#d8d0bc' }, elderRoot(f)));
+
+// the Roost: three big mushrooms, one per bug
+function bigShroom(cap, spots) {
+  const g = pg(40, 44);
+  ell(g, 20, 12, 19.5, 11, 'C'); rect(g, 1, 12, 38, 16, 'C'); ell(g, 20, 16, 19, 3.6, 'G');
+  for (let x = 4; x < 37; x += 3) line(g, x, 17, 20 + (x - 20) * .6, 19, 'g');
+  rect(g, 14, 18, 25, 39, 'T'); ell(g, 19.5, 26, 8, 2, 'T'); for (const [x, y] of [[16, 22], [22, 30], [17, 34], [23, 37]]) put(g, x, y, 't');
+  ell(g, 20, 41, 15, 3, 'm');
+  if (spots) for (const [x, y, r] of [[9, 8, 2.2], [19, 4, 2.6], [30, 9, 2.4], [14, 13, 1.6], [26, 13, 1.8], [35, 13, 1.2], [5, 13, 1.2]]) ell(g, x, y, r, r, 'w');
+  return bake({ C: cap, G: '#1a1208', g: '#3a2418', T: P.cream, t: '#8a7050', m: P.leaf, w: '#f4ecd8' }, g);
+}
+const BIG_SHROOMS = [bigShroom(P.red, 1), bigShroom(P.teal, 1), bigShroom(P.violet, 1)];
+
+// the Moonstone: today's run, the same for everyone
+function moonstone(f) {
+  const g = pg(36, 62);
+  polyFill(g, [[8, 61], [6, 18], [11, 4], [19, 0], [27, 5], [30, 20], [29, 61]], 'S');
+  ell(g, 18, 19, 8, 8, 'o'); ell(g, 18, 19, 6.4, 6.4, 'M'); ell(g, 21, 17, 5.6, 5.6, 'S'); ell(g, 18, 19, 8, 8, 'o', (x, y) => g[y][x] === 'o');
+  for (let y = 31; y <= 52; y += 4) { put(g, 17, y, f ? 'M' : 'r'); put(g, 19, y + 2, f ? 'r' : 'M'); }
+  for (const [x0, y0, x1, y1] of [[10, 10, 12, 16], [26, 40, 24, 48]]) line(g, x0, y0, x1, y1, 'd');
+  rect(g, 2, 57, 33, 61, 'B'); ell(g, 4, 58, 3.4, 2.6, 'B'); ell(g, 32, 58, 3.4, 2.6, 'B');
+  for (const x of [3, 33]) { rect(g, x, 53, x + 1, 56, 'c'); put(g, x, 52, f ? 'F' : 'f'); put(g, x + 1, 51, 'f'); }
+  sprinkle(g, 'm', 'S', 22, 21); sprinkle(g, 'm', 'B', 10, 22);
+  return g;
+}
+const MOONSTONE = [0, 1].map(f => bake({ S: P.mossStone, B: P.stone, o: '#2a4a40', M: f ? '#c8fff2' : '#7fd6c2', r: '#3a6a5a', d: '#121a16', c: '#e8e0c8', f: '#ffd86a', F: '#fff3a0', m: '#4a7a46' }, moonstone(f)));
+
+// the Records board: your best runs and achievements, pinned up
+function records() {
+  const g = pg(56, 46);
+  rect(g, 6, 14, 9, 45, 'P'); rect(g, 46, 14, 49, 45, 'P');
+  polyFill(g, [[0, 9], [28, 0], [55, 9], [52, 12], [28, 4], [3, 12]], 'R');
+  rect(g, 3, 12, 52, 38, 'W'); for (const y of [19, 26, 33]) rect(g, 4, y, 51, y, 'd');
+  for (const [x, y, w, h] of [[7, 15, 12, 9], [22, 14, 10, 12], [35, 16, 13, 8], [9, 27, 14, 9], [27, 28, 9, 8], [39, 27, 9, 9]]) { rect(g, x, y, x + w, y + h, 'p'); for (let yy = y + 2; yy < y + h; yy += 2) rect(g, x + 2, yy, x + w - 2 - ((yy * 3) % 4), yy, 'l'); put(g, x + (w >> 1), y, 'n'); }
+  for (const [x, y] of [[24, 18], [44, 31], [14, 30]]) { put(g, x, y, 'y'); put(g, x - 1, y, 'Y'); put(g, x + 1, y, 'Y'); put(g, x, y - 1, 'Y'); put(g, x, y + 1, 'Y'); }
+  sprinkle(g, 'm', 'R', 10, 31);
+  return g;
+}
+const RECORDS = bake({ P: P.wood, R: P.mossStone, W: P.bark, d: '#120b09', p: '#e8e0c8', l: '#8a7a68', n: '#e8604c', y: '#fff3a0', Y: '#f2c14e', m: '#4a7a46' }, records());
+
+// locked: the Pond gate, chained shut
+function pondGate() {
+  const g = pg(76, 58);
+  for (const x of [4, 58]) { rect(g, x, 10, x + 13, 57, 'S'); rect(g, x - 2, 4, x + 15, 9, 'R'); rect(g, x + 3, 0, x + 10, 3, 'R'); for (let y = 16; y < 56; y += 7) rect(g, x, y, x + 13, y, 's'); }
+  rect(g, 18, 14, 57, 55, 'W'); for (let x = 20; x < 57; x += 4) rect(g, x, 15, x, 54, 'w'); rect(g, 37, 14, 38, 55, 'd');
+  for (const y of [20, 46]) rect(g, 18, y, 57, y + 2, 'i');
+  line(g, 18, 24, 57, 44, 'n'); line(g, 18, 44, 57, 24, 'n'); line(g, 18, 25, 57, 45, 'n');
+  rect(g, 33, 29, 42, 39, 'L'); rect(g, 35, 24, 40, 28, 'l'); rect(g, 36, 25, 39, 27, '.'); rect(g, 37, 33, 38, 36, 'k');
+  sprinkle(g, 'm', 'S', 30, 41); sprinkle(g, 'm', 'R', 16, 42);
+  return g;
+}
+const POND_GATE = bake({ S: P.stone, s: '#262a32', R: P.mossStone, W: P.wood, w: '#43271a', d: '#1a0e08', i: '#3a3f48', n: '#7e848c', L: P.brass, l: '#a8701c', k: '#1a1208', m: '#4a7a46' }, pondGate());
+// locked: the Market, a mushroom stall boarded up
+function market() {
+  const g = pg(70, 62);
+  ell(g, 35, 14, 34.5, 14, 'C'); rect(g, 1, 14, 68, 19, 'C'); ell(g, 35, 19, 33, 3, 'G');
+  for (const [x, y, r] of [[14, 8, 3], [30, 5, 3.4], [48, 7, 3], [60, 13, 2], [22, 15, 2], [40, 15, 2.2]]) ell(g, x, y, r, r, 'w');
+  rect(g, 8, 22, 11, 59, 'P'); rect(g, 58, 22, 61, 59, 'P');
+  rect(g, 6, 40, 63, 59, 'W'); for (const y of [45, 50, 55]) rect(g, 7, y, 62, y, 'd');
+  rect(g, 12, 22, 57, 39, 'h');
+  for (const [y0, y1] of [[24, 36], [36, 25]]) { line(g, 12, y0, 57, y1, 'b'); line(g, 12, y0 + 1, 57, y1 + 1, 'b'); line(g, 12, y0 + 2, 57, y1 + 2, 'b'); }
+  for (const [x, y] of [[13, 25], [56, 36], [13, 37], [56, 26]]) put(g, x, y, 'i');
+  rect(g, 31, 43, 38, 51, 'L'); rect(g, 32, 39, 37, 42, 'l'); rect(g, 33, 40, 36, 42, '.'); rect(g, 34, 46, 35, 48, 'k');
+  for (let i = 0; i < 5; i++) line(g, 12, 22, 12 + i * 3, 30 - i, 'c');
+  return g;
+}
+const MARKET = bake({ C: ['#3a1c10', '#6a3418', '#9a5228', '#c07a40', '#e8a868'], G: '#1a0e08', w: '#e8d8c0', P: P.wood, W: P.wood, d: '#2a160c', h: '#06090a', b: '#6a4026', i: '#7e848c', L: P.brass, l: '#a8701c', k: '#1a1208', c: 'rgba(230,240,240,.5)' }, market());
+
+// scenery
+function bigTree(seed) {
+  reseed(seed); const g = pg(48, 72);
+  rect(g, 16, 20, 31, 64, 'B'); for (const [a, b, c] of [[[18, 62], [6, 66], [1, 71]], [[29, 62], [40, 66], [46, 71]], [[22, 64], [20, 69], [16, 71]], [[26, 64], [30, 69], [33, 71]]]) blob(g, bez(a, b, c, 8), 3, 1.4, 'B');
+  for (let x = 17; x < 31; x += 3) for (let y = 22; y < 62; y++) if (rnd() < .7) put(g, x + ((y >> 3) % 2), y, 'd');
+  for (const [x, y, r] of [[24, 14, 15], [12, 20, 10], [36, 20, 10], [24, 4, 9], [14, 8, 8], [34, 9, 8]]) ell(g, x, y, r, r * .85, 'L');
+  sprinkle(g, 'l', 'L', 90, seed + 1); sprinkle(g, 'f', 'L', 8, seed + 2); sprinkle(g, 'm', 'B', 16, seed + 3);
+  return bake({ B: P.bark, d: '#0c0706', L: ['#081810', '#0f2a1a', '#1a4026', '#2a5a32', '#467a44'], l: '#0c2014', f: '#ffd86a', m: '#3a6a3a' }, g);
+}
+const TREES = [bigTree(101), bigTree(202), bigTree(303)];
+const BIG_LAMP = [0, 1].map(f => { const g = pg(14, 40); rect(g, 6, 12, 7, 38, 't'); rect(g, 3, 38, 10, 39, 't'); rect(g, 7, 12, 11, 12, 't'); rect(g, 1, 1, 12, 2, 'L'); rect(g, 2, 3, 11, 10, 'L'); rect(g, 3, 4, 10, 9, f ? 'h' : 'g'); rect(g, 6, 4, 7, 9, 'L'); put(g, 6, 0, 'L'); put(g, 7, 0, 'L'); return bake({ t: '#2a2018', L: P.brass, g: '#ffd86a', h: '#fff3a0' }, g); });
+const FERN = bake({ L: P.leaf }, (() => { const g = pg(30, 18); for (const [a, c] of [[[15, 17], [2, 4]], [[15, 17], [8, 0]], [[15, 17], [22, 0]], [[15, 17], [28, 5]], [[15, 17], [15, 1]]]) { const pts = bez(a, [(a[0] + c[0]) / 2 + (c[0] < 15 ? -3 : 3), (a[1] + c[1]) / 2], c, 10); blob(g, pts, 1.6, .6, 'L'); for (let i = 2; i < pts.length - 1; i += 2) { const [x, y] = pts[i]; put(g, Math.round(x - 2), Math.round(y), 'L'); put(g, Math.round(x + 2), Math.round(y), 'L'); } } return g; })());
+const SHROOM_PATCH = bake({ c: '#7fd6c2', C: '#c8b0ff', h: '#e8fff8', s: '#d8d0bc' }, (() => { const g = pg(22, 14); for (const [x, y, rx, col] of [[5, 6, 4, 'c'], [12, 4, 5, 'C'], [18, 8, 3, 'c'], [9, 10, 2.6, 'C']]) { ell(g, x, y, rx, rx * .6, col); rect(g, x, y + 1, x, y + rx + 1, 's'); put(g, x - 1, y - 1, 'h'); } return g; })(), '#06100e');
+
+// ---------- the Root Tree: one skill tree instead of separate upgrades ----------
+// Three branches grow from First Light: Light (your attacks), Wing (dashing and your fireflies), Root (staying alive and amber).
+// Bridges between neighbouring branches unlock new weapons. Descriptions are a few words; trying things teaches the rest.
+const BR = { light: { col: '#f2c14e', dark: '#5a4210', name: 'Light' }, wing: { col: '#7fd6c2', dark: '#1e4a40', name: 'Wing' }, root: { col: '#8fd06a', dark: '#24481e', name: 'Root' }, core: { col: '#fff3a0', dark: '#5a4a10', name: '' } };
+const ICON24 = (fn, pal) => { const g = pg(24, 24); fn(g); return bake(pal, g); };
+const GOLD = ['#6a4a08', '#b88a18', '#ffd84a', '#fff0a0', '#ffffff'];
+const TREE_ICONS = {
+  first: ICON24(g => { polyFill(g, starPts(12, 12, 11, 4, 8), 'Y'); ell(g, 12, 12, 4.4, 4.4, 'W'); }, { Y: GOLD, W: '#ffffff' }),
+  bright: ICON24(g => { for (let i = 0; i < 8; i++) { const a = i * TAU / 8; line(g, Math.round(12 + Math.cos(a) * 7), Math.round(12 + Math.sin(a) * 7), Math.round(12 + Math.cos(a) * 11), Math.round(12 + Math.sin(a) * 11), 'y'); } ell(g, 12, 12, 6, 6, 'Y'); }, { Y: GOLD, y: '#ffd84a' }),
+  twin: ICON24(g => { for (const dy of [-5, 5]) polyFill(g, [[2, 12 + dy], [14, 9 + dy], [13, 7 + dy], [22, 12 + dy], [13, 17 + dy], [14, 15 + dy]], 'Y'); }, { Y: GOLD }),
+  chain: ICON24(g => { polyFill(g, [[14, 0], [4, 13], [10, 13], [7, 24], [20, 9], [13, 9], [17, 0]], 'V'); }, { V: P.violet }),
+  static: ICON24(g => { ell(g, 12, 12, 11, 11, 'v'); ell(g, 12, 12, 8.6, 8.6, '.'); polyFill(g, starPts(12, 12, 7, 3), 'Y'); for (const [x, y] of [[2, 6], [21, 17], [5, 20], [19, 3]]) put(g, x, y, 'w'); }, { v: '#9070e0', Y: GOLD, w: '#ffffff' }),
+  thorn: ICON24(g => { for (let t = 0; t < 2.7; t += .03) { const r = 10.5 - t * 2.6; for (const d of [0, 1, 2]) put(g, Math.round(12 + Math.cos(t * 2.4) * (r - d)), Math.round(12 + Math.sin(t * 2.4) * (r - d)), 'T'); } polyFill(g, [[20, 9], [23, 13], [18, 13]], 'T'); }, { T: P.cloth }),
+  overflow: ICON24(g => { for (const y0 of [2, 10]) polyFill(g, [[12, y0], [21, y0 + 9], [16, y0 + 9], [12, y0 + 5], [8, y0 + 9], [3, y0 + 9]], 'Y'); rect(g, 10, 19, 13, 23, 'Y'); }, { Y: GOLD }),
+  wings: ICON24(g => { ell(g, 14, 9, 9, 6.4, 'W'); ell(g, 13, 16, 7, 4.4, 'W'); line(g, 6, 12, 20, 6, 'w'); for (const y of [5, 11, 17]) line(g, 0, y, 3, y, 's'); }, { W: P.ice, w: '#2e6a80', s: '#e8fbff' }),
+  trail: ICON24(g => { for (const [x, y, r] of [[4, 19, 3], [11, 13, 3.6], [19, 5, 4.2]]) { ell(g, x, y, r, r, 'G'); put(g, x - 1, y - 1, 'w'); } for (const [x, y] of [[7, 17], [15, 9]]) put(g, x, y, 'g'); }, { G: GOLD, w: '#ffffff', g: '#ffd84a' }),
+  ember: ICON24(g => { polyFill(g, [[0, 20], [14, 8], [12, 4], [23, 2], [20, 13], [17, 11], [3, 23]], 'F'); polyFill(g, [[6, 18], [15, 10], [18, 6], [19, 9]], 'y'); }, { F: P.cloth, y: '#ffe066' }),
+  double: ICON24(g => { for (const x0 of [1, 10]) polyFill(g, [[x0, 2], [x0 + 6, 2], [x0 + 13, 12], [x0 + 6, 22], [x0, 22], [x0 + 7, 12]], 'M'); }, { M: P.teal }),
+  swarm: ICON24(g => { for (const [x, y, r] of [[7, 8, 3.4], [16, 6, 3], [12, 15, 4], [19, 15, 2.6], [5, 17, 2.4]]) ell(g, x, y, r, r, 'G'); for (const [x, y] of [[22, 4], [23, 3], [1, 2], [2, 3]]) put(g, x, y, 'w'); }, { G: GOLD, w: '#ffffff' }),
+  shell: ICON24(g => { ell(g, 12, 12, 11, 11, 'S'); line(g, 12, 1, 12, 23, 'd'); heartMask(g, 12, 13, 5, 'R'); }, { S: P.violet, d: '#1e1040', R: P.red }),
+  amber: ICON24(g => { polyFill(g, [[11, 1], [20, 7], [18, 19], [11, 23], [4, 19], [2, 7]], 'A'); put(g, 7, 6, 'w'); put(g, 8, 7, 'w'); put(g, 7, 7, 'w'); polyFill(g, starPts(19, 4, 4, 1.4, 4), 's'); }, { A: P.amber, w: '#fff6d8', s: '#ffffff' }),
+  fourth: ICON24(g => { for (const [x, y] of [[1, 4], [6, 3], [11, 3], [16, 4]]) rect(g, x, y, x + 6, y + 15, 'C'); for (const [x, y] of [[1, 4], [6, 3], [11, 3], [16, 4]]) { rect(g, x, y, x, y + 15, 'd'); } rect(g, 18, 8, 20, 13, 'y'); }, { C: P.cream, d: '#4a3a2a', y: '#ffd84a' }),
+  secondWind: ICON24(g => { heartMask(g, 12, 13, 7.4, 'R'); for (const s of [-1, 1]) { polyFill(g, [[12 + s * 6, 10], [12 + s * 12, 4], [12 + s * 11, 9], [12 + s * 12, 13], [12 + s * 7, 14]], 'W'); } }, { R: P.red, W: ['#6a6a7a', '#a0a0b0', '#d8d8e6', '#f4f4ff', '#ffffff'] }),
+  deepRoots: ICON24(g => { ell(g, 12, 7, 6, 6, 'H'); for (const [a, c] of [[[12, 12], [4, 23]], [[12, 12], [12, 23]], [[12, 12], [20, 23]], [[12, 14], [1, 17]], [[12, 14], [23, 17]]]) blob(g, bez(a, [(a[0] + c[0]) / 2, (a[1] + c[1]) / 2 + 2], c, 8), 1.6, .6, 'B'); }, { H: P.red, B: P.bark }),
+  spores: ICON24(g => { for (const [x, y, r] of [[7, 15, 6], [16, 15, 6], [12, 8, 6.5]]) ell(g, x, y, r, r * .9, 'S'); for (const [x, y] of [[9, 7], [15, 13], [6, 16], [2, 3], [21, 4]]) put(g, x, y, 'd'); }, { S: ['#3a4a10', '#6a8a1a', '#b8d84a', '#d6ff5c', '#f4ffc0'], d: '#3a4a10' }),
+  chill: ICON24(g => { for (let a = 0; a < 3; a++) { const an = a * Math.PI / 3; for (const o of [0, 1]) line(g, Math.round(12 - Math.cos(an) * 11 + o * Math.sin(an)), Math.round(12 - Math.sin(an) * 11), Math.round(12 + Math.cos(an) * 11 + o * Math.sin(an)), Math.round(12 + Math.sin(an) * 11), 'I'); } ell(g, 12, 12, 3, 3, 'I'); }, { I: P.ice }),
+  rerolls: ICON24(g => { for (let t = .4; t < 5.6; t += .04) for (const d of [0, 1, 2]) put(g, Math.round(12 + Math.cos(t) * (9 - d)), Math.round(12 + Math.sin(t) * (9 - d)), 'G'); polyFill(g, [[18, 0], [23, 6], [16, 8]], 'G'); }, { G: P.green }),
+};
+// moth and beetle unlock nodes show the bug itself
+TREE_ICONS.moth = px(24, 24, c => { c.drawImage(BUGS.moth[0], 4, 6); });
+TREE_ICONS.beetle = px(24, 24, c => { c.drawImage(BUGS.beetle[0], 4, 6); });
+
+// [id, branch, icon, name, short description, cost, x, y, requires]
+const TREE = [
+  ['first', 'core', 'first', 'First Light', 'Where it starts', 0, 0, 0, []],
+  ['bright', 'light', 'bright', 'Brighter', '+15% damage', 40, -2, -1, ['first']],
+  ['twin', 'light', 'twin', 'Twin Spark', 'Spark Shot fires two', 90, -3.2, -2, ['bright']],
+  ['chain', 'light', 'chain', 'Chain Zap', 'New weapon', 70, -1.9, -2.3, ['bright']],
+  ['thorn', 'light', 'thorn', 'Boomerang Thorn', 'New weapon', 110, -3.6, -3.2, ['twin']],
+  ['static', 'light', 'static', 'Static', 'Crits zap a neighbour', 160, -2.2, -3.5, ['chain']],
+  ['overflow', 'light', 'overflow', 'Overflow', 'Evolve a level sooner', 300, -3, -4.6, ['thorn', 'static']],
+  ['wings', 'wing', 'wings', 'Quick Wings', 'Dash recharges faster', 40, 0, -1.3, ['first']],
+  ['ember', 'wing', 'ember', 'Ember Dash', 'Dashes leave fire', 120, -.6, -2.5, ['wings']],
+  ['trail', 'wing', 'trail', 'Long Trail', 'Start with 2 more fireflies', 70, .7, -2.5, ['wings']],
+  ['moth', 'wing', 'moth', 'Moth', 'Joins the Roost', 100, .1, -3.6, ['ember', 'trail']],
+  ['double', 'wing', 'double', 'Double Dash', 'Two dash charges', 200, -.8, -4.6, ['moth']],
+  ['swarm', 'wing', 'swarm', 'Swarm', 'Your fireflies shoot', 320, .8, -4.8, ['moth']],
+  ['shell', 'root', 'shell', 'Thick Shell', '+20 max health', 40, 2, -1, ['first']],
+  ['amber', 'root', 'amber', 'Amber Sense', '+20% amber', 60, 3.2, -2, ['shell']],
+  ['beetle', 'root', 'beetle', 'Beetle', 'Joins the Roost', 100, 1.9, -2.3, ['shell']],
+  ['fourth', 'root', 'fourth', 'Fourth Card', 'Level ups offer four', 170, 3.6, -3.2, ['amber']],
+  ['rerolls', 'root', 'rerolls', 'Second Look', '+2 rerolls', 90, 2.2, -3.5, ['beetle']],
+  ['wind', 'root', 'secondWind', 'Second Wind', 'Get up once per run', 240, 3, -4.6, ['fourth', 'rerolls']],
+  ['roots', 'root', 'deepRoots', 'Deep Roots', 'Bosses heal you fully', 280, 4.4, -4.4, ['fourth']],
+  ['spores', 'light', 'spores', 'Spore Trail', 'New weapon', 80, -1, -1.6, ['bright', 'wings']],
+  ['chill', 'root', 'chill', 'Chill Aura', 'New weapon', 80, 1, -1.6, ['wings', 'shell']],
+];
+const NODE = {}; for (const n of TREE) NODE[n[0]] = { id: n[0], br: n[1], icon: TREE_ICONS[n[2]], name: n[3], desc: n[4], cost: n[5], x: n[6], y: n[7], req: n[8] };
+// a node badge: a round frame in its branch colour around the icon. owned = lit, open = ring, locked = dim.
+function badge(node, state) {
+  const b = BR[node.br];
+  return px(34, 34, (c, dot) => {
+    const g = pg(34, 34); ell(g, 17, 17, 16.6, 16.6, 'O'); ell(g, 17, 17, 14.6, 14.6, 'I');
+    c.drawImage(bake({ O: state === 'locked' ? '#283030' : state === 'open' ? b.col : '#ffffff', I: state === 'owned' ? '#1a1a14' : '#0a0e10' }, g, '#030405'), -1, -1);
+    if (state === 'owned') { const r = pg(34, 34); ell(r, 17, 17, 14.6, 14.6, 'x'); ell(r, 17, 17, 13.4, 13.4, '.'); c.drawImage(bake({ x: b.col }, r, null), 0, 0); }
+    c.drawImage(state === 'locked' ? px(24, 24, ic => { ic.drawImage(node.icon, 0, 0); ic.globalCompositeOperation = 'source-atop'; ic.fillStyle = 'rgba(8,12,14,.72)'; ic.fillRect(0, 0, 24, 24); }) : node.icon, 5, 5);
+  });
+}
+
+// ---------- the walkable Hollow ----------
+function makeHollow() {
+  const TW = 52, TH = 34, W = TW * 16, H = TH * 16;
+  reseed(4242);
+  const T = Array.from({ length: TH }, () => Array(TW).fill('g'));
+  const fill = (x0, y0, x1, y1, t) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (T[y] && T[y][x] !== undefined) T[y][x] = t; };
+  const disc = (cx, cy, r, t) => { for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) if ((x + .5 - cx) ** 2 + ((y + .5 - cy) * 1.15) ** 2 < r * r) T[y][x] = t; };
+  // paths are dirt with a stepping stone every other tile; the plaza is dirt ringed with stones
+  const path = (x0, y0, x1, y1) => { fill(x0, y0, x1, y1, 'd'); for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if ((x + y) % 2 === 0 && (x0 === x1 || y0 === y1 || (x - x0 + y - y0) % 3 === 0)) T[y][x] = 's'; };
+  path(12, 18, 20, 19); path(31, 18, 39, 19); path(25, 24, 26, 26); path(9, 26, 26, 27); path(9, 20, 10, 26); path(32, 22, 35, 23); path(38, 13, 39, 18); path(38, 24, 39, 29);
+  disc(26, 19, 6.2, 'd'); for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) { const d = Math.hypot(x + .5 - 26, (y + .5 - 19) * 1.15); if (d > 4.2 && d < 5.2) T[y][x] = 's'; }
+  disc(9, 16.5, 5, 'd'); disc(10, 28.5, 6.4, 'd'); disc(40, 15.5, 3.6, 'd'); disc(41, 28, 5, 'd');
+  fill(36, 3, 49, 9, 'w'); fill(36, 10, 49, 10, 'S');
+  fill(0, 0, TW - 1, 1, 'R'); fill(0, 2, TW - 1, 2, 'F'); fill(0, 0, 1, TH - 1, 'R'); fill(TW - 2, 0, TW - 1, TH - 1, 'R'); fill(0, TH - 2, TW - 1, TH - 1, 'R');
+  const tiles = { g: HUB_TILES.grass, d: HUB_TILES.dirt, s: HUB_TILES.slab, w: HUB_TILES.water, S: HUB_TILES.shore, R: HUB_TILES.rootTop, F: HUB_TILES.rootFace };
+  const ground = px(W, H, c => { for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) { const set = tiles[T[y][x]], v = T[y][x] === 'w' || T[y][x] === 'S' ? set[0] : set[(rnd() * set.length) | 0]; c.drawImage(v, x * 16, y * 16); } });
+  // flat ground details: flowers, glow mushrooms, lily pads
+  const gc = ground.getContext('2d');
+  for (let i = 0; i < 70; i++) { const x = 40 + rnd() * (W - 80), y = 56 + rnd() * (H - 100), t = T[(y / 16) | 0][(x / 16) | 0]; if (t === 'g') gc.drawImage(rnd() < .75 ? FLOWERS[(rnd() * 3) | 0] : GLOW_SHROOMS[(rnd() * 3) | 0], x | 0, y | 0); }
+  for (const [x, y] of [[38, 5], [41, 7], [45, 4], [47, 8], [43, 9]]) gc.drawImage(LILY, x * 16, y * 16);
+  // things that stand up: each has a picture, a position (its feet), an optional solid footprint and an optional station
+  const props = [];
+  const add = (frames, fx, fy, o = {}) => { frames = Array.isArray(frames) ? frames : [frames]; const w = frames[0].width, h = frames[0].height; const p = { frames, x: Math.round(fx * 16 - w / 2), y: Math.round(fy * 16 - h), w, h, foot: fy * 16, ms: o.ms || 400, ...o }; if (o.solid !== false) p.box = o.box || [p.x + w * .2, p.foot - 7, w * .6, 7]; props.push(p); return p; };
+  add(BIG_GATE, 26, 15.4, { ms: 140, station: 'gate', label: 'Fly out', light: [26 * 16, 12.2 * 16, 70] });
+  add(ELDER, 9, 16, { ms: 900, station: 'tree', label: 'The Root Tree', box: [9 * 16 - 40, 16 * 16 - 10, 80, 10], light: [9 * 16, 13 * 16, 60] });
+  add(GLIM, 13.3, 16.4, { ms: 500, station: 'tree', label: 'The Root Tree', anim: [0, 1, 0, 0] });
+  for (const [i, x] of [[0, 6.5], [1, 10.5], [2, 14.5]]) add(BIG_SHROOMS[i], x, 29.6, { station: 'roost', label: 'Choose your bug', light: i === 1 ? [10.5 * 16, 28 * 16, 56] : null });
+  add(MOONSTONE, 40, 16.6, { ms: 900, station: 'daily', label: 'Daily challenge', light: [40 * 16, 14 * 16, 40] });
+  add(RECORDS, 34, 23.8, { station: 'records', label: 'Records' });
+  add(POND_GATE, 42.5, 13.6, { station: 'locked', label: 'Locked', box: [36 * 16, 12.6 * 16, 14 * 16, 16] });
+  add(MARKET, 41, 31.6, { station: 'locked', label: 'Locked' });
+  for (const [x, y] of [[21, 21.8], [31, 21.8], [21, 15.6], [31, 15.6], [16, 25.6], [36, 26.6], [12.5, 21.2]]) add(BIG_LAMP, x, y, { ms: 300, light: [x * 16, y * 16 - 34, 34], box: [x * 16 - 3, y * 16 - 4, 6, 4] });
+  for (const [i, x, y] of [[0, 4.6, 8.4], [1, 17, 7.6], [2, 31.5, 8], [0, 48.8, 15.6], [1, 48.6, 24], [2, 3.8, 22.6], [0, 23.4, 32.4], [1, 31.8, 32.6], [2, 48.6, 32]]) add(TREES[i], x, y, { box: [x * 16 - 9, y * 16 - 8, 18, 8] });
+  for (const [x, y] of [[19.2, 9.4], [34, 9.6], [3.6, 12.4], [30.2, 28.6], [21.8, 30.4], [46.6, 20.4], [15, 22.5], [44, 22]]) add(FERN, x, y, { solid: false });
+  for (const [x, y] of [[18, 29], [35.5, 17.2], [6, 20.6]]) add(SHROOM_PATCH, x, y, { solid: false });
+  for (const [x, y] of [[29.5, 24.4]]) add(BENCH, x, y);
+  // where you can't walk: walls, water, prop footprints
+  const solidTile = (tx, ty) => { const t = T[ty] && T[ty][tx]; return t === undefined || t === 'R' || t === 'F' || t === 'w'; };
+  const blocked = (x, y) => { if (solidTile(Math.floor(x / 16), Math.floor(y / 16))) return true; for (const p of props) if (p.box) { const [bx, by, bw, bh] = p.box; if (x >= bx && x <= bx + bw && y >= by && y <= by + bh) return true; } return false; };
+  const fog = [[35, 3, 50, 13], [34, 25, 50, 33]].map(([x0, y0, x1, y1]) => [x0 * 16, y0 * 16, (x1 - x0) * 16, (y1 - y0) * 16]);
+  return { W, H, ground, props, blocked, fog, spawn: [26 * 16, 18.4 * 16] };
+}
+
+const FLIPPED = {}; for (const k in BUGS) FLIPPED[k] = BUGS[k].map(flipX);
+function mountHollow(root, ui) {
+  const world = makeHollow();
+  const cv = document.createElement('canvas'); cv.className = 'px hollow-cv'; root.appendChild(cv);
+  const ctx = cv.getContext('2d');
+  let S = 3, VW = 0, VH = 0, buf = null, bc = null;
+  const resize = () => { const r = root.getBoundingClientRect(); S = r.width < 600 ? 2 : 3; VW = Math.ceil(r.width / S); VH = Math.ceil(r.height / S); cv.width = VW * S; cv.height = VH * S; cv.style.width = VW * S + 'px'; cv.style.height = VH * S + 'px'; buf = px(VW, VH, () => {}); bc = buf.getContext('2d'); };
+  new ResizeObserver(resize).observe(root); resize();
+  const me = { x: world.spawn[0], y: world.spawn[1], face: 1, moving: false, trail: [], bug: 'firefly' };
+  const keys = {}; let joy = null, near = null, paused = false, t0 = performance.now();
+  root.tabIndex = 0;
+  root.addEventListener('keydown', e => { if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault(); keys[e.code] = true; if ((e.code === 'KeyE' || e.code === 'Enter' || e.code === 'Space') && near && !paused) ui.open(near); });
+  root.addEventListener('keyup', e => { keys[e.code] = false; });
+  root.addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+  cv.addEventListener('pointerdown', e => { root.focus(); joy = { x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY }; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener('pointermove', e => { if (joy) { joy.x = e.clientX; joy.y = e.clientY; } });
+  cv.addEventListener('pointerup', () => { joy = null; });
+  const lights = world.props.filter(p => p.light).map(p => p.light);
+  const motes = Array.from({ length: 40 }, () => ({ x: rnd() * world.W, y: rnd() * world.H, p: rnd() * TAU, s: .3 + rnd() * .6 }));
+  const darkness = px(1, 1, () => {});
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(.05, (now - last) / 1000); last = now; const T = (now - t0) / 1000;
+    // move
+    let ix = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0), iy = (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0);
+    if (joy) { const dx = joy.x - joy.x0, dy = joy.y - joy.y0, d = Math.hypot(dx, dy); if (d > 8) { ix = dx / d; iy = dy / d; } }
+    const m = Math.hypot(ix, iy); me.moving = m > 0 && !paused;
+    if (me.moving) { ix /= m; iy /= m; const sp = 78 * dt; const nx = me.x + ix * sp, ny = me.y + iy * sp; if (!world.blocked(nx, me.y)) me.x = nx; if (!world.blocked(me.x, ny)) me.y = ny; if (ix) me.face = ix > 0 ? 1 : -1; me.trail.unshift([me.x, me.y]); if (me.trail.length > 60) me.trail.pop(); }
+    // what's close
+    near = null; let bd = 34;
+    for (const p of world.props) if (p.station) { const cx = p.x + p.w / 2, d = Math.hypot(me.x - cx, me.y - p.foot); if (d < bd + p.w * .35) { bd = d - p.w * .35; near = p; } }
+    ui.prompt(near && !paused ? near : null);
+    // camera
+    const cx = Math.round(Math.max(0, Math.min(world.W - VW, me.x - VW / 2))), cy = Math.round(Math.max(0, Math.min(world.H - VH, me.y - 10 - VH / 2)));
+    bc.setTransform(1, 0, 0, 1, 0, 0); bc.fillStyle = '#06090a'; bc.fillRect(0, 0, VW, VH);
+    bc.drawImage(world.ground, -cx, -cy);
+    // things, sorted by their feet so you can walk behind them
+    const list = world.props.map(p => ({ p, foot: p.foot })); list.push({ me: true, foot: me.y });
+    list.sort((a, b) => a.foot - b.foot);
+    for (const it of list) {
+      if (it.me) {
+        bc.fillStyle = 'rgba(0,0,0,.35)'; bc.fillRect(Math.round(me.x - 6 - cx), Math.round(me.y - 1 - cy), 12, 2);
+        const fi = me.moving ? Math.floor(T * 10) % 2 : Math.floor(T * 2) % 2, img = me.face < 0 ? FLIPPED[me.bug][fi] : BUGS[me.bug][fi], fr = img, bob = me.moving ? 0 : Math.round(Math.sin(T * 3));
+        bc.drawImage(img, Math.round(me.x - img.width / 2 - cx), Math.round(me.y - img.height - 4 + bob - cy));
+        continue;
+      }
+      const p = it.p; if (p.x - cx > VW || p.x + p.w - cx < 0 || p.y - cy > VH || p.foot - cy < -10) continue;
+      if (p.solid !== false) { bc.fillStyle = 'rgba(0,0,0,.3)'; bc.beginPath(); bc.ellipse(Math.round(p.x + p.w / 2 - cx), Math.round(p.foot - 2 - cy), Math.round(p.w * .4), 4, 0, 0, TAU); bc.fill(); }
+      const seq = p.anim || p.frames.map((_, i) => i), f = p.frames[seq[Math.floor(now / p.ms) % seq.length]] || p.frames[0];
+      bc.drawImage(f, p.x - cx, p.y - cy);
+      if (p === near) { bc.fillStyle = '#f2c14e'; const ax = Math.round(p.x + p.w / 2 - cx), ay = Math.round(p.y - 6 - cy + Math.sin(T * 5) * 1.5); bc.fillRect(ax - 2, ay, 5, 1); bc.fillRect(ax - 1, ay + 1, 3, 1); bc.fillRect(ax, ay + 2, 1, 1); }
+    }
+    // your fireflies, trailing behind
+    for (let i = 0; i < 3; i++) { const q = me.trail[(i + 1) * 9] || [me.x - me.face * (8 + i * 7), me.y + 2]; bc.drawImage(FIREFLY[Math.floor(T * 8 + i) % 2], Math.round(q[0] - 2 - cx), Math.round(q[1] - 12 - cy + Math.sin(T * 4 + i) * 2)); }
+    // locked corners sit in fog
+    for (const [x, y, w, h] of world.fog) { bc.fillStyle = 'rgba(10,14,20,.5)'; bc.fillRect(x - cx, y - cy, w, h); }
+    // dusk, with warm holes around the lights and you
+    if (darkness.width !== VW || darkness.height !== VH) { darkness.width = VW; darkness.height = VH; }
+    const dc = darkness.getContext('2d'); dc.globalCompositeOperation = 'source-over'; dc.clearRect(0, 0, VW, VH); dc.fillStyle = 'rgba(4,8,14,.42)'; dc.fillRect(0, 0, VW, VH); dc.globalCompositeOperation = 'destination-out';
+    for (const [lx, ly, r] of [...lights, [me.x, me.y - 8, 46]]) dc.drawImage(haloOf(r), Math.round(lx - r - cx), Math.round(ly - r - cy));
+    bc.drawImage(darkness, 0, 0);
+    bc.globalCompositeOperation = 'lighter';
+    for (const [lx, ly, r] of lights) { const k = .75 + Math.sin(T * 6 + lx) * .08; bc.globalAlpha = k; bc.drawImage(warmOf(r >> 1), Math.round(lx - (r >> 1) - cx), Math.round(ly - (r >> 1) - cy)); }
+    bc.globalAlpha = 1;
+    for (const mo of motes) { const x = Math.round((mo.x + Math.sin(T * mo.s + mo.p) * 12) - cx), y = Math.round((mo.y + Math.cos(T * mo.s * .8 + mo.p) * 8) - cy); if (x < -4 || y < -4 || x > VW + 4 || y > VH + 4) continue; const b = .5 + .5 * Math.sin(T * 2 + mo.p); if (b > .25) { bc.globalAlpha = b; bc.drawImage(warmOf(3), x - 3, y - 3); bc.fillStyle = '#fff3a0'; bc.fillRect(x, y, 1, 1); } }
+    bc.globalAlpha = 1; bc.globalCompositeOperation = 'source-over';
+    ctx.imageSmoothingEnabled = false; ctx.drawImage(buf, 0, 0, VW * S, VH * S);
+    requestAnimationFrame(frame);
+  }
+  const hc = {}, wc = {}; const haloOf = r => hc[r] || (hc[r] = px(r * 2, r * 2, (c, dot) => { for (let y = 0; y < r * 2; y++) for (let x = 0; x < r * 2; x++) { const d = Math.hypot(x + .5 - r, y + .5 - r) / r; if (d < 1) dot(x, y, 'rgba(0,0,0,' + (Math.ceil((1 - d) * 5) / 5).toFixed(2) + ')'); } }));
+  // (stepped holes in the dusk, above)
+  const warmOf = r => wc[r] || (wc[r] = halo(r, [255, 200, 110], 4));
+  requestAnimationFrame(frame);
+  return { goto: (tx, ty) => { me.x = tx * 16; me.y = ty * 16; }, setBug: b => { me.bug = b; }, pause: v => { paused = v; for (const k in keys) keys[k] = false; }, get near() { return near; } };
+}
+
 // the game's own enemy sprites, for the run mock
 const pgRows = rows, pgEll = ell, pgLine = line, pgMirror = mirror;
 function weaverRows(pose) {
@@ -803,134 +1102,147 @@ const SPRITES = {
 document.getElementById('kit').textContent = kitCSS();
 const $ = id => document.getElementById(id);
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; };
-// a crisp, integer-scaled view of a canvas (or a cycling set of frames)
+const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
 function view(frames, scale, ms = 420) {
   frames = Array.isArray(frames) ? frames : [frames]; const f0 = frames[0], cv = document.createElement('canvas');
   cv.width = f0.width * scale; cv.height = f0.height * scale; cv.className = 'px'; const c = cv.getContext('2d'); c.imageSmoothingEnabled = false;
   let i = 0; const draw = () => { c.clearRect(0, 0, cv.width, cv.height); const f = frames[i % frames.length]; c.drawImage(f, 0, 0, f.width * scale, f.height * scale); };
-  draw(); if (frames.length > 1 && !matchMedia('(prefers-reduced-motion: reduce)').matches) setInterval(() => { i++; draw(); }, ms);
+  draw(); if (frames.length > 1 && !still) setInterval(() => { i++; draw(); }, ms);
   return cv;
 }
 function card(parent, frames, scale, name, note, opt = {}) {
-  const f = el('figure', 'card' + (opt.wide ? ' wide' : '')); const stage = el('div', 'stage' + (opt.light ? ' light' : '')); stage.appendChild(view(frames, scale, opt.ms)); f.appendChild(stage);
+  const f = el('figure', 'card' + (opt.big ? ' big' : '')); const stage = el('div', 'stage'); stage.appendChild(view(frames, scale, opt.ms)); f.appendChild(stage);
   const cap = el('figcaption'); cap.appendChild(el('b', '', name)); if (note) cap.appendChild(el('span', '', note)); f.appendChild(cap); parent.appendChild(f); return f;
 }
-const grid = id => { const g = el('div', 'grid'); $(id).appendChild(g); return g; };
+const grid = (id, cls) => { const g = el('div', 'grid' + (cls ? ' ' + cls : '')); $(id).appendChild(g); return g; };
+const img = (cv, s = 2, alt = '') => '<img class="pxi" alt="' + alt + '" width="' + cv.width * s + '" height="' + cv.height * s + '" src="' + uri(cv) + '">';
+const amberTag = n => '<span class="price">' + img(AMBER_SMALL, 3) + ' ' + n + '</span>';
 
-// ---- 1. the Hollow, laid out ----
-function hubMap() {
-  const W = 34, H = 22, M = px(W * 16, H * 16, () => {}), c = M.getContext('2d'); reseed(77);
-  const pick = a => a[(rnd() * a.length) | 0];
-  const T = Array.from({ length: H }, () => Array(W).fill('g'));
-  const fill = (x0, y0, x1, y1, t) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) T[y][x] = t; };
-  fill(13, 9, 20, 13, 'd'); fill(13, 3, 19, 6, 'd'); fill(3, 8, 10, 13, 'p'); fill(2, 15, 13, 19, 'd');
-  fill(11, 11, 13, 11, 's'); fill(14, 12, 19, 12, 's'); fill(14, 9, 14, 12, 's'); fill(19, 9, 19, 12, 's'); fill(5, 11, 11, 11, 'p'); fill(16, 7, 17, 8, 's'); fill(16, 14, 17, 15, 's'); fill(10, 14, 16, 14, 's'); fill(9, 14, 9, 15, 's'); fill(21, 11, 24, 11, 's'); fill(21, 6, 26, 6, 's');
-  fill(25, 12, 31, 19, 'w'); fill(25, 11, 31, 11, 'S'); fill(17, 17, 23, 20, 'd'); fill(25, 2, 31, 8, 'd');
-  fill(0, 0, W - 1, 1, 'R'); fill(0, 2, W - 1, 2, 'F'); fill(0, 0, 1, H - 1, 'R'); fill(W - 2, 0, W - 1, H - 1, 'R'); fill(0, H - 1, W - 1, H - 1, 'R');
-  const tiles = { g: HUB_TILES.grass, d: HUB_TILES.dirt, p: HUB_TILES.plank, s: HUB_TILES.slab, w: HUB_TILES.water, S: HUB_TILES.shore, R: HUB_TILES.rootTop, F: HUB_TILES.rootFace };
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) c.drawImage(pick(tiles[T[y][x]]), x * 16, y * 16);
-  // props sorted by their feet, with a soft pixel shadow under each
-  const props = [];
-  const at = (img, tx, ty, shadow = true) => props.push({ img, x: tx * 16, y: ty * 16, shadow });
-  at(LANTERN_GATE[0], 15.2, 9); at(SHRINE[0], 20.6, 8); at(TABLET, 14.6, 4.3); at(CART[0], 3.2, 8.4); at(flipX(GLIM[0]), 8.6, 10.2);
-  at(CRATE, 2.3, 11.8); at(JAR[0], 3.4, 12.3); at(BENCH, 18.5, 12.6); at(SIGNPOST, 11.8, 13.4); at(REED_GATE, 22.6, 9.6); at(SOON_BOARD, 27.4, 9.9); at(LOG, 16.4, 15.7); at(SOON_BOARD, 21.2, 16.2);
-  at(RUBBLE, 24.8, 7.2); at(PILLAR, 27, 4.5); at(TELESCOPE, 28.5, 4); at(SOON_BOARD, 25, 2.4);
-  for (const [i, x] of [[0, 2.6], [1, 4.6], [2, 6.6], [3, 8.6], [4, 10.6]]) { at(PERCH[i], x, 16.2); props.push({ img: i > 2 ? px(18, 14, cc => { cc.drawImage(bake({ B: '#1a2020' }, bugRows[Object.keys(BUGS)[i]][0].map(r => r.replace(/[^.]/g, 'B'))), 0, 0); }) : BUGS[Object.keys(BUGS)[i]][0], x: x * 16 - 1, y: 16.2 * 16 - 9, shadow: false, z: 1 }); }
-  for (const [x, y] of [[12.2, 8.6], [21.4, 12.2], [12.2, 2.8], [2.4, 14], [20.5, 3]]) at(LAMP_POST[0], x, y);
-  for (const [i, x, y] of [[0, 5.6, 6.8], [1, 30.6, 9.8], [2, 13.6, 19.6], [0, 22.6, 4.4], [1, 2.4, 19.4], [2, 31.4, 2.6]]) at(GLOW_SHROOMS[i], x, y, false);
-  for (const [x, y] of [[6.6, 2.6], [23.4, 13.6], [12, 20.2], [31, 20.1], [2, 5.4]]) at(BUSH, x, y);
-  for (const [x, y] of [[26, 13], [28.4, 15.4], [30, 17.6], [26.6, 18]]) at(LILY, x, y, false);
-  for (const [x, y] of [[24.6, 12.4], [31.2, 12.6], [24.7, 17.6]]) at(REEDS, x, y, false);
-  for (const [i, x, y] of [[0, 6.3, 5], [1, 21.3, 14.3], [2, 9.4, 20.3], [0, 18.5, 2.9], [1, 3.2, 3.4]]) at(FLOWERS[i], x, y, false);
-  at(SHELLBY[0], 19, 18.2);
-  props.sort((a, b) => (a.y + a.img.height + (a.z || 0)) - (b.y + b.img.height + (b.z || 0)));
-  for (const p of props) { if (p.shadow) { c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(Math.round(p.x + p.img.width / 2), Math.round(p.y + p.img.height - 1), Math.round(p.img.width * .42), 3, 0, 0, TAU); c.fill(); } c.drawImage(p.img, Math.round(p.x), Math.round(p.y)); }
-  // lighting: a dusky wash with warm holes where the lanterns are, then the locked corners sink into fog
-  const dark = px(M.width, M.height, (dc) => { dc.fillStyle = 'rgba(6,10,14,.32)'; dc.fillRect(0, 0, M.width, M.height); dc.globalCompositeOperation = 'destination-out'; for (const [x, y, r] of [[16.5, 11, 70], [4 * 16 + 40, 9 * 16 + 30, 64], [21.5, 9.5, 34], [12.6, 9.4, 30], [21.8, 13, 30], [12.6, 3.6, 30], [2.8, 14.8, 30], [20.9, 3.8, 30], [7, 17.5, 50], [15.5, 5.5, 34]]) { const X = x > 40 ? x : x * 16, Y = y > 40 ? y : y * 16; dc.drawImage(halo(r, [255, 255, 255], 5), X - r, Y - r); } });
-  c.drawImage(dark, 0, 0);
-  c.globalCompositeOperation = 'lighter'; for (const [x, y, r] of [[16.5, 11, 46], [5.5, 10, 40], [21.5, 9.5, 20], [12.6, 9.3, 18], [21.8, 12.9, 18], [12.6, 3.5, 18], [2.8, 14.7, 18], [20.9, 3.7, 18]]) c.drawImage(halo(r, [255, 200, 110], 4), x * 16 - r, y * 16 - r); c.globalCompositeOperation = 'source-over';
-  const fog = (x0, y0, x1, y1) => { c.fillStyle = 'rgba(8,12,18,.55)'; c.fillRect(x0 * 16, y0 * 16, (x1 - x0 + 1) * 16, (y1 - y0 + 1) * 16); for (let y = y0 * 16; y < (y1 + 1) * 16; y += 2) for (let x = x0 * 16 + (y % 4 ? 1 : 0); x < (x1 + 1) * 16; x += 4) { c.fillStyle = 'rgba(30,40,50,.25)'; c.fillRect(x, y, 1, 1); } };
-  fog(24, 9, 31, 20); fog(17, 16, 23, 20); fog(24, 2, 31, 8);
-  for (const [x, y] of [[27.6, 14.5], [19.9, 18.3], [28, 5]]) c.drawImage(PADLOCK, Math.round(x * 16), Math.round(y * 16));
-  // ambient fireflies
-  reseed(5); for (let i = 0; i < 26; i++) { const x = 40 + rnd() * (M.width - 80), y = 50 + rnd() * (M.height - 90); c.globalCompositeOperation = 'lighter'; c.drawImage(halo(6, [255, 230, 140], 3), x - 6, y - 6); c.globalCompositeOperation = 'source-over'; c.fillStyle = '#fff3a0'; c.fillRect(Math.round(x), Math.round(y), 1, 1); }
-  // you, standing in the plaza
-  c.drawImage(BUGS.firefly[0], 16 * 16, 12 * 16 + 2); for (let i = 0; i < 3; i++) c.drawImage(FIREFLY[0], 16 * 16 - 10 - i * 8, 12 * 16 + 8 + (i % 2) * 3);
-  return M;
-}
-(() => {
-  const wrap = $('map'), M = hubMap(), cv = view(M, 2); window.__hubMap = M; cv.classList.add('map'); wrap.appendChild(cv);
-  const pins = [[1, 16.6, 8.4, 'The Lantern Gate', 'Walk into the light to fly out on a run. Your amber is counted when you come back.', 'open'], [2, 5.6, 8, "Old Glim's Wares", 'The permanent upgrades merchant. Talk to him to open the shop.', 'open'], [3, 21.5, 7.4, 'The Daily Moonstone', "Today's challenge, the same run for everyone.", 'open'], [4, 16.2, 3.8, 'The Wall of Glows', 'Your stats, run history and achievements.', 'open'], [5, 7, 15.6, 'The Roost', 'Your bugs rest on these mushrooms. Walk up to one to fly as it. Locked bugs are shadows.', 'open'], [6, 28, 12, 'The Moonlit Pond', 'Locked. New game modes will open here.', 'locked'], [7, 20.5, 16.6, 'The Mushroom Market', 'Locked. Shellby will sell weapons and looks here.', 'locked'], [8, 28.5, 3, 'The Old Observatory', 'Locked. Future challenges and trials.', 'locked']];
-  const legend = $('legend');
-  for (const [n, x, y, name, note, st] of pins) {
-    const p = el('span', 'pin ' + st, n); p.style.left = (x / 34 * 100) + '%'; p.style.top = (y / 22 * 100) + '%'; p.title = name; wrap.appendChild(p);
-    const li = el('li', st); li.innerHTML = '<span class="pin ' + st + '">' + n + '</span><div><b>' + name + '</b><span>' + note + '</span></div>'; legend.appendChild(li);
+// ---- shared demo state: your amber and what you've grown ----
+const ST = { amber: 420, owned: new Set(['first', 'bright', 'wings', 'shell']), bug: 'firefly', views: [] };
+const nodeState = n => ST.owned.has(n.id) ? 'owned' : n.req.every(r => ST.owned.has(r)) ? 'open' : 'locked';
+const changed = () => ST.views.forEach(v => v());
+
+// ---- the Root Tree viewer: drag (or use the arrow keys) to look around, tap a node to see it ----
+function TreeView(host) {
+  const wrap = el('div', 'tree'); host.appendChild(wrap);
+  const cv = document.createElement('canvas'); cv.className = 'px'; wrap.appendChild(cv);
+  const bal = el('div', 'tree-bal'); wrap.appendChild(bal);
+  const cardEl = el('div', 'k-panel tree-card'); wrap.appendChild(cardEl);
+  const U2 = 58, X0 = -4.6, Y0 = .9, LW = Math.round(10.6 * U2), LH = Math.round(6.6 * U2), S = 2;
+  const at = n => [Math.round((n.x - X0) * U2), Math.round((n.y + 5.5) * U2)]; // first light sits at the bottom, the tree grows up
+  let lowres = null, sel = null, pan = [0, 0], drag = null;
+  const badgeCache = {}; const badgeOf = (n, s) => badgeCache[n.id + s] || (badgeCache[n.id + s] = badge(n, s));
+  function paint() {
+    lowres = px(LW, LH, (c, dot) => {
+      c.fillStyle = '#080b0c'; c.fillRect(0, 0, LW, LH); reseed(64);
+      for (let i = 0; i < 900; i++) { c.fillStyle = rnd() < .5 ? '#0c1012' : '#06090a'; c.fillRect((rnd() * LW) | 0, (rnd() * LH) | 0, 2, 1); }
+      const [rx, ry] = at(NODE.first); const g = pg(LW, LH); blob(g, bez([rx, LH], [rx - 4, ry + 40], [rx, ry]), 9, 5, 'B'); for (const [a, b] of [[[rx - 6, LH], [rx - 40, LH - 6]], [[rx + 6, LH], [rx + 44, LH - 4]]]) blob(g, [a, b], 4, 1.5, 'B');
+      for (const n of TREE.map(t => NODE[t[0]])) for (const r of n.req) { const [x0, y0] = at(NODE[r]), [x1, y1] = at(n); blob(g, bez([x0, y0], [(x0 + x1) / 2 + (x1 - x0) * .1, (y0 + y1) / 2 + 6], [x1, y1], 14), 3.4, 2.6, 'B'); }
+      c.drawImage(bake({ B: P.bark }, g, '#030405'), -1, -1);
+      for (const n of TREE.map(t => NODE[t[0]])) for (const r of n.req) { const [x0, y0] = at(NODE[r]), [x1, y1] = at(n), lit = ST.owned.has(r) && ST.owned.has(n.id), open = ST.owned.has(r); const pts = bez([x0, y0], [(x0 + x1) / 2 + (x1 - x0) * .1, (y0 + y1) / 2 + 6], [x1, y1], 40); c.fillStyle = lit ? BR[n.br].col : open ? BR[n.br].dark : '#2a1c14'; for (const [x, y] of pts) c.fillRect(Math.round(x), Math.round(y), 1, 1); }
+      for (const n of TREE.map(t => NODE[t[0]])) { const [x, y] = at(n), s = nodeState(n); if (s === 'owned') c.drawImage(halo(24, n.br === 'wing' ? [127, 214, 194] : n.br === 'root' ? [143, 208, 106] : [242, 193, 78], 4), x - 24, y - 24); c.drawImage(badgeOf(n, s), x - 17, y - 17); }
+    });
   }
+  function fit() { const r = wrap.getBoundingClientRect(); cv.width = Math.round(r.width); cv.height = Math.round(r.height); clampPan(); draw(); }
+  function clampPan() { pan[0] = Math.min(40, Math.max(cv.width - LW * S - 40, pan[0])); pan[1] = Math.min(40, Math.max(cv.height - LH * S - 40, pan[1])); }
+  function draw() {
+    const c = cv.getContext('2d'); c.imageSmoothingEnabled = false; c.fillStyle = '#06090a'; c.fillRect(0, 0, cv.width, cv.height);
+    c.drawImage(lowres, Math.round(pan[0]), Math.round(pan[1]), LW * S, LH * S);
+    c.font = '600 13px "Pixelify Sans", monospace'; c.textAlign = 'center'; c.textBaseline = 'top';
+    for (const t of TREE) { const n = NODE[t[0]], [x, y] = at(n), s = nodeState(n), sx = pan[0] + x * S, sy = pan[1] + y * S + 38; c.fillStyle = '#000c'; c.fillText(n.name, sx, sy + 2); c.fillStyle = s === 'owned' ? '#e9e4d6' : s === 'open' ? BR[n.br].col : '#5d6563'; c.fillText(n.name, sx, sy); }
+    if (sel) { const [x, y] = at(sel), sx = pan[0] + x * S, sy = pan[1] + y * S; c.strokeStyle = '#ffffff'; c.lineWidth = 2; c.setLineDash([6, 6]); c.lineDashOffset = -(performance.now() / 60); c.beginPath(); c.arc(sx, sy, 42, 0, TAU); c.stroke(); c.setLineDash([]); }
+  }
+  function showCard() {
+    bal.innerHTML = amberTag(ST.amber);
+    if (!sel) { cardEl.innerHTML = '<p class="tc-hint">Tap a node. Drag to look around.</p>'; return; }
+    const s = nodeState(sel), poor = sel.cost > ST.amber;
+    cardEl.innerHTML = '<div class="tc">' + img(badge(sel, s), 2) + '<div><b>' + sel.name + '</b><span>' + sel.desc + '</span></div></div>' +
+      (s === 'owned' ? '<div class="tc-own">' + img(ICO.check, 2) + ' Grown</div>' : s === 'locked' ? '<div class="tc-need">Grow ' + sel.req.filter(r => !ST.owned.has(r)).map(r => NODE[r].name).join(' and ') + ' first</div>' :
+        '<button class="k-btn"' + (poor ? ' disabled' : '') + '>Grow ' + img(AMBER_SMALL, 3) + ' ' + sel.cost + '</button>');
+    const b = cardEl.querySelector('button'); if (b) b.onclick = () => { if (ST.amber < sel.cost) return; ST.amber -= sel.cost; ST.owned.add(sel.id); changed(); };
+  }
+  const refresh = () => { paint(); draw(); showCard(); }; ST.views.push(refresh);
+  cv.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, px: pan[0], py: pan[1], moved: 0 }; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener('pointermove', e => { if (!drag) return; drag.moved = Math.max(drag.moved, Math.hypot(e.clientX - drag.x, e.clientY - drag.y)); pan = [drag.px + e.clientX - drag.x, drag.py + e.clientY - drag.y]; clampPan(); draw(); });
+  cv.addEventListener('pointerup', e => { if (drag && drag.moved < 6) { const r = cv.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top; sel = null; for (const t of TREE) { const n = NODE[t[0]], [x, y] = at(n); if (Math.hypot(pan[0] + x * S - mx, pan[1] + y * S - my) < 36) sel = n; } showCard(); draw(); } drag = null; });
+  wrap.tabIndex = 0; wrap.setAttribute('aria-label', 'Root Tree. Arrow keys look around.');
+  wrap.addEventListener('keydown', e => { const d = { ArrowLeft: [40, 0], ArrowRight: [-40, 0], ArrowUp: [0, 40], ArrowDown: [0, -40] }[e.key]; if (d) { e.preventDefault(); pan[0] += d[0]; pan[1] += d[1]; clampPan(); draw(); } });
+  if (!still) setInterval(() => { if (sel) draw(); }, 60);
+  paint(); new ResizeObserver(() => { const first = !cv.width; fit(); if (first || !wrap.dataset.placed) { const [x, y] = at(NODE.first); pan = [cv.width / 2 - x * S, cv.height - y * S - 70]; clampPan(); draw(); wrap.dataset.placed = 1; } }).observe(wrap);
+  sel = NODE.twin; showCard();
+  return { redraw: refresh };
+}
+
+// ---- 1. the walkable Hollow ----
+(() => {
+  const box = $('hollow'), overlay = el('div', 'hollow-ov'), hint = el('div', 'hollow-hint'), toast = el('div', 'hollow-toast'), start = el('button', 'hollow-start', 'Click to walk around');
+  box.append(overlay, hint, toast, start); overlay.hidden = true; toast.hidden = true;
+  let game;
+  const say = msg => { toast.innerHTML = msg; toast.hidden = false; clearTimeout(say.t); say.t = setTimeout(() => toast.hidden = true, 2200); };
+  const close = () => { overlay.hidden = true; overlay.innerHTML = ''; game.pause(false); box.focus(); };
+  const panel = (title, inner) => { overlay.innerHTML = '<div class="k-panel gold ov-panel"><div class="ov-head"><h3>' + title + '</h3><button class="k-btn stone icon" aria-label="Close">' + img(ICO.close) + '</button></div>' + inner + '</div>'; overlay.querySelector('.ov-head button').onclick = close; overlay.hidden = false; game.pause(true); };
+  const ui = {
+    prompt(p) { if (!p) { hint.hidden = true; return; } hint.hidden = false; hint.innerHTML = '<button class="hint-btn"><span class="k-key">E</span> ' + p.label + '</button>'; hint.querySelector('button').onclick = () => ui.open(p); },
+    open(p) {
+      if (p.station === 'gate') { say('Off into the night! (Starts a run.)'); return; }
+      if (p.station === 'locked') { say(img(ICO.lock) + ' Soon'); return; }
+      if (p.station === 'tree') { panel('The Root Tree', '<div class="ov-tree"></div>'); TreeView(overlay.querySelector('.ov-tree')); return; }
+      if (p.station === 'roost') { panel('Choose your bug', '<div class="pick">' + ['firefly', 'moth', 'beetle'].map(b => { const ok = b === 'firefly' || ST.owned.has(b); return '<button class="pick-b' + (ST.bug === b ? ' on' : '') + '"' + (ok ? '' : ' disabled') + ' data-b="' + b + '">' + img(ok ? BUGS[b][0] : SILHOUETTE[b], 4) + '<b>' + (ok ? BUG_NAMES[b] : 'Locked') + '</b><span>' + (ok ? BUG_ROLE[b] : 'Grow it in the Root Tree') + '</span></button>'; }).join('') + '</div>'); overlay.querySelectorAll('.pick-b').forEach(b => b.onclick = () => { ST.bug = b.dataset.b; game.setBug(ST.bug); close(); }); return; }
+      if (p.station === 'daily') { panel('Daily #17', '<div class="daily">' + img(BUGS.moth[0], 4) + '<div><b>Today: Moth</b><span>Same run for everyone.</span><span>Your best: 2,140</span></div></div><div class="row end"><button class="k-btn mint">Play today</button></div>'); return; }
+      if (p.station === 'records') { panel('Records', '<div class="stats rec"><div><b>4,094</b>best</div><div><b>9:12</b>longest</div><div><b>31</b>runs</div><div><b>7/18</b>badges</div></div>'); return; }
+    },
+  };
+  start.onclick = () => { start.remove(); box.focus(); };
+  game = mountHollow(box, ui); hint.hidden = true; window.__hollow = { game, ui }; // a hook for testing
 })();
 
-// ---- 2. characters ----
+// ---- 2. stations ----
 (() => {
-  const g = grid('chars');
-  for (const k in BUGS) card(g, BUGS[k], 5, BUG_NAMES[k], 'Two-frame flight. Flips to face where you fly.');
-  card(g, [GLIM[0], GLIM[1], GLIM[0], GLIM[2]], 5, 'Old Glim', 'Moth peddler. Idle, lantern flicker, talking.', { ms: 380 });
-  card(g, [GLIM_PORTRAIT], 6, 'Glim, portrait', 'Used in his dialogue box.');
-  card(g, SHELLBY, 4, 'Shellby', 'Snail who runs a shop from her shell. Mushroom Market, locked for now.', { ms: 600 });
-  card(g, FIREFLY, 8, 'Trail firefly', 'Follows you in a line.', { ms: 260 });
-  card(g, STRAY, 7, 'Lost firefly', 'Waiting to be rescued, blinking.', { ms: 400 });
+  const g = grid('stations', 'wide');
+  card(g, BIG_GATE, 4, 'Lantern Gate', 'Fly out.', { ms: 140, big: 1 });
+  card(g, ELDER, 3, 'Elder Root', 'The Root Tree.', { ms: 900, big: 1 });
+  card(g, [GLIM[0], GLIM[1], GLIM[0], GLIM[2]], 5, 'Old Glim', 'Tends the tree.', { ms: 380 });
+  card(g, BIG_SHROOMS, 4, 'The Roost', 'Choose your bug.', { ms: 900 });
+  card(g, MOONSTONE, 4, 'Moonstone', 'Daily run.', { ms: 900 });
+  card(g, [RECORDS], 4, 'Records', 'Your best runs.');
+  card(g, [POND_GATE], 3, 'Pond gate', 'Locked: new modes.');
+  card(g, [MARKET], 3, 'Market', 'Locked: a second shop.');
+  const s = grid('scenery'); card(s, TREES, 3, 'Trees', '', { ms: 900 }); card(s, BIG_LAMP, 4, 'Lamp', '', { ms: 300 }); card(s, [FERN], 4, 'Fern', ''); card(s, [SHROOM_PATCH], 4, 'Glow mushrooms', '');
+  const patch = arr => [0, 1].map(f => px(48, 48, pc => { reseed(13 + f); for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) pc.drawImage(arr === HUB_TILES.water || arr === HUB_TILES.shore ? arr[f] : arr[(rnd() * arr.length) | 0], x * 16, y * 16); }));
+  const t = grid('tiles'); for (const [n, a] of [['Grass', HUB_TILES.grass], ['Dirt', HUB_TILES.dirt], ['Stepping slabs', HUB_TILES.slab], ['Water', HUB_TILES.water], ['Shore', HUB_TILES.shore], ['Root wall', HUB_TILES.rootTop], ['Root wall face', HUB_TILES.rootFace]]) card(t, patch(a), 3, n, '', { ms: 700 });
 })();
-// ---- 3. hub props and tiles ----
+
+// ---- 3. the Root Tree ----
+TreeView($('tree'));
+
+// ---- 4. characters ----
+const BUG_ROLE = { firefly: 'Steady all-rounder', moth: 'Fast, fragile', beetle: 'Slow, tough' };
+const SILHOUETTE = {}; for (const b of ['moth', 'beetle']) SILHOUETTE[b] = px(BUGS[b][0].width, BUGS[b][0].height, c => { c.drawImage(BUGS[b][0], 0, 0); c.globalCompositeOperation = 'source-in'; c.fillStyle = '#1e2626'; c.fillRect(0, 0, 99, 99); });
+(() => { const g = grid('chars'); for (const k of ['firefly', 'moth', 'beetle']) card(g, BUGS[k], 6, BUG_NAMES[k], BUG_ROLE[k], { ms: 160 }); card(g, FIREFLY, 8, 'Trail firefly', '', { ms: 260 }); card(g, STRAY, 7, 'Lost firefly', '', { ms: 400 }); })();
+
+// ---- 5. icons ----
 (() => {
-  const g = grid('props');
-  card(g, LANTERN_GATE, 4, 'The Lantern Gate', 'Starts a run. Its light flickers.', { ms: 300 });
-  card(g, CART, 3, "Glim's cart", 'Striped canopy, hanging jars, his wares.', { ms: 500 });
-  card(g, SHRINE, 4, 'Daily Moonstone', 'The moon glows brighter when today is unplayed.', { ms: 700 });
-  card(g, [TABLET], 3, 'Wall of Glows', 'Stats and achievements, carved in stone.');
-  card(g, PERCH, 4, 'Roost perches', 'One per bug, in its colour.', { ms: 700 });
-  card(g, [REED_GATE], 3, 'Pond gate', 'Locked: reeds, a chained gate and a padlock.');
-  card(g, [LOG], 3, 'Fallen log', 'Blocks the Mushroom Market for now.');
-  card(g, [RUBBLE], 4, 'Rubble', 'Blocks the Observatory path.');
-  card(g, [PILLAR], 4, 'Broken pillar', '');
-  card(g, [TELESCOPE], 3, 'Old telescope', 'Waiting in the Observatory.');
-  card(g, [SOON_BOARD], 4, 'Coming-soon board', 'Stands at every locked area.');
-  card(g, [SIGNPOST], 4, 'Signpost', '');
-  card(g, LAMP_POST, 4, 'Lamp post', '', { ms: 300 });
-  card(g, JAR, 5, 'Firefly jar', '', { ms: 400 });
-  card(g, [CRATE], 5, 'Crate', ''); card(g, [BENCH], 4, 'Bench', '');
-  card(g, GLOW_SHROOMS, 5, 'Glow mushrooms', 'Three colours.', { ms: 700 });
-  card(g, [BUSH], 4, 'Bush', ''); card(g, [LILY], 5, 'Lily pad', ''); card(g, [REEDS], 5, 'Reeds', ''); card(g, FLOWERS, 7, 'Flowers', '', { ms: 600 }); card(g, [PADLOCK], 5, 'Padlock', '');
-  const t = grid('tiles');
-  const patch = arr => [0, 1].map(f => px(48, 48, pc => { reseed(13 + f); for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) pc.drawImage(arr.length > 1 && arr === HUB_TILES.water || arr === HUB_TILES.shore ? arr[f] : arr[(rnd() * arr.length) | 0], x * 16, y * 16); }));
-  const tileCard = (name, arr, note) => card(t, patch(arr), 3, name, note, { ms: 700 });
-  tileCard('Grass', HUB_TILES.grass, 'Four variants, one with flowers.'); tileCard('Dirt', HUB_TILES.dirt, ''); tileCard('Stepping slabs', HUB_TILES.slab, ''); tileCard('Moss', HUB_TILES.moss, '');
-  tileCard('Water', HUB_TILES.water, 'Two-frame ripple.'); tileCard('Shore', HUB_TILES.shore, 'Grass lip, shadow, water.'); tileCard('Root wall, top', HUB_TILES.rootTop, ''); tileCard('Root wall, face', HUB_TILES.rootFace, ''); tileCard('Deck planks', HUB_TILES.plank, '');
-})();
-// ---- 4. upgrades shop data and icons ----
-(() => {
-  const g = grid('upgrades');
-  for (const [k, name, eff, max, costs] of UPGRADES) card(g, [UPGRADE_ICONS[k]], 5, name, eff + ' · ' + max + (max > 1 ? ' levels' : ' level') + ' · ' + costs.join(' / ') + ' amber');
-  const c = grid('currency');
-  card(c, [AMBER], 6, 'Amber', 'Earned every run. Spent at Old Glim.'); card(c, [AMBER_SMALL], 8, 'Amber, small', 'For prices and the counter.'); card(c, [AMBER_PILE], 5, 'Amber pile', 'Run summary reward.');
-  const w = grid('weapons');
-  for (const k in WEAPON_ICONS) { card(w, [WEAPON_ICONS[k]], 5, WEAPON_NAMES[k][0], ''); card(w, [EVOLVED_ICONS[k]], 4, WEAPON_NAMES[k][1], 'Evolved'); }
+  const w = grid('weapons'); for (const k in WEAPON_ICONS) { card(w, [WEAPON_ICONS[k]], 5, WEAPON_NAMES[k][0], ''); card(w, [EVOLVED_ICONS[k]], 4, WEAPON_NAMES[k][1], 'Evolved'); }
   const p = grid('passives'); for (const k in PASSIVE_ICONS) card(p, [PASSIVE_ICONS[k]], 5, PASSIVE_NAMES[k], '');
-  const pk = grid('pickups'); for (const k in PICKUPS) card(pk, [PICKUPS[k]], 5, PICKUP_NAMES[k], ''); SPARKS.forEach((s, i) => card(pk, [s], 8, ['Spark', 'Bright spark', 'Gold spark'][i], ['1 XP', '4 XP', '15 XP'][i]));
-  const ic = grid('hudicons'); const names = { health: 'Health', squash: 'Squashed', firefly: 'Fireflies', clock: 'Time', pause: 'Pause', play: 'Resume', soundOn: 'Sound on', soundOff: 'Sound off', music: 'Music', gear: 'Settings', lock: 'Locked', unlock: 'Unlocked', check: 'Done', cross: 'Close or no', star: 'Achievement', crown: 'Best', moon: 'Daily', nightmare: 'Nightmare', back: 'Back', close: 'Close', amber: 'Amber' };
-  for (const k in ICO) card(ic, [ICO[k]], 5, names[k], '');
+  const pk = grid('pickups'); for (const k in PICKUPS) card(pk, [PICKUPS[k]], 5, PICKUP_NAMES[k], ''); SPARKS.forEach((s, i) => card(pk, [s], 8, ['Spark', 'Bright spark', 'Gold spark'][i], '')); card(pk, [AMBER], 6, 'Amber', 'Spent on the tree.');
+  const ic = grid('hudicons'); const names = { health: 'Health', squash: 'Squashed', firefly: 'Fireflies', clock: 'Time', pause: 'Pause', soundOn: 'Sound', music: 'Music', gear: 'Settings', lock: 'Locked', check: 'Done', star: 'Badge', moon: 'Daily', back: 'Back', close: 'Close' };
+  for (const k in names) card(ic, [ICO[k]], 5, names[k], '');
 })();
-// ---- 5. projectiles and effects ----
+// ---- 6. projectiles ----
 (() => {
-  const g = grid('shots'); for (const k in PLAYER_SHOTS) card(g, PLAYER_SHOTS[k], 6, k, 'Yours', { ms: 160 });
-  const e = grid('eshots'); for (const k in ENEMY_SHOTS) card(e, [ENEMY_SHOTS[k]], 7, k, 'Enemy'); card(e, SHOCKWAVE, 4, 'Gloom shockwave', 'Enemy', { ms: 300 }); card(e, [WEB], 4, 'Weaver web', 'Enemy');
-  const f = grid('effects'); card(f, HIT, 7, 'Hit spark', '', { ms: 120 }); card(f, POOF, 5, 'Death puff', '', { ms: 140 }); card(f, LEVEL_BURST, 4, 'Level-up burst', '', { ms: 220 }); card(f, [HEAL], 7, 'Heal', '');
+  const g = grid('shots'); for (const k in PLAYER_SHOTS) card(g, PLAYER_SHOTS[k], 6, k, '', { ms: 160 });
+  const e = grid('eshots'); for (const k in ENEMY_SHOTS) card(e, [ENEMY_SHOTS[k]], 7, k, ''); card(e, SHOCKWAVE, 4, 'Shockwave', '', { ms: 300 }); card(e, [WEB], 4, 'Web', '');
+  const f = grid('effects'); card(f, HIT, 7, 'Hit', '', { ms: 120 }); card(f, POOF, 5, 'Poof', '', { ms: 140 }); card(f, LEVEL_BURST, 4, 'Level up', '', { ms: 220 }); card(f, [HEAL], 7, 'Heal', '');
 })();
-// ---- 6. the run's level ----
+// ---- 7. the run ----
 function enemyFrames(name) { const d = SPRITES[name]; return d.frames.map(fr => bake(d.pal, fr, d.ol)); }
 (() => {
   const W = 30, H = 17, M = px(W * 16, H * 16, () => {}), c = M.getContext('2d'); reseed(303);
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const r = rnd(); const set = r < .07 ? RUN_TILES.slab : r < .1 ? RUN_TILES.spores : r < .12 ? RUN_TILES.rebar : RUN_TILES.grass; c.drawImage(set[(rnd() * set.length) | 0], x * 16, y * 16); }
   for (const [x, y] of [[6, 4], [7, 4], [6, 5], [22, 11], [23, 11]]) c.drawImage(RUN_TILES.slab[0], x * 16, y * 16); for (const [x, y] of [[12, 12], [25, 3]]) c.drawImage(RUN_TILES.puddle[0], x * 16, y * 16);
-  for (const [img, x, y] of [[STUMP, 4, 9], [STANDING, 20, 2], [STANDING, 22, 2.6], [DEAD_LAMP, 26, 9], [STUMP, 15, 1.5], [STANDING, 2, 13]]) { c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(x * 16 + img.width / 2, y * 16 + img.height - 1, img.width * .42, 3, 0, 0, TAU); c.fill(); c.drawImage(img, x * 16, y * 16); }
-  const put2 = (img, x, y, flip) => c.drawImage(flip ? flipX(img) : img, Math.round(x - img.width / 2), Math.round(y - img.height / 2));
+  for (const [im, x, y] of [[STUMP, 4, 9], [STANDING, 20, 2], [STANDING, 22, 2.6], [DEAD_LAMP, 26, 9], [STUMP, 15, 1.5], [STANDING, 2, 13]]) { c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(x * 16 + im.width / 2, y * 16 + im.height - 1, im.width * .42, 3, 0, 0, TAU); c.fill(); c.drawImage(im, x * 16, y * 16); }
+  const put2 = (im, x, y, flip) => c.drawImage(flip ? flipX(im) : im, Math.round(x - im.width / 2), Math.round(y - im.height / 2));
   const P0 = [15 * 16, 9 * 16];
   c.globalCompositeOperation = 'lighter'; c.drawImage(halo(80, [255, 210, 120], 5), P0[0] - 80, P0[1] - 80); c.globalCompositeOperation = 'source-over';
   for (const [n, x, y] of [['tick', 9, 5], ['tick', 10.5, 6.5], ['gnat', 20, 6], ['toad', 23, 13.5], ['beetle', 7, 12], ['brood', 21, 9], ['puff', 11, 12.5], ['moth', 18, 3.5], ['jar', 12, 3], ['tick', 24, 7], ['grub', 19.2, 10.5]]) put2(enemyFrames(n)[0], x * 16, y * 16, x * 16 > P0[0]);
@@ -940,58 +1252,22 @@ function enemyFrames(name) { const d = SPRITES[name]; return d.frames.map(fr => 
   for (const [k, x, y] of [['Beetle spit', 8.6, 11.2], ['Beetle spit', 10.2, 10.6], ['Eclipse ember', 19.6, 8.4], ['Generic shot', 17.8, 11.6], ['Hive sting', 13.2, 5]]) put2(ENEMY_SHOTS[k], x * 16, y * 16);
   put2(SPARKS[0], 13 * 16, 8 * 16); put2(SPARKS[1], 17 * 16, 12 * 16); put2(SPARKS[2], 14 * 16, 13 * 16); put2(PICKUPS.heart, 6 * 16, 7 * 16); put2(HIT[2], 20 * 16 - 8, 6 * 16 - 2); put2(POOF[1], 11 * 16, 9.4 * 16);
   const v = view(M, 2); v.classList.add('map'); $('level').appendChild(v);
-  const t = grid('runtiles'); const tc = (n, a, note) => card(t, [0, 1].map(f => px(48, 48, pc => { reseed(17 + f); for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) pc.drawImage(a === RUN_TILES.puddle ? a[f] : a[(rnd() * a.length) | 0], x * 16, y * 16); })), 3, n, note, { ms: 700 });
-  tc('Meadow grass', RUN_TILES.grass, 'Colder and darker than the hub.'); tc('Buried slabs', RUN_TILES.slab, 'Whole and cracked.'); tc('Puddle', RUN_TILES.puddle, ''); tc('Rebar', RUN_TILES.rebar, ''); tc('Spore caps', RUN_TILES.spores, '');
-  card(t, [STUMP], 4, 'Pillar stump', ''); card(t, [STANDING], 4, 'Standing stone', ''); card(t, [DEAD_LAMP], 4, 'Dead lamp post', 'The run is past the Hollow’s light.');
+  const t = grid('runtiles'); const tc = (n, a) => card(t, [0, 1].map(f => px(48, 48, pc => { reseed(17 + f); for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) pc.drawImage(a === RUN_TILES.puddle ? a[f] : a[(rnd() * a.length) | 0], x * 16, y * 16); })), 3, n, '', { ms: 700 });
+  tc('Meadow', RUN_TILES.grass); tc('Slabs', RUN_TILES.slab); tc('Puddle', RUN_TILES.puddle); tc('Rebar', RUN_TILES.rebar); tc('Spores', RUN_TILES.spores);
+  card(t, [STUMP], 4, 'Stump', ''); card(t, [STANDING], 4, 'Standing stone', ''); card(t, [DEAD_LAMP], 4, 'Dead lamp', '');
 })();
-// ---- 7. UI kit, live ----
+// ---- 8. UI kit and screens ----
 (() => {
-  const amberImg = '<img class="pxi" alt="" width="18" height="21" src="' + uri(AMBER_SMALL) + '">';
-  const icon = (cv, s = 2) => '<img class="pxi" alt="" width="' + cv.width * s + '" height="' + cv.height * s + '" src="' + uri(cv) + '">';
-  $('k-buttons').innerHTML = `
-    <div class="row"><button class="k-btn">Fly out</button><button class="k-btn is-hover" tabindex="-1">Hover</button><button class="k-btn is-down" tabindex="-1">Pressed</button><button class="k-btn" disabled>Disabled</button></div>
-    <div class="row"><button class="k-btn stone">Back</button><button class="k-btn stone is-hover" tabindex="-1">Hover</button><button class="k-btn stone is-down" tabindex="-1">Pressed</button><button class="k-btn mint">Daily #17</button><button class="k-btn danger">Reset progress</button></div>
-    <div class="row"><button class="k-btn stone icon" aria-label="Pause">${icon(ICO.pause)}</button><button class="k-btn stone icon" aria-label="Sound">${icon(ICO.soundOn)}</button><button class="k-btn stone icon" aria-label="Music">${icon(ICO.music)}</button><button class="k-btn stone icon" aria-label="Settings">${icon(ICO.gear)}</button><button class="k-btn stone icon" aria-label="Close">${icon(ICO.close)}</button></div>`;
-  $('k-inputs').innerHTML = `
-    <label class="field"><span>Music</span><div class="k-slider" data-v="70"><div class="tr"></div><div class="fi"></div><div class="kn"></div><input id="s1" type="range" min="0" max="100" value="70" aria-label="Music volume"></div><output>70</output></label>
-    <label class="field"><span>Sound effects</span><div class="k-slider" data-v="45"><div class="tr"></div><div class="fi"></div><div class="kn"></div><input id="s2" type="range" min="0" max="100" value="45" aria-label="Sound effects volume"></div><output>45</output></label>
-    <div class="row"><label class="opt"><input id="t1" class="k-toggle" type="checkbox" checked> Screen shake</label><label class="opt"><input id="t2" class="k-toggle" type="checkbox"> Reduce motion</label></div>
-    <div class="row"><label class="opt"><input id="c1" class="k-check" type="checkbox" checked> Damage numbers</label><label class="opt"><input id="c2" class="k-check" type="checkbox"> Show FPS</label></div>
-    <div class="row"><label class="opt"><input class="k-radio" type="radio" name="sz" id="r1"> Small text</label><label class="opt"><input class="k-radio" type="radio" name="sz" id="r2" checked> Normal</label><label class="opt"><input class="k-radio" type="radio" name="sz" id="r3"> Large</label></div>
-    <label class="field"><span>Dash key</span><span class="k-selwrap"><select id="d1" class="k-select"><option>Space</option><option>Shift</option><option>Right click</option></select></span></label>`;
-  $('k-misc').innerHTML = `
-    <div class="row"><div class="k-tabs" role="tablist"><button class="k-tab" role="tab" aria-selected="true">Upgrades</button><button class="k-tab" role="tab" aria-selected="false">Looks</button><button class="k-tab" role="tab" aria-selected="false" disabled>${icon(ICO.lock)} Soon</button></div></div>
-    <div class="k-panel" style="margin-top:0">Tab panel. The active tab joins the slab.</div>
-    <div class="bars"><div><small>XP</small><div class="k-bar"><i style="width:62%;background:repeating-linear-gradient(90deg,#4f8fe0 0 9px,#3d79c9 9px 12px)"></i></div></div>
-    <div><small>Health</small><div class="k-bar"><i style="width:74%;background:repeating-linear-gradient(90deg,#d9574a 0 9px,#b8443a 9px 12px)"></i></div></div>
-    <div><small>Boss</small><div class="k-bar boss"><i style="width:48%;background:repeating-linear-gradient(90deg,#c23b3b 0 9px,#9a2a2a 9px 12px)"></i></div></div></div>
-    <div class="row"><span class="k-pips" aria-label="Level 3 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span><span class="price">${amberImg} 140</span><span class="price poor">${amberImg} 400</span></div>
-    <div class="row" style="align-items:flex-end;min-height:84px"><span class="k-tip">+10 max health per level</span></div>
-    <div class="row"><span class="k-toast">${icon(ICO.star)} Achievement: Dawnbringer</span></div>
-    <div class="row"><span class="prompt"><span class="k-key">E</span> Talk to Old Glim</span><span class="prompt"><span class="k-key">Space</span> Dash</span><span class="prompt"><span class="k-key">Esc</span> Pause</span></div>
-    <div class="k-panel k-scroll" tabindex="0" aria-label="Scrolling list">${Array.from({ length: 12 }, (_, i) => '<p style="margin:6px 0">Run ' + (12 - i) + ' · ' + ['Firefly', 'Moth', 'Wasp'][i % 3] + ' · ' + (3 + i) + ':' + String((i * 17) % 60).padStart(2, '0') + '</p>').join('')}</div>
-    <div class="row"><span class="k-cursor curs">Hover here for the pixel cursor ${icon(IMG.cursor, 3)}</span></div>`;
-  document.querySelectorAll('.k-slider').forEach(s => { const inp = s.querySelector('input'), out = s.parentElement.querySelector('output'); const set = () => { const v = +inp.value; s.querySelector('.fi').style.width = 'calc(' + v + '% - ' + (v / 100 * 6) + 'px)'; s.querySelector('.kn').style.left = 'calc(' + (v) + '% + ' + (3.5 - v / 100 * 7) * 3 + 'px)'; if (out) out.textContent = v; }; inp.addEventListener('input', set); set(); });
-  document.querySelectorAll('.k-tab').forEach(t => t.addEventListener('click', () => { if (t.disabled) return; t.parentElement.querySelectorAll('.k-tab').forEach(o => o.setAttribute('aria-selected', o === t)); }));
-
-  // ---- 8. screens ----
-  const shop = $('shop');
-  shop.innerHTML = `<div class="k-panel gold screen-shop">
-    <div class="shop-head"><img class="pxi" alt="" width="${13 * 5}" height="${GLIM_PORTRAIT.height * 5}" src="${uri(GLIM_PORTRAIT)}"><div><h3>Old Glim's Wares</h3><p class="say">"Light doesn't keep, little one. Amber does. What'll it be?"</p></div><span class="balance">${amberImg} 312</span></div>
-    <div class="k-tabs" role="tablist"><button class="k-tab" role="tab" aria-selected="true">Upgrades</button><button class="k-tab" role="tab" aria-selected="false" disabled>${icon(ICO.lock)} Looks</button></div>
-    <div class="k-panel shop-list">${UPGRADES.map(([k, name, eff, max, costs], i) => { const have = [2, 1, 0, 3, 0, 1, 0, 2, 3, 0, 0, 1][i], maxed = have >= max, cost = maxed ? 0 : costs[have], poor = cost > 312; return `<div class="shop-row"><img class="pxi" alt="" width="48" height="48" src="${uri(UPGRADE_ICONS[k])}"><div class="sr-t"><b>${name}</b><span>${eff}</span><span class="k-pips">${Array.from({ length: max }, (_, j) => '<i' + (j < have ? ' class="on"' : '') + '></i>').join('')}</span></div>${maxed ? '<span class="maxed">' + icon(ICO.check) + ' Maxed</span>' : '<button class="k-btn' + (poor ? '" disabled' : '"') + '>' + amberImg + ' ' + cost + '</button>'}</div>`; }).join('')}</div></div>`;
-  $('settings').innerHTML = `<div class="k-panel screen-set"><h3>${icon(ICO.gear)} Settings</h3>
-    <div class="set-grid"><div><h4>Sound</h4>${$('k-inputs').querySelectorAll('.field')[0].outerHTML.replace('id="s1"', 'id="s3"')}${$('k-inputs').querySelectorAll('.field')[1].outerHTML.replace('id="s2"', 'id="s4"')}</div>
-    <div><h4>Screen</h4><label class="opt"><input id="t3" class="k-toggle" type="checkbox" checked> Screen shake</label><label class="opt"><input id="t4" class="k-toggle" type="checkbox"> Reduce motion</label><label class="opt"><input id="c3" class="k-check" type="checkbox" checked> Damage numbers</label></div>
-    <div><h4>Controls</h4><label class="field"><span>Dash key</span><span class="k-selwrap"><select id="d2" class="k-select"><option>Space</option><option>Shift</option></select></span></label><p class="note">Move with WASD or the arrow keys, or drag on a phone.</p></div>
-    <div><h4>Save</h4><p class="note">Progress, amber and upgrades are saved in this browser.</p><button class="k-btn danger">Reset progress</button></div></div>
-    <div class="row end"><button class="k-btn stone">${icon(ICO.back)} Back</button><button class="k-btn">Done</button></div></div>`;
-  document.querySelectorAll('#settings .k-slider').forEach(s => { const inp = s.querySelector('input'), out = s.parentElement.querySelector('output'); const set = () => { const v = +inp.value; s.querySelector('.fi').style.width = 'calc(' + v + '% - ' + (v / 100 * 6) + 'px)'; s.querySelector('.kn').style.left = 'calc(' + v + '% + ' + (3.5 - v / 100 * 7) * 3 + 'px)'; if (out) out.textContent = v; }; inp.addEventListener('input', set); set(); });
-  $('locked').innerHTML = `<div class="k-panel screen-lock"><img class="pxi" alt="" width="60" height="75" src="${uri(PADLOCK)}"><div><h3>The Moonlit Pond</h3><p>New ways to play will open here. The gate stays chained for now.</p><button class="k-btn stone">${icon(ICO.back)} Back to the Hollow</button></div></div>`;
-  $('dialog').innerHTML = `<div class="k-panel screen-dialog"><div class="portrait"><img class="pxi" alt="" width="${13 * 6}" height="${GLIM_PORTRAIT.height * 6}" src="${uri(GLIM_PORTRAIT)}"></div><div><span class="nameplate">Old Glim</span><p>"Back again? Every run you fly, you bring a little amber home. Bring me enough and I'll make you tougher for the next one."</p><div class="row"><button class="k-btn">Show me your wares</button><button class="k-btn stone">Maybe later</button></div></div></div>`;
-  const crop = px(240, 75, cc => cc.drawImage(window.__hubMap, 150, 120, 240, 75, 0, 0, 240, 75));
-  $('hubhud').innerHTML = `<div class="hudmock" style="background:url(${uri(crop)}) center/cover;image-rendering:pixelated"><span class="amt">${amberImg} 312</span><span class="right"><button class="k-btn stone icon" aria-label="Settings">${icon(ICO.gear)}</button></span><span class="hint"><span class="k-key">E</span> Fly out</span></div>`;
-  $('summary').innerHTML = `<div class="k-panel gold screen-sum"><h3>Back in the Hollow</h3><div class="sum-amber"><img class="pxi" alt="" width="100" height="70" src="${uri(AMBER_PILE)}"><div><b>+ 84 amber</b><span>62 from your score · 12 for the Maw · 10 for 5 fireflies home</span></div></div><div class="row end"><button class="k-btn">Back to the Hollow</button></div></div>`;
+  const slider = (id, label, v) => `<label class="field"><span>${label}</span><div class="k-slider"><div class="tr"></div><div class="fi"></div><div class="kn"></div><input id="${id}" type="range" min="0" max="100" value="${v}" aria-label="${label}"></div><output>${v}</output></label>`;
+  $('kit-a').innerHTML = `<div class="row"><button class="k-btn">Fly out</button><button class="k-btn is-hover" tabindex="-1">Hover</button><button class="k-btn is-down" tabindex="-1">Pressed</button><button class="k-btn" disabled>Can't afford</button></div>
+    <div class="row"><button class="k-btn stone">Back</button><button class="k-btn mint">Play today</button><button class="k-btn stone icon" aria-label="Pause">${img(ICO.pause)}</button><button class="k-btn stone icon" aria-label="Settings">${img(ICO.gear)}</button><button class="k-btn stone icon" aria-label="Close">${img(ICO.close)}</button></div>`;
+  $('kit-b').innerHTML = `${slider('s1', 'Music', 70)}<label class="opt"><input id="t1" class="k-toggle" type="checkbox" checked> Screen shake</label>
+    <div class="bars"><div class="k-bar"><i style="width:62%;background:repeating-linear-gradient(90deg,#4f8fe0 0 9px,#3d79c9 9px 12px)"></i></div><div class="k-bar"><i style="width:74%;background:repeating-linear-gradient(90deg,#d9574a 0 9px,#b8443a 9px 12px)"></i></div></div>
+    <div class="row">${amberTag(312)}<span class="prompt"><span class="k-key">E</span> The Root Tree</span><span class="k-toast">${img(ICO.star)} Badge: Dawnbringer</span></div>`;
+  $('settings').innerHTML = `<div class="k-panel set-min"><h3>${img(ICO.gear)} Settings</h3>${slider('s3', 'Music', 70)}${slider('s4', 'Sounds', 45)}<label class="opt"><input id="t3" class="k-toggle" type="checkbox" checked> Screen shake</label><div class="row end"><button class="k-btn">Done</button></div></div>`;
+  $('summary').innerHTML = `<div class="k-panel gold sum"><h3>Home again</h3><div class="sum-amber">${img(AMBER_PILE, 5)}<b>+84</b></div><div class="row end"><button class="k-btn">Continue</button></div></div>`;
+  $('levelup').innerHTML = `<div class="k-panel lu"><h3>Level 7</h3>${[['bolt', 'Spark Shot', 'Lv 3'], ['zap', 'Chain Zap', 'New'], ['vigor', 'Big Heart', 'Lv 2']].map(([k, n, l]) => `<button class="lu-row">${img(WEAPON_ICONS[k] || PASSIVE_ICONS[k], 3)}<b>${n}</b><span class="tag">${l}</span></button>`).join('')}</div>`;
+  document.querySelectorAll('.k-slider').forEach(s => { const inp = s.querySelector('input'), out = s.parentElement.querySelector('output'); const set = () => { const v = +inp.value; s.querySelector('.fi').style.width = 'calc(' + v + '% - ' + (v / 100 * 6) + 'px)'; s.querySelector('.kn').style.left = 'calc(' + v + '% + ' + (3.5 - v / 100 * 7) * 3 + 'px)'; if (out) out.textContent = v; }; inp.addEventListener('input', set); set(); });
 })();
 
 })();
