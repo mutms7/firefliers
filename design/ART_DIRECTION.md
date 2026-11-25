@@ -1,6 +1,6 @@
 # Firefliers art direction
 
-Read this before drawing or restyling anything. It records the rules the current art follows, so new pieces match without anyone having to re-derive them. The living examples are in `index.html` (enemies, HUD, menus) and `design/src/` (hub, Root Tree, icons, projectiles, UI kit). `design/the-hollow.html` is the built review page.
+Read this before drawing or restyling anything. It records the rules the current art follows, so new pieces match without anyone having to re-derive them. The living examples are in `index.html` (enemies, HUD, menus) and `design/src/` (the Haven, Root Tree, icons, projectiles, UI kit). `design/the-hollow.html` is the built review page.
 
 ## The one-line direction
 
@@ -56,13 +56,13 @@ Station lights: the Lantern Gate is warm `255,200,110`, the Elder Root is amber 
 - Shadows go on one or two faces only and are never longer than a tile.
 - The run's meadow is colder and darker than the hub, so creatures and your light pop.
 
-## The Hollow (hub)
+## The Haven (hub)
 
-- **Five stations** (Lantern Gate, Elder Root with Old Glim, the Roost, the Moonstone, Records) and **two locked spots** (Pond, Market). Don't add a station without removing or merging one.
-- Every station sits a few steps off the central plaza on its own dirt clearing, has its own light in its own colour, and is joined to the plaza by a stepping-stone path.
-- Locked areas sit in fog behind a padlocked gate or boards. Their art is finished, so unlocking them only means removing the fog.
-- The space between stations is darker than the stations themselves. Scenery (trees, ferns, glow mushrooms, lamps) frames each clearing; it shouldn't fill empty space for its own sake.
-- The camera is 3× (2× on phones), follows your bug, and props sort by their feet so you walk behind them.
+- The game always opens on the main menu (logo, bug cards, every way to play in one "Fly out" box). The Haven is a walkable place you visit from there. It was called the Hollow until 2026-11-25.
+- **Stations:** the Lantern Gate and the Moonstone share the central plaza, because everything to do with playing lives in one spot (the Gate offers Night, Daily, Nightmare and How to play). Around it: the Elder Root (the Root Tree), the Roost (one domed mushroom per bug, with its bug perched on the cap, or a silhouette if it's locked) and the Records board.
+- **Unbuilt places** (the Pond, the Market, the Old Road) are paths into soft, feathered, slowly drifting mist with no hard edges. Their art is finished, so opening one only means lifting its mist.
+- Every station sits on its own dirt clearing with its own coloured light, joined to the plaza by stepping stones. The space between stations is darker than the stations.
+- The camera is 3x (2x on phones), follows your bug, and can glide to a station when a resident points at it. Entering opens with a circle of light growing from your bug. You can dash in the Haven; it does nothing but look nice.
 
 ## Root Tree
 
@@ -72,7 +72,13 @@ Station lights: the Lantern Gate is warm `255,200,110`, the Elder Root is amber 
 
 ## Characters
 
-- Three bugs: the Firefly (steady), the Moth (fast, fragile) and the Beetle (slow, tough). The Moth and the Beetle are grown on the tree. One NPC, Old Glim. Don't add more characters lightly.
+- Three bugs: the Firefly (steady), the Moth (fast, fragile) and the Beetle (slow, tough). The Moth and the Beetle are grown on the tree.
+- **Residents** (added 2026-11-25, each with their own pixel sprite and lines):
+  - **Glim:** an old moth who built the Haven. Proud of it, a bit vain about it, warm but dry, and always "renovating". He gives the first-time tour and takes feedback for the maker.
+  - **Shellby:** a snail by the Market that has been "opening any day now" forever. Brisk, a haggler and an incurable gossip whose gossip is real boss tips.
+  - **Wick:** a young firefly with big round glasses who keeps the Records. An overexcited stat nerd.
+  - **Pell:** a sleepy frog who fishes for reflected stars at the edge of the Pond and says one slow, odd thought at a time.
+- Don't add more residents lightly. Each one needs a personality that shows in every line.
 
 ## UI
 
@@ -82,4 +88,5 @@ Station lights: the Lantern Gate is warm `255,200,110`, the Elder Root is amber 
 
 ## Writing
 
-- As short as possible: names of one or two words, descriptions of a few words, no story text, no em dashes.
+- Labels and descriptions are as short as possible: names of one or two words, descriptions of a few words, no em dashes.
+- Resident dialogue is the exception. It is written in full, natural sentences in the character's voice, never clipped or list-like, and each line says one thing.

@@ -20,15 +20,111 @@
   .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;overflow-y:auto;
     padding:24px 16px;text-align:center;z-index:5;background:radial-gradient(ellipse at 50% 42%,rgba(9,12,13,.62) 0%,rgba(6,8,9,.88) 62%,rgba(3,4,5,.97) 100%)}
   #start{background:radial-gradient(ellipse at 50% 46%,rgba(8,11,12,.08) 0%,rgba(6,8,9,.55) 62%,rgba(3,4,5,.92) 100%)}
-  .screen::before,.screen::after{content:"";flex:1 0 0}
-  .screen>*{position:relative;flex:none}
-  .hidden{display:none!important}
-  .screen{scrollbar-width:thin;scrollbar-color:#465150 transparent}
   .flies{position:absolute!important;inset:0;overflow:hidden;pointer-events:none}
   .flies i{position:absolute;width:5px;height:5px;background:#ffe9a0;box-shadow:0 0 12px 4px #f2c14e77;opacity:0;animation:drift var(--d) ease-in-out var(--dl) infinite}
   @keyframes drift{0%{transform:translate(0,0);opacity:0}15%{opacity:.9}50%{transform:translate(var(--dx),var(--dy));opacity:.3}
     72%{opacity:.9}100%{transform:translate(calc(var(--dx)*1.8),calc(var(--dy)*-.6));opacity:0}}
   @media (prefers-reduced-motion:reduce){.flies i{animation:none;opacity:.5}}
+  .modebox{--k:var(--line2);position:relative;width:min(560px,100%);padding:14px 14px 10px;margin-top:2px;border:1px solid var(--line);background:rgba(8,11,12,.72)}
+  .modebox-h{position:absolute;left:50%;top:-11px;transform:translateX(-50%);padding:0 10px;background:#0b0e0f;font-size:16px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim)}
+  .modeNote{font-size:16px;color:var(--dim);min-height:0}.modeNote:empty{display:none}
+  .btn:disabled{filter:grayscale(1) brightness(.5);cursor:not-allowed;transform:none}
+  .btn.nightmare{color:#fff0e8;background:linear-gradient(180deg,#e66a55,#b23a2c);box-shadow:inset 0 2px 0 #ffb8a4,inset 0 -4px 0 #7a1a14,0 4px 0 #000c}
+  .havenBtn{display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 16px;width:min(560px,100%);margin-top:14px;padding:12px 18px;text-align:left;
+    background:linear-gradient(90deg,rgba(242,193,78,.1),rgba(13,17,18,.9));border:1px solid #7c6630;border-left:3px solid var(--gold);box-shadow:0 4px 0 #000b;transition:transform .1s,border-color .1s}
+  .havenBtn:hover:not(:disabled),.havenBtn:focus-visible{border-color:var(--gold);outline:none;transform:translateY(-2px)}
+  .havenBtn:disabled{opacity:.5;cursor:not-allowed;filter:grayscale(.6)}
+  .hv-t{font-size:28px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}.hv-a{grid-row:span 2}.hv-n{font-size:17px;color:var(--dim)}
+  .havenBtn.calling{animation:calling 1.8s ease-in-out infinite}.havenBtn.calling .hv-n{color:var(--ink)}
+  @keyframes calling{50%{box-shadow:0 4px 0 #000b,0 0 26px -4px var(--gold)}}
+  @media (prefers-reduced-motion:reduce){.havenBtn.calling{animation:none;box-shadow:0 4px 0 #000b,0 0 20px -6px var(--gold)}}
+  .who{font-size:16px;color:var(--dim);margin-top:2px}.who:empty{display:none}
+  /* the Haven: a walkable place you visit from the menu */
+  #haven{position:fixed;inset:0;z-index:5;background:#06090a;overflow:hidden;outline:none;touch-action:none}
+  #haven>canvas{position:absolute;inset:auto;left:50%;top:50%;transform:translate(-50%,-50%);image-rendering:pixelated}
+  .hud-r{display:flex;gap:8px;align-items:center}#haven.intro .hud-r>.btn{display:none}.hud-r .btn{padding:8px 14px!important}
+  #hubTitle b{color:var(--gold)}
+  /* dialogue */
+  #dlg{position:absolute;z-index:3;left:50%;bottom:16px;transform:translateX(-50%);width:min(760px,calc(100% - 24px));display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;
+    padding:14px 16px 16px;background:linear-gradient(180deg,rgba(20,26,27,.97),rgba(10,13,14,.98));border:1px solid var(--line2);border-top:2px solid var(--gold);box-shadow:0 18px 50px -12px #000;cursor:pointer}
+  .dlg-pt{width:92px;height:92px;display:grid;place-items:center;background:radial-gradient(circle,#1c2224,#070909);border:1px solid var(--line2)}
+  .dlg-pt canvas{position:static;width:auto;height:auto;max-width:84px;max-height:84px;image-rendering:pixelated}
+  .dlg-body{min-width:0;position:relative}
+  #dlgName{display:block;font-weight:400;font-size:22px;color:var(--gold);letter-spacing:.06em;text-transform:uppercase}
+  #dlgText{margin:4px 0 0;max-width:none;color:var(--ink);font-size:21px;line-height:1.35;min-height:2.7em}
+  .dlg-next{position:absolute;right:0;bottom:-4px;width:0;height:0;border:7px solid transparent;border-top-color:var(--gold);animation:nextBob 1s ease-in-out infinite}
+  #dlg.choosing .dlg-next{display:none}
+  @keyframes nextBob{50%{transform:translateY(3px)}}
+  @media (prefers-reduced-motion:reduce){.dlg-next{animation:none}}
+  #dlgOpts{display:flex;flex-direction:column;gap:6px;margin-top:10px}#dlgOpts:empty{display:none}
+  .opt-btn{display:flex;gap:10px;align-items:center;text-align:left;font-size:20px;padding:7px 10px;background:#0c1011;border:1px solid var(--line);border-left:3px solid var(--line2);color:var(--ink)}
+  .opt-btn:hover,.opt-btn:focus-visible{border-color:var(--gold);border-left-color:var(--gold);background:#1a1a12;outline:none}
+  .opt-btn .k{font-size:15px;color:var(--mute);border:1px solid var(--line2);min-width:22px;height:22px;display:grid;place-items:center}
+  .ask{display:flex;gap:8px;flex-wrap:wrap}.ask input,.ask textarea{flex:1;min-width:180px;font:inherit;font-size:20px;color:var(--ink);background:#06090a;border:1px solid var(--line2);padding:8px 10px;outline:none}
+  .ask input:focus,.ask textarea:focus{border-color:var(--gold)}.ask.fb{flex-direction:column}.ask textarea{resize:vertical;min-height:84px}
+  .fb-row{display:flex;gap:8px;justify-content:flex-end}.fb-note{margin:0;max-width:none;font-size:16px;color:var(--dim)}
+  @media (max-width:640px){#dlg{grid-template-columns:1fr;gap:6px}.dlg-pt{display:none}#dlgText{font-size:19px}.hud-r .btn{padding:6px 10px!important;font-size:15px!important}}
+  /* the Gate: every way to play, side by side */
+  .hp-sub{margin:0 auto 8px;font-size:19px}
+  .modes-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .mode{--c:var(--gold);display:grid;gap:4px;text-align:left;padding:12px 14px;background:#0c1011;border:1px solid var(--line);border-left:3px solid var(--c);transition:transform .1s,background .1s}
+  .mode.mint{--c:var(--mint)}.mode.red{--c:#e8604c}.mode.stone{--c:var(--hi)}
+  .mode b{font-weight:400;font-size:24px;color:var(--c)}.mode span{font-size:17px;color:var(--dim);line-height:1.3}
+  .mode:hover:not(:disabled),.mode:focus-visible{background:color-mix(in srgb,var(--c) 14%,#0c1011);outline:none;transform:translateY(-2px)}
+  .mode:disabled{opacity:.5;cursor:not-allowed}
+  @media (max-width:640px){.modes-grid{grid-template-columns:1fr}}
+  .tree-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+  .tc-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  #hubHud{position:absolute;z-index:2;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:center;pointer-events:none}
+  #hubHud>*{pointer-events:auto}
+  #hubAmber{background:rgba(6,9,10,.8);border:1px solid var(--line2);padding:4px 12px 4px 8px;text-shadow:0 2px 0 #000}
+  #hubGear{display:grid;place-items:center;width:42px;height:42px;background:rgba(6,9,10,.8);border:1px solid var(--line2)}
+  #hubGear:hover,#hubGear:focus-visible{border-color:var(--hi);outline:none}
+  #hubTitle{position:absolute;z-index:1;left:50%;top:14px;transform:translateX(-50%);display:grid;justify-items:center;gap:2px;pointer-events:none;opacity:0;text-shadow:0 3px 0 #000}
+  #hubTitle b{font-weight:400;font-size:clamp(34px,6vw,52px);letter-spacing:.06em;color:var(--gold)}#hubTitle span{font-size:18px;color:var(--ink)}
+  #hubTitle.show{animation:hubTitle 7s ease forwards}
+  @keyframes hubTitle{0%,70%{opacity:1}100%{opacity:0}}
+  @media (prefers-reduced-motion:reduce){#hubTitle.show{animation:none;opacity:1}}
+  @media (max-width:640px){#hubTitle{top:66px}}
+  #hubHint{position:absolute;z-index:2;left:50%;bottom:22px;transform:translateX(-50%)}
+  .hint-btn{font-size:20px;color:var(--ink);display:inline-flex;gap:10px;align-items:center;background:rgba(6,9,10,.8);border:1px solid var(--line2);padding:5px 14px 5px 6px;text-shadow:0 2px 0 #000;white-space:nowrap}
+  .hint-btn:hover,.hint-btn:focus-visible{border-color:var(--gold);outline:none}
+  #hubOv{position:absolute;inset:0;z-index:3;display:grid;place-items:center;padding:16px;background:rgba(4,6,7,.62);overflow-y:auto}
+  .hubPanel{--k:var(--gold);display:flex;flex-direction:column;gap:6px;text-align:center}
+  .hubPanel.big{width:min(900px,100%)}
+  .hp-head{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:6px}
+  .hp-head h2{margin:0;padding:0;border:0;color:var(--gold);font-size:clamp(28px,5vw,40px)}
+  .hp-head .btn{padding:6px 8px!important;display:grid;place-items:center}
+  .price{display:inline-flex;gap:6px;align-items:center;font-size:22px;color:var(--gold)}
+  .gate{display:flex;gap:16px;align-items:center;justify-content:center;text-align:left}
+  .gate .pt{width:96px;height:96px;border:1px solid var(--line2);background:#070909}
+  .gate b{display:block;font-size:26px;font-weight:400}.gate span{display:block;font-size:19px;color:var(--dim)}
+  .chars.roost{grid-template-columns:repeat(3,minmax(0,1fr));width:100%;margin:6px 0 0}
+  .stats.rec{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .amberGot{display:flex;gap:10px;align-items:center;justify-content:center;font-size:24px;color:var(--gold);min-height:0;margin-top:10px}
+  .amberGot:empty{display:none}
+  /* the Root Tree */
+  .tree{position:relative;height:min(460px,58vh);min-height:300px;border:1px solid var(--line);background:#06090a;overflow:hidden;cursor:grab;touch-action:none;outline:none}
+  .tree:focus-within{border-color:var(--line2)}
+  .tree canvas{position:absolute;inset:0;width:100%;height:100%}
+  .tree-bal{display:none}
+  .panel.tree-card{--k:var(--line2);position:absolute;right:10px;bottom:10px;width:min(320px,calc(100% - 20px));padding:12px;display:grid;gap:10px;text-align:left}
+  .tc{display:flex;gap:12px;align-items:center}.tc b{display:block;font-size:22px;font-weight:400}.tc span{font-size:18px;color:var(--dim)}
+  .tc-own{color:var(--mint);font-size:19px}.tc-need{color:var(--dim);font-size:18px}.tc-hint{margin:0;color:var(--dim);font-size:18px}
+  .tree-card .btn{display:inline-flex;gap:8px;align-items:center;justify-content:center;font-size:22px;padding:8px 18px}
+  .tree-card .btn:disabled{filter:grayscale(1) brightness(.6);cursor:not-allowed}
+  .sr-nodes{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .tree-help{font-size:17px;color:var(--mute);margin:2px 0 0}
+  /* settings */
+  .panel.set{width:min(460px,100%);display:grid;gap:16px}
+  #setBody{display:grid;gap:16px}
+  .field{display:grid;grid-template-columns:84px minmax(0,1fr) 36px;gap:12px;align-items:center;font-size:20px;text-align:left}
+  .field output{color:var(--dim);text-align:right}
+  .opt{display:inline-flex;gap:12px;align-items:center;font-size:20px;cursor:pointer;justify-self:start}
+  .screen::before,.screen::after{content:"";flex:1 0 0}
+  .screen>*{position:relative;flex:none}
+  .hidden{display:none!important}
+  .screen{scrollbar-width:thin;scrollbar-color:#465150 transparent}
 
   /* panels: flat dark slabs with bright corner brackets */
   .panel{--k:var(--hi);width:min(640px,100%);padding:22px 22px 20px;border:1px solid var(--line);
@@ -87,7 +183,7 @@
   .card.syn{border-color:var(--gold);box-shadow:0 0 24px -8px var(--gold)}
 
   /* bug select */
-  .chars{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;width:min(740px,100%);margin:22px 0 18px}
+  .chars{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:min(560px,100%);margin:22px 0 22px}
   .char{--c:var(--hi);display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px 11px;background:rgba(11,14,15,.88);border:1px solid var(--line);border-radius:2px;
     transition:transform .1s,border-color .1s,background .1s}
   .char .pt{width:72px;height:72px;display:block;margin-bottom:4px;border:1px solid var(--line2);background:radial-gradient(circle at 50% 55%,color-mix(in srgb,var(--c) 22%,#070909) 0%,#070909 70%)}
@@ -145,6 +241,7 @@
     .card{grid-template-columns:48px minmax(0,1fr);gap:12px;padding:9px 10px 9px 8px}
     .card .ic{width:48px;height:48px;font-size:30px}.card .k{display:none}.card .nm{font-size:21px}.card .ds{font-size:16px}
     .chars{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.char .pt{width:58px;height:58px}.char span{font-size:14px}
+    .stats.rec{grid-template-columns:repeat(2,minmax(0,1fr))}.gate .pt{width:72px;height:72px}.panel.tree-card{left:10px;right:10px;width:auto}
     .stats,#statTiles{grid-template-columns:repeat(2,minmax(0,1fr))}.stats b{font-size:32px}
     .btn{padding:12px 26px;font-size:22px}
     .tag{letter-spacing:.16em}.tag::before,.tag::after{display:none}}
@@ -176,10 +273,28 @@
   <h1>FIREFLIERS</h1>
   <div class="tag">Keep the light alive until dawn</div>
   <div class="chars" id="chars"></div>
-  <div class="row" style="margin-top:0"><button class="btn" id="playBtn">Play</button><button class="btn daily" id="dailyBtn">Daily</button></div>
-  <div class="best" id="dailyInfo" style="color:var(--mint)"></div>
-  <div class="row" style="margin-top:6px"><button class="btn ghost small" id="howBtn">How to play</button><button class="btn ghost small" id="statsBtn">Stats</button><button class="btn ghost small" id="nmBtn"></button></div>
+  <div class="modebox" role="group" aria-label="Ways to play">
+    <div class="modebox-h">Fly out</div>
+    <div class="row" style="margin-top:0"><button class="btn" id="playBtn">Play</button><button class="btn daily" id="dailyBtn">Daily</button><button class="btn nightmare" id="nmBtn">Nightmare</button></div>
+    <div class="best" id="dailyInfo" style="color:var(--mint)"></div>
+    <div class="modeNote" id="modeNote"></div>
+  </div>
+  <button class="havenBtn" id="havenBtn"><span class="hv-t">The Haven</span><span class="hv-a" id="havenAmber"></span><span class="hv-n" id="havenNote"></span></button>
+  <div class="row" style="margin-top:12px"><button class="btn ghost small" id="howBtn">How to play</button><button class="btn ghost small" id="statsBtn">Stats</button><button class="btn ghost small" id="setMenuBtn">Settings</button></div>
   <div class="best" id="bestStart"></div>
+  <div class="who" id="whoLine"></div>
+</div>
+<div id="haven" class="hidden" role="region" aria-label="The Haven. Walk with WASD, the arrow keys or by dragging. Press E at a station, Space to dash.">
+  <div id="hubHud"><span id="hubAmber" title="Amber, spent on the Root Tree"></span><span class="hud-r"><button class="btn small" id="hubFly">Fly out</button><button class="btn ghost small" id="hubBack">Menu</button><button id="hubGear" aria-label="Settings" title="Settings"></button></span></div>
+  <div id="hubTitle"><b>THE HAVEN</b><span></span></div>
+  <div id="hubHint" class="hidden"></div>
+  <div id="dlg" class="hidden" role="dialog" aria-live="polite"><div class="dlg-pt"><canvas id="dlgPt"></canvas></div><div class="dlg-body"><b id="dlgName"></b><p id="dlgText"></p><div id="dlgOpts"></div><span class="dlg-next" aria-hidden="true"></span></div></div>
+  <div id="hubOv" class="hidden"></div>
+</div>
+<div id="settings" class="screen hidden"><div class="panel set" role="dialog" aria-label="Settings">
+  <h2>Settings</h2><div id="setBody"></div>
+  <div class="row"><button class="btn" id="setDone">Done</button></div>
+</div></div>
 </div>
 
 <div id="levelup" class="screen hidden"><div class="panel">
@@ -195,6 +310,7 @@
   <div class="row">
     <button class="btn" id="resumeBtn">Resume</button>
     <button class="btn ghost" id="restartBtn">Restart</button>
+    <button class="btn ghost" id="setBtn">Settings</button>
     <button class="btn ghost" id="quitBtn">Menu</button>
   </div>
   <div id="pauseBuild"></div>
@@ -214,9 +330,11 @@
     <div><b id="stFlight">0</b>fireflies</div>
   </div>
   <div class="best" id="bestOver"></div>
+  <div class="amberGot" id="amberLine"></div>
   <div class="best" id="unlockLine" style="color:#7dff9a"></div>
   <div id="overDmg" class="dmg hidden"></div>
   <div class="row">
+    <button class="btn hidden" id="havenGoBtn">Continue</button>
     <button class="btn" id="againBtn">Play again</button>
     <button class="btn ghost hidden" id="endlessBtn">Keep going</button>
     <button class="btn daily hidden" id="shareBtn">Copy result</button>
@@ -261,24 +379,27 @@ function glow(col) {
 }
 
 /* ---------- audio ---------- */
-let AC = null, master = null, muted = false, noiseBuf = null;
+let AC = null, master = null, sfxBus = null, muted = false, noiseBuf = null;
 try { muted = localStorage.getItem('firefliers.muted') === '1'; } catch (e) {}
 function initAudio() {
   if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
   try {
     AC = new (window.AudioContext || window.webkitAudioContext)();
     master = AC.createGain(); master.gain.value = muted ? 0 : 0.55; const comp = AC.createDynamicsCompressor(); master.connect(comp); comp.connect(AC.destination);
+    sfxBus = AC.createGain(); sfxBus.connect(master); applyVol();
     noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
     const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
   } catch (e) { AC = null; }
 }
+// the Music and Sounds settings, 0 to 100
+function applyVol() { if (sfxBus) sfxBus.gain.value = save.set.sfx / 100; if (mus) mus.gain.value = .6 * save.set.music / 100; }
 function tone(f, d, type, v, slide, delay) {
   if (!AC) return;
   const t = AC.currentTime + (delay || 0), o = AC.createOscillator(), g = AC.createGain();
   o.type = type || 'sine'; o.frequency.setValueAtTime(f, t);
   if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f + slide), t + d);
   g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.0008, t + d);
-  o.connect(g); g.connect(master); o.start(t); o.stop(t + d + 0.03);
+  o.connect(g); g.connect(sfxBus); o.start(t); o.stop(t + d + 0.03);
 }
 function noise(d, v, freq) {
   if (!AC) return;
@@ -286,7 +407,7 @@ function noise(d, v, freq) {
   s.buffer = noiseBuf; f.type = 'lowpass'; f.frequency.setValueAtTime(freq || 1800, t);
   f.frequency.exponentialRampToValueAtTime(120, t + d);
   g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.0008, t + d);
-  s.connect(f); f.connect(g); g.connect(master); s.start(t); s.stop(t + d + 0.03);
+  s.connect(f); f.connect(g); g.connect(sfxBus); s.start(t); s.stop(t + d + 0.03);
 }
 const sfxLast = {}, sfxGap = { shoot: 70, hit: 55, kill: 45, gem: 28, zap: 90 };
 let gemCombo = 0, gemComboT = 0;
@@ -342,7 +463,7 @@ const SEC_B = { ch: ['F', 'G', 'Am', 'Am', 'F', 'G', 'C', 'E'], mel: [
   [[0, 76, 4], [4, 80, 4], [8, 83, 4], [12, 88, 4]]] };
 const SONG = [SEC_A, SEC_A, SEC_B, SEC_A];
 function initMusic() {
-  mus = AC.createGain(); mus.gain.value = .6; mus.connect(master);
+  mus = AC.createGain(); mus.connect(master); applyVol();
   mDelay = AC.createDelay(1); mDelay.delayTime.value = .375;
   const fb = AC.createGain(), wet = AC.createGain(); fb.gain.value = .28; wet.gain.value = .3;
   mDelay.connect(fb); fb.connect(mDelay); mDelay.connect(wet); wet.connect(mus);
@@ -370,7 +491,7 @@ function drum(t, kind) {
   if (kind === 's') voice(t, 185, .09, 'triangle', .1, 1200);
 }
 function music() {
-  if (!AC || muted || (state !== 'play' && state !== 'levelup')) return;
+  if (!AC || muted || !save.set.music || (state !== 'play' && state !== 'levelup')) return;
   if (!mus) initMusic();
   const now = AC.currentTime; if (mNext < now) mNext = now + .03;
   const hot = !!boss, sl = hot ? .108 : .125, tr = hot ? 2 : 0;
@@ -427,12 +548,12 @@ const EVO = {
 };
 const MAX_WEAPONS = 5;
 const CHARS = {
-  glow:   { name: 'Firefly', col: '#ffe066', body: '#fff3b0', w: 'bolt', hp: 100, perk: 'Spark Shot. A steady all-rounder.', lock: '' },
-  moth:   { name: 'Moth', col: '#7ad7ff', body: '#d9f1ff', w: 'orbit', hp: 90, sp: 1.15, perk: 'Moon Guard. Fast but fragile.', lock: 'Survive 3:00' },
-  beetle: { name: 'Beetle', col: '#ff7ad9', body: '#ffd6f2', w: 'nova', hp: 150, sp: .9, armor: 3, perk: 'Pulse. Slow, armored, hard to kill.', lock: 'Beat the first boss' },
-  spark:  { name: 'Lantern', col: '#9dff8a', body: '#e2ffd9', w: 'fly', hp: 100, xp: 1.25, perk: 'Fireflies. Levels up 25% faster.', lock: 'Reach level 20' },
-  wasp:   { name: 'Wasp', col: '#ff9a4d', body: '#ffe0c2', w: 'thorn', hp: 70, dmg: 1.3, perk: 'Boomerang Thorn. +30% damage, 70 health.', lock: 'See the dawn' },
+  glow:   { name: 'Firefly', col: '#ffe066', body: '#fff3b0', w: 'bolt', hp: 100, role: 'Steady all-rounder' },
+  moth:   { name: 'Moth', col: '#7ad7ff', body: '#d9f1ff', w: 'orbit', hp: 90, sp: 1.15, role: 'Fast, fragile' },
+  beetle: { name: 'Beetle', col: '#ff7ad9', body: '#ffd6f2', w: 'nova', hp: 150, sp: .9, armor: 3, role: 'Slow, tough' },
 };
+// weapons the Root Tree has to grow before they show up on level-up cards (the daily always offers everything)
+const W_NODE = { zap: 'chain', thorn: 'thorn', spore: 'spores', frost: 'chill' };
 const PASSIVES = {
   vigor:  { name: 'Big Heart', icon: '♥', col: '#ff6b8a', max: 5, desc: '+25 max health, and heal 25 right now' },
   swift:  { name: 'Quick Wings', icon: '»', col: '#8affd4', max: 5, desc: '+9% move speed' },
@@ -470,7 +591,8 @@ const BOSS_HP = [950, 2000, 7200];
 const WIN_TIER = 2;
 
 /* ---------- state ---------- */
-let state = 'menu', T = 0, kills = 0, endless = false, won = false;
+let state = 'menu', RT = 0, T = 0, // RT: the run clock, which stops during boss fights; T keeps running for animation
+   kills = 0, endless = false, won = false;
 let P, S, wl, pl, cds;
 let enemies = [], bullets = [], ebullets = [], gems = [], pickups = [], parts = [], texts = [], rings = [], arcs = [];
 let clearWave = null, boss = null, bossCount = 0, nextBoss = 120, nextEvent = 45, spawnAcc = 0;
@@ -480,7 +602,7 @@ let pending = 0, luLock = 0, orbA = 0, frostT = 0, mvx = 0, mvy = 0, xpShow = 0;
 let best = { time: 0, kills: 0, won: false };
 try { best = Object.assign(best, JSON.parse(localStorage.getItem('firefliers.best') || '{}')); } catch (e) {}
 
-let zones = [], rerolls = 2, ch = CHARS.glow, nm = false, newUnlocks = [];
+let zones = [], embers = [], rerolls = 2, ch = CHARS.glow, nm = false, TR = {}, emberT = 0, swarmT = 0; // TR: the Root Tree nodes this run uses
 let flight = [], strays = [], path = [], ringFx = [], pathSer = 0, ringSer = 0, ringCd = 0, syncT = 2.4, strayT = 5, jarT = 12, ringsMade = 0, bossKills = 0, killsDawn = -1;
 const MAX_FLIGHT = 30;
 let frenzyT = 0, quietT = 0, wonW = 0, newBestScore = false; // quietT: enemies can't fire (Cold snap)
@@ -488,16 +610,21 @@ let shocks = [], dark = 0, webs = [], bossOrder = [0, 1, 2, 3, 4, 5], frameMove 
 let save = { unlocked: { glow: true }, char: 'glow', nm: false, won: false, nmWon: false, daily: { day: 0, best: 0, attempts: 0, streak: 0 },
   runs: [], ach: {}, stats: { runs: 0, wins: 0, kills: 0, time: 0, rings: 0, rescued: 0, bestFlight: 0, bossKills: {} } };
 try { const s = JSON.parse(localStorage.getItem('firefliers.save') || '{}'); Object.assign(save, s); save.unlocked = Object.assign({ glow: true }, s.unlocked); } catch (e) {}
-if (!CHARS[save.char] || !save.unlocked[save.char]) save.char = 'glow';
 if (!Array.isArray(save.runs)) save.runs = []; if (!save.ach) save.ach = {};
 save.stats = Object.assign({ runs: 0, wins: 0, kills: 0, time: 0, rings: 0, rescued: 0, bestFlight: 0, bossKills: {} }, save.stats); if (!save.stats.bossKills) save.stats.bossKills = {};
+const ART_TREE_IDS = ['first', 'bright', 'twin', 'chain', 'thorn', 'overflow', 'wings', 'ember', 'trail', 'moth', 'double', 'swarm', 'shell', 'amber', 'beetle', 'fourth', 'rerolls', 'wind', 'roots', 'spores', 'chill'];
+// amber is spent on the Root Tree. Players from before the tree get a head start for the runs they already played.
+if (typeof save.amber !== 'number') save.amber = save.stats.runs ? Math.min(600, 60 + save.stats.runs * 15) : 0;
+if (!Array.isArray(save.tree)) save.tree = ['first'];
+save.tree = save.tree.filter(id => ART_TREE_IDS.includes(id)); // Static was cut, so drop it from old saves
+if (!Array.isArray(save.off)) save.off = [];
+// nodes that unlock things rather than boost them: they can't be switched off, and Nightmare keeps them
+const UNLOCKS = new Set(['first', 'moth', 'beetle', 'chain', 'thorn', 'spores', 'chill']);
+save.set = Object.assign({ music: 100, sfx: 100, shake: true }, save.set);
+const grown = id => save.tree.includes(id);
+const hasBug = id => id === 'glow' || grown(id) || !!save.unlocked[id]; // bugs unlocked before the tree stay unlocked
+if (!CHARS[save.char] || !hasBug(save.char)) save.char = 'glow';
 function persist() { try { localStorage.setItem('firefliers.save', JSON.stringify(save)); } catch (e) {} }
-function unlock(id) {
-  if (save.unlocked[id]) return;
-  save.unlocked[id] = true; persist(); newUnlocks.push(CHARS[id].name);
-  if (Object.keys(CHARS).every(k => save.unlocked[k])) award('bugs');
-  say('Unlocked: ' + CHARS[id].name, 'A new bug is waiting on the start screen', 3); sfx('level');
-}
 
 /* ---------- daily challenge ---------- */
 const DAY0 = Date.UTC(2026, 10, 10) / 864e5;
@@ -513,17 +640,17 @@ function beginDaily() {
   if (d.day !== dday) { d.streak = d.day === dday - 1 ? d.streak + 1 : 1; d.day = dday; d.best = 0; d.attempts = 0; }
   d.attempts++; persist(); if (d.streak >= 3) award('streak3');
 }
-// Time and kills stop counting at 6:00, when the last boss arrives, so stalling earns nothing. After that only a fast finish adds points.
+// Time and kills stop counting at 6:00, when the last boss arrives, so stalling earns nothing. Bosses pay more the faster they go down.
 function scoreParts(win) {
-  const t = Math.min(360, Math.floor(T)) * 5, k = killsDawn >= 0 ? killsDawn : kills, b = bossKills * 400, f = Math.max(0, flight.length - 3) * 60, // the 3 you start with don't count
-    w = win ? 2000 + Math.max(0, Math.round(150 - (T - 360))) * 15 : wonW, m = nm ? 1.5 : 1;
+  const t = Math.min(360, Math.floor(RT)) * 5, k = killsDawn >= 0 ? killsDawn : kills, b = run.bossPts || 0, f = Math.max(0, flight.length - 3) * 60, // the 3 you start with don't count
+    w = win ? 2000 : wonW, m = nm ? 1.5 : 1;
   return { t, k, b, f, w, m, total: Math.round((t + k + b + f + w) * m) };
 }
 const calcScore = win => scoreParts(win).total;
 const num = n => n.toLocaleString('en-US');
 function shareText() {
   const d = lastDaily; if (!d) return '';
-  return 'Firefliers Daily #' + d.num + '\n' + d.char + ' · ' + fmt(d.T) + (d.win ? ' · saw the dawn ☀️' : ' · the night won 🌙') + '\n' +
+  return (save.name ? save.name + "'s " : '') + 'Firefliers Daily #' + d.num + '\n' + d.char + ' · ' + fmt(d.T) + (d.win ? ' · saw the dawn ☀️' : ' · the night won 🌙') + '\n' +
     num(d.kills) + ' squashed · level ' + d.level + ' · ' + d.flight + ' fireflies\n' + d.build + '\n' + num(d.score) + ' points (attempt ' + d.attempt + ')\n' + location.origin + location.pathname;
 }
 function copyResult() {
@@ -533,15 +660,17 @@ function copyResult() {
 }
 
 function reset() {
+  nm = !daily && !tut && !!(save.nm && save.won);
+  TR = {}; if (!daily && !tut) for (const id of save.tree) if (UNLOCKS.has(id) || (!nm && !save.off.includes(id))) TR[id] = true; // Nightmare keeps unlocks only
   dmgDone = {}; src = 'bolt';
-  T = 0; kills = 0; endless = false; won = false;
-  ch = daily ? CHARS[dailyCharId(dday)] : CHARS[save.char] || CHARS.glow; nm = !daily && !!(save.nm && save.won); offerN = 0; spawnN = 0;
-  P = { x: 0, y: 0, r: 12, hp: 100, maxhp: 100, speed: 190, inv: 0, dashT: 0, dashCd: 0, dvx: 1, dvy: 0, face: 0, level: 1, xp: 0, next: 6, wing: 0, armor: ch.armor || 0 };
+  T = 0; RT = 0; kills = 0; endless = false; won = false;
+  ch = daily ? CHARS[dailyCharId(dday)] : CHARS[save.char] || CHARS.glow; offerN = 0; spawnN = 0;
+  P = { x: 0, y: 0, r: 12, hp: 100, maxhp: 100, speed: 190, inv: 0, dashT: 0, dashCd: 0, dvx: 1, dvy: 0, face: 0, level: 1, xp: 0, next: 6, wing: 0, armor: ch.armor || 0, dashN: TR.double ? 2 : 1, dashMax: TR.double ? 2 : 1, dashCdMax: TR.wings ? 1.35 : 1.6 };
   S = {}; wl = { [ch.w]: 1 }; pl = {}; cds = { bolt: .3, nova: 1, zap: .6, fly: .5, thorn: .4, spore: .2, freeze: 3 };
   recompute(); P.hp = P.maxhp;
-  zones = []; rerolls = 2; newUnlocks = [];
-  flight = [{ x: 0, y: 0, fl: 0 }, { x: 0, y: 0, fl: 0 }, { x: 0, y: 0, fl: 0 }]; strays = []; path = [{ x: 0, y: 0, s: 0 }]; ringFx = [];
-  run = { rescued: 0, maxFlight: 3, bosses: [], bossHurt: false }; webs = []; frameMove = 0; frenzyT = 0; quietT = 0; wonW = 0;
+  zones = []; embers = []; rerolls = TR.rerolls ? 4 : 2; emberT = swarmT = 0;
+  flight = Array.from({ length: TR.trail ? 5 : 3 }, () => ({ x: 0, y: 0, fl: 0 })); strays = []; path = [{ x: 0, y: 0, s: 0 }]; ringFx = [];
+  run = { rescued: 0, maxFlight: flight.length, bosses: [], bossHurt: false, wind: false, amber: 0, bossPts: 0 }; webs = []; frameMove = 0; frenzyT = 0; quietT = 0; wonW = 0;
   { const rnd = daily ? mkRng(4, 0) : Math.random; bossOrder = BOSSES.map((b, i) => i); for (let i = bossOrder.length - 1; i > 0; i--) { const j = (rnd() * (i + 1)) | 0, t = bossOrder[i]; bossOrder[i] = bossOrder[j]; bossOrder[j] = t; } }
   dmgLog = {}; shocks = []; dark = 0; pathSer = 0; ringSer = 0; ringCd = 0; syncT = 2.4; strayT = 5; jarT = 12; ringsMade = 0; bossKills = 0; killsDawn = -1;
   enemies = []; bullets = []; ebullets = []; gems = []; pickups = []; parts = []; texts = []; rings = []; arcs = [];
@@ -552,9 +681,9 @@ function reset() {
 }
 const pv = k => pl[k] || 0;
 function recompute() {
-  S.dmg = (1 + .15 * pv('power')) * (ch.dmg || 1); S.cd = Math.pow(.91, pv('haste')); S.area = 1 + .12 * pv('reach');
+  S.dmg = (1 + .15 * pv('power')) * (ch.dmg || 1) * (TR.bright ? 1.1 : 1); S.cd = Math.pow(.91, pv('haste')); S.area = 1 + .12 * pv('reach');
   S.crit = .05 + .1 * pv('crit'); S.regen = .7 * pv('regen'); S.xp = (1 + .15 * pv('wise')) * (ch.xp || 1);
-  S.magnet = 90 * (1 + .4 * pv('magnet')); P.maxhp = ch.hp + 25 * pv('vigor'); P.speed = 190 * (ch.sp || 1) * (1 + .09 * pv('swift'));
+  S.magnet = 90 * (1 + .4 * pv('magnet')); P.maxhp = ch.hp + 25 * pv('vigor') + (TR.shell ? 15 : 0); P.speed = 190 * (ch.sp || 1) * (1 + .09 * pv('swift'));
 }
 
 /* ---------- spatial grid ---------- */
@@ -591,7 +720,7 @@ function burst(x, y, col, n, sp) {
     parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: l, max: l, col, s: rand(2, 4.5) });
   }
 }
-const shake = a => { shakeT = Math.max(shakeT, a); };
+const shake = a => { if (save.set.shake) shakeT = Math.max(shakeT, a); };
 const say = (text, sub, t) => { banner = { text, sub: sub || '', t: t || 2.6, max: t || 2.6 }; };
 function mkArc(x0, y0, x1, y1) {
   const pts = [[x0, y0]], n = 6, dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy) || 1, nx = -dy / len, ny = dx / len;
@@ -600,7 +729,7 @@ function mkArc(x0, y0, x1, y1) {
 }
 
 /* ---------- enemies ---------- */
-const hpMult = () => (1 + Math.pow(T / 60, 1.5) * 0.74) * (nm ? 1.5 : 1);
+const hpMult = () => (1 + Math.pow(RT / 60, 1.5) * 0.74) * (nm ? 1.5 : 1);
 function spawn(type, x, y, opt) {
   const d = ET[type];
   if (x === undefined) { const a = rand(0, TAU), R = viewR() + 50; x = P.x + Math.cos(a) * R; y = P.y + Math.sin(a) * R; }
@@ -695,17 +824,17 @@ function gloomShock(e, pw) {
 }
 function shock(e, pw) { shocks.push({ x: e.x, y: e.y, r: e.r, max: 440, v: 250, dmg: 12 * pw, hit: false }); sfx('nova'); shake(6); }
 function pickType() {
-  const w = [['wisp', 10], ['dart', T > 25 ? 4 : 0], ['brute', T > 75 ? 2 + T / 150 : 0], ['spit', T > 130 ? 2.2 : 0], ['split', T > 185 ? 2.6 : 0], ['boom', T > 100 ? 1.6 : 0], ['ghost', T > 250 ? 1.8 : 0]];
+  const w = [['wisp', 10], ['dart', RT > 25 ? 4 : 0], ['brute', RT > 75 ? 2 + RT / 150 : 0], ['spit', RT > 130 ? 2.2 : 0], ['split', RT > 185 ? 2.6 : 0], ['boom', RT > 100 ? 1.6 : 0], ['ghost', RT > 250 ? 1.8 : 0]];
   let tot = 0; for (const x of w) tot += x[1];
   let r = (daily ? drand(2, spawnN) : Math.random()) * tot; for (const x of w) { if ((r -= x[1]) < 0) return x[0]; }
   return 'wisp';
 }
 function director(dt) {
-  let rate = 1.0 + T * 0.03 + (T > 180 ? (T - 180) * 0.026 : 0); if (boss) rate *= 0.55; if (nm) rate *= 1.3;
+  let rate = 1.0 + RT * 0.03 + (RT > 180 ? (RT - 180) * 0.026 : 0); if (boss) rate *= 0.55; if (nm) rate *= 1.3;
   spawnAcc += dt * rate;
   if (enemies.length >= 330) spawnAcc = 0;
-  while (spawnAcc >= 1) { spawnAcc--; spawn(pickType(), undefined, undefined, { elite: T > 50 && (daily ? drand(3, spawnN) : Math.random()) < .03 }); spawnN++; }
-  if (T >= nextEvent) {
+  while (spawnAcc >= 1) { spawnAcc--; spawn(pickType(), undefined, undefined, { elite: RT > 50 && (daily ? drand(3, spawnN) : Math.random()) < .03 }); spawnN++; }
+  if (RT >= nextEvent) {
     const n = Math.floor(nextEvent / 45); nextEvent += 45;
     if (n % 2) { // ring of darts
       const c = 14 + Math.min(22, n * 3), R = viewR() + 40;
@@ -713,17 +842,17 @@ function director(dt) {
       say('They\'re circling!', '', 2);
     } else { // horde from one side
       const a = rand(0, TAU), R = viewR() + 60, c = 20 + Math.min(30, n * 4);
-      for (let i = 0; i < c; i++) spawn(T > 200 && i % 5 === 0 ? 'brute' : 'wisp', P.x + Math.cos(a) * R + rand(-140, 140), P.y + Math.sin(a) * R + rand(-140, 140));
+      for (let i = 0; i < c; i++) spawn(RT > 200 && i % 5 === 0 ? 'brute' : 'wisp', P.x + Math.cos(a) * R + rand(-140, 140), P.y + Math.sin(a) * R + rand(-140, 140));
       say('Swarm!', '', 2);
     }
     sfx('warn');
   }
-  if (T >= nextBoss && !boss) { nextBoss += 120; spawnBoss(); }
-  if (T > 90) {
+  if (RT >= nextBoss && !boss) { nextBoss += 120; spawnBoss(); }
+  if (RT > 90) {
     jarT -= dt;
     if (jarT <= 0) {
       jarT = (daily ? 24 : rand(20, 28)) * (nm ? .7 : 1);
-      if (flight.length >= 3) { const e = spawn('jar'); e.hp = e.maxhp = 22 * (1 + T / 120) * (nm ? 1.4 : 1); sfx('jar'); }
+      if (flight.length >= 3) { const e = spawn('jar'); e.hp = e.maxhp = 22 * (1 + RT / 120) * (nm ? 1.4 : 1); sfx('jar'); }
     }
   }
 }
@@ -900,8 +1029,9 @@ function kill(e) {
     for (let i = 0; i < 28; i++) dropGem(e.x + rand(-70, 70), e.y + rand(-70, 70), 4 + e.tier * 3);
     dropPickup(e.x - 24, e.y, 'heart'); if (!nm) dropPickup(e.x + 24, e.y, 'magnet');
     ebullets.length = 0;
-    if (e.tier === WIN_TIER && !won) winT = 1.6; else say(e.name + ' is down!', '', 2.4);
-    unlock('beetle');
+    { const secs = T - e.born, bp = Math.round((300 + Math.max(0, 120 - secs) * 10) * (1 + Math.min(e.tier, 4) * .5)); run.bossPts += bp; // faster kills pay more
+      if (e.tier === WIN_TIER && !won) winT = 1.6; say(e.name + ' is down!', '+' + num(bp) + ' points for ' + Math.round(secs) + ' seconds', 2.4); }
+    if (TR.roots && P.hp < P.maxhp) { P.hp = Math.min(P.maxhp, P.hp + P.maxhp * .5); texts.push({ x: P.x, y: P.y - 30, t: 'Deep Roots', life: 1.2, max: 1.2, heal: true }); }
   } else {
     if (e.carry) { award('freed'); strays.push({ x: e.x, y: e.y, ph: rand(0, TAU) }); if (texts.length < 80) texts.push({ x: e.x, y: e.y - 18, t: 'Freed!', life: 1, max: 1, heal: true }); }
     if (e.xp > 0) dropGem(e.x, e.y, e.xp);
@@ -915,6 +1045,11 @@ function hurtPlayer(d, src) {
   const dealt = Math.max(2, d - P.armor); dmgLog[src || 'other'] = (dmgLog[src || 'other'] || 0) + dealt; // per-source totals, used when tuning balance
   P.hp -= dealt; P.inv = .6; shake(9);
   if (flight.length) { const f = flight.pop(), a = rand(0, TAU), R = rand(90, 140); strays.push({ x: f.x + Math.cos(a) * R, y: f.y + Math.sin(a) * R, ph: rand(0, TAU) }); } flashT = .3; sfx('hurt'); burst(P.x, P.y, '#ff5f8f', 14, 200);
+  if (P.hp <= 0 && TR.wind && !run.wind) { // Second Wind: get up once per run
+    run.wind = true; P.hp = Math.round(P.maxhp * .3); P.inv = 2.5; ebullets.length = 0; shocks = [];
+    for (const e of enemies) { const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1; if (d < 300 && !e.boss) { e.kx += dx / d * 700; e.ky += dy / d * 700; } }
+    rings.push({ x: P.x, y: P.y, r0: 10, r1: 300, life: .6, max: .6, col: '#ff6b8a', w: 8 }); say('Second Wind', 'Up again, once', 2); sfx('level');
+  }
   if (P.hp <= 0) {
     P.hp = 0; state = 'dying'; dieT = 1.1; shake(20); sfx('boom');
     burst(P.x, P.y, '#ffe066', 70, 380); rings.push({ x: P.x, y: P.y, r0: 10, r1: 260, life: .6, max: .6, col: '#ffe066', w: 8 });
@@ -924,7 +1059,7 @@ function hurtPlayer(d, src) {
 /* ---------- weapons ---------- */
 function fireBolt() {
   const l = wl.bolt, t = nearest(P.x, P.y, 540 * S.area); if (!t) return false;
-  const n = [1, 1, 2, 2, 3, 4, 6][l - 1], a0 = Math.atan2(t.y - P.y, t.x - P.x);
+  const n = [1, 1, 2, 2, 3, 4, 6][l - 1] + (TR.twin ? 1 : 0), a0 = Math.atan2(t.y - P.y, t.x - P.x);
   for (let i = 0; i < n; i++) {
     const a = a0 + (i - (n - 1) / 2) * .13;
     bullets.push({ k: 'bolt', x: P.x, y: P.y, vx: Math.cos(a) * 620, vy: Math.sin(a) * 620, r: 5, dmg: [12, 15, 16, 19, 21, 24, 22][l - 1], pierce: [1, 1, 2, 2, 3, 3, 3][l - 1], life: .95, hit: [] });
@@ -971,7 +1106,7 @@ const orbSpec = () => { const o = wl.orbit >= 7 ? { n: 5, R: 190 * S.area, dmg: 
 const frostR = () => (wl.frost >= 7 ? 190 : 85 + 14 * wl.frost) * S.area;
 function weapons(dt) {
   quietT -= dt; const hs = frenzyT > 0 ? 2 : 1; for (const k in cds) cds[k] -= dt * hs;
-  if (wl.bolt && cds.bolt <= 0) cds.bolt = fireBolt() ? [.5, .42, .42, .4, .38, .34, .24][wl.bolt - 1] * S.cd : .1;
+  if (wl.bolt && cds.bolt <= 0) cds.bolt = fireBolt() ? [.68, .56, .5, .46, .42, .36, .24][wl.bolt - 1] * S.cd : .1;
   if (wl.nova && cds.nova <= 0) { fireNova(); cds.nova = (wl.nova >= 7 ? 1.5 : 3.3 - .3 * wl.nova) * S.cd; }
   if (wl.thorn && cds.thorn <= 0) cds.thorn = fireThorn() ? (wl.thorn >= 7 ? 1.1 : 1.6) * S.cd : .15;
   if (wl.spore && cds.spore <= 0) { dropSpore(); cds.spore = .5 * S.cd; }
@@ -981,6 +1116,10 @@ function weapons(dt) {
   }
   if (wl.zap && cds.zap <= 0) cds.zap = fireZap() ? (wl.zap >= 7 ? 1 : 1.5) * S.cd : .15;
   if (wl.fly && cds.fly <= 0) cds.fly = fireFly() ? 1.5 * S.cd : .2;
+  if (TR.swarm && flight.length && (swarmT -= dt * hs) <= 0) { // Swarm: up to five of your fireflies take a shot
+    swarmT = 1.6 * S.cd; const n = Math.min(5, flight.length), step = flight.length / n;
+    for (let i = 0; i < n; i++) { const f = flight[Math.floor(i * step)], t = nearest(f.x, f.y, 340); if (!t) continue; const a = Math.atan2(t.y - f.y, t.x - f.x); bullets.push({ k: 'bolt', sw: true, x: f.x, y: f.y, vx: Math.cos(a) * 560, vy: Math.sin(a) * 560, r: 4, dmg: 8 + P.level * .5, pierce: 1, life: .7, hit: [] }); }
+  }
   if (wl.orbit) {
     orbA += dt * 2.4 * hs / S.cd; const os = orbSpec(), n = os.n, R = os.R, Ri = os.Ri, w = os.w, dmg = os.dmg;
     // each scythe covers a wedge from Ri out to R, from its cutting edge back by w
@@ -1084,14 +1223,15 @@ function flightUpdate(dt) {
 function gainXP(v) {
   P.xp += v * S.xp;
   while (P.xp >= P.next) { P.xp -= P.next; P.level++; P.next = Math.floor(5 + P.level * 4 + P.level * P.level * .35); pending++; }
-  if (P.level >= 20) unlock('spark');
 }
 function choices() {
   const ws = [], ps = [];
   const owned = Object.keys(wl).length, evs = [];
+  const evoAt = TR.overflow ? 5 : 6, nC = TR.fourth ? 4 : 3;
   for (const k in WEAPONS) {
     const l = wl[k] || 0;
-    if (l === 6 && pv(EVO[k].req) > 0) evs.push({ kind: 'e', id: k });
+    if (!l && !daily && !tut && W_NODE[k] && !grown(W_NODE[k])) continue;
+    if (l >= evoAt && l < 7 && pv(EVO[k].req) > 0) evs.push({ kind: 'e', id: k });
     else if (l < 6 && (l > 0 || owned < MAX_WEAPONS)) ws.push({ kind: 'w', id: k });
   }
   for (const k in PASSIVES) if (pv(k) < PASSIVES[k].max) ps.push({ kind: 'p', id: k });
@@ -1099,8 +1239,8 @@ function choices() {
   const sh = a => { for (let i = a.length - 1; i > 0; i--) { const j = (rnd() * (i + 1)) | 0, t = a[i]; a[i] = a[j]; a[j] = t; } return a; };
   sh(ws); sh(ps);
   const out = []; if (evs.length) out.push(sh(evs).pop()); else if (ws.length) out.push(ws.pop());
-  const rest = sh(ws.concat(ps)); while (out.length < 3 && rest.length) out.push(rest.pop());
-  while (out.length < 3) out.push({ kind: 'heal', id: 'heal' + out.length });
+  const rest = sh(ws.concat(ps)); while (out.length < nC && rest.length) out.push(rest.pop());
+  while (out.length < nC) out.push({ kind: 'heal', id: 'heal' + out.length });
   return sh(out);
 }
 let curChoices = [];
@@ -1163,10 +1303,10 @@ function choose(i, force) {
 const keys = {};
 let joy = null, touchUI = false;
 function dash() {
-  if (state !== 'play' || P.dashCd > 0) return;
+  if (state !== 'play' || P.dashN <= 0 || P.dashT > 0) return;
   let dx = mvx, dy = mvy; if (!dx && !dy) { dx = Math.cos(P.face); dy = Math.sin(P.face); }
   if (tut) tut.dashed = true;
-  P.dvx = dx; P.dvy = dy; P.dashT = .17; P.dashCd = 1.6; P.inv = Math.max(P.inv, .32); sfx('dash');
+  P.dvx = dx; P.dvy = dy; P.dashT = .17; if (P.dashN-- >= P.dashMax) P.dashCd = P.dashCdMax; P.inv = Math.max(P.inv, .32); sfx('dash');
 }
 function fx(dt) {
   for (const p of parts) { p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 1 - 3 * dt; p.vy *= 1 - 3 * dt; }
@@ -1180,7 +1320,7 @@ function fx(dt) {
   if (banner && (banner.t -= dt) <= 0) banner = null;
 }
 function update(dt) {
-  T += dt; if (T >= 180 && !tut) unlock('moth'); if (killsDawn < 0 && T >= 360) killsDawn = kills;
+  T += dt; if (!boss) RT += dt; if (killsDawn < 0 && RT >= 360) killsDawn = kills;
   // input
   let ix = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0);
   let iy = (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0);
@@ -1188,11 +1328,13 @@ function update(dt) {
   else if (joy) { const jx = joy.x - joy.x0, jy = joy.y - joy.y0, jm = Math.hypot(jx, jy); if (jm > 8) { mag = Math.min(1, jm / 55); ix = jx / jm; iy = jy / jm; } }
   mvx = mag ? ix : 0; mvy = mag ? iy : 0;
   if (mag) P.face = Math.atan2(iy, ix);
-  P.dashCd -= dt; P.inv -= dt; frenzyT -= dt;
+  if (P.dashN < P.dashMax && (P.dashCd -= dt) <= 0) { P.dashN++; P.dashCd = P.dashN < P.dashMax ? P.dashCdMax : 0; }
+  P.inv -= dt; frenzyT -= dt;
   const ox = P.x, oy = P.y; let ws = 1; for (const w of webs) if (w.land <= 0 && (P.x - w.x) ** 2 + (P.y - w.y) ** 2 < w.r * w.r) { ws = .45; break; }
   if (P.dashT > 0) {
     P.dashT -= dt; P.x += P.dvx * 840 * dt; P.y += P.dvy * 840 * dt; if (P.dashT <= 0) flare();
     parts.push({ x: P.x, y: P.y, vx: 0, vy: 0, life: .25, max: .25, col: '#ffe066', s: 10 });
+    if (TR.ember && (emberT -= dt) <= 0) { emberT = .035; embers.push({ x: P.x, y: P.y, r: 34 * S.area, life: 2.2, max: 2.2, tick: 0, dps: 2.4 + .2 * P.level }); } // Ember Dash
     near(P.x, P.y, 60, e => { if (e.orbT <= 0 && (e.x - P.x) ** 2 + (e.y - P.y) ** 2 < (e.r + 20) ** 2) { e.orbT = .3; src = 'dash'; hit(e, 18, P.dvx * 300, P.dvy * 300); } });
   } else { P.x += ix * mag * P.speed * ws * dt; P.y += iy * mag * P.speed * ws * dt; }
   frameMove = Math.hypot(P.x - ox, P.y - oy);
@@ -1291,7 +1433,7 @@ function update(dt) {
     near(b.x, b.y, b.r + 60, e => {
       if (b.dead || b.hit.includes(e)) return; const rr = b.r + e.r;
       if ((e.x - b.x) ** 2 + (e.y - b.y) ** 2 < rr * rr) {
-        src = b.k; hit(e, b.dmg, b.vx * .12, b.vy * .12);
+        src = b.sw ? 'swarm' : b.k; hit(e, b.dmg, b.vx * .12, b.vy * .12);
         if (b.boom) {
           const R = 70 * S.area; rings.push({ x: b.x, y: b.y, r0: 6, r1: R, life: .22, max: .22, col: '#9dff8a', w: 4 });
           near(b.x, b.y, R + 50, o => { if (o !== e && (o.x - b.x) ** 2 + (o.y - b.y) ** 2 < (R + o.r) ** 2) hit(o, b.dmg * .8); });
@@ -1319,6 +1461,11 @@ function update(dt) {
     if (z.tick <= 0) { z.tick = .25; src = 'spore'; near(z.x, z.y, z.r + 50, e => { if ((e.x - z.x) ** 2 + (e.y - z.y) ** 2 < (z.r + e.r) ** 2) hit(e, z.dps * .25, undefined, undefined, true); }); }
   }
   zones = zones.filter(z => z.life > 0);
+  for (const z of embers) {
+    z.life -= dt; z.tick -= dt;
+    if (z.tick <= 0) { z.tick = .25; src = 'ember'; near(z.x, z.y, z.r + 50, e => { if ((e.x - z.x) ** 2 + (e.y - z.y) ** 2 < (z.r + e.r) ** 2) hit(e, z.dps * .25, undefined, undefined, true); }); }
+  }
+  embers = embers.filter(z => z.life > 0);
   // enemy bullets
   for (const b of ebullets) {
     b.life -= dt; b.x += b.vx * dt; b.y += b.vy * dt;
@@ -1368,7 +1515,7 @@ function update(dt) {
 }
 
 /* ---------- run history, stats, achievements ---------- */
-let run = { rescued: 0, maxFlight: 3, bosses: [], bossHurt: false };
+let run = { rescued: 0, maxFlight: flight.length, bosses: [], bossHurt: false, wind: false, amber: 0, bossPts: 0 };
 const ACH = [
   ['first', 'First Light', 'Finish the tutorial'],
   ['dawn', 'Dawnbringer', 'See the dawn'],
@@ -1397,10 +1544,10 @@ function award(id) {
 }
 function recordRun(win) {
   const st = save.stats;
-  save.runs.unshift({ d: Date.now(), mode: daily ? 'daily' : nm ? 'nightmare' : 'normal', bug: ch.name, T: Math.round(T), win, kills, level: P.level, flight: flight.length, rings: ringsMade,
+  save.runs.unshift({ d: Date.now(), mode: daily ? 'daily' : nm ? 'nightmare' : 'normal', bug: ch.name, T: Math.round(RT), win, kills, level: P.level, flight: flight.length, rings: ringsMade,
     score: calcScore(win), bosses: run.bosses.slice(), build: Object.keys(wl).map(k => WEAPONS[k].icon + (wl[k] >= 7 ? '★' : '')).join(' ') });
   if (save.runs.length > 50) save.runs.length = 50;
-  st.runs++; if (win) st.wins++; st.kills += kills; st.time += Math.round(T); st.rings += ringsMade; st.rescued += run.rescued;
+  st.runs++; if (win) st.wins++; st.kills += kills; st.time += Math.round(RT); st.rings += ringsMade; st.rescued += run.rescued;
   st.bestFlight = Math.max(st.bestFlight, run.maxFlight, flight.length);
   if (st.kills >= 25000) award('k25k');
   persist();
@@ -1416,8 +1563,9 @@ function showStats() {
     return '<div class="run"><span>' + (dt.getMonth() + 1) + '/' + dt.getDate() + ' · <b>' + r.bug + '</b> · ' + r.mode + '</span><span class="' + (r.win ? 'w' : '') + '">' + fmt(r.T) + (r.win ? ' · saw the dawn' : '') + '</span><span>' +
       num(r.kills) + ' squashed · level ' + r.level + (r.score ? ' · ' + num(r.score) + ' pts' : '') + '</span><span>' + r.build + '</span></div>';
   }).join('') : '<div class="run"><span>No runs yet. Go play one.</span></div>';
-  $('start').classList.add('hidden'); $('stats').classList.remove('hidden');
+  statsFrom = where; $('start').classList.add('hidden'); $('haven').classList.add('hidden'); if (hollow) hollow.active(false); $('stats').classList.remove('hidden');
 }
+let statsFrom = 'menu';
 
 /* ---------- tutorial ----------
    A guided practice run. Nothing can hurt the player, the normal spawner is off, and each step
@@ -1450,14 +1598,14 @@ function tutNext() {
   tut.step++; tut.dashed = false; tut.moved = 0; tut.k0 = kills; tut.x0 = P.level * 1e4 + P.xp; tut.f0 = flight.length; tut.r0 = ringsMade;
   if (tut.step >= TUT.length) {
     tut.end = 2.4; save.tut = true; persist(); sfx('win'); award('first');
-    $('tutStep').textContent = 'Done'; $('tutText').innerHTML = "That's everything. Now stay alive until dawn."; $('tutSkip').classList.add('hidden'); return;
+    $('tutStep').textContent = 'Done'; $('tutText').innerHTML = save.stats.runs ? "That's everything. Good luck out there." : "That's everything. Now for a real night: stay alive until dawn."; $('tutSkip').classList.add('hidden'); return;
   }
   const st = TUT[tut.step];
   $('tutStep').textContent = 'Step ' + (tut.step + 1) + ' of ' + TUT.length; $('tutText').innerHTML = st.text(); $('tutSkip').classList.remove('hidden');
   if (st.enter) st.enter(); if (tut.step) sfx('pick');
 }
 function tutorialUpdate(dt) {
-  if (tut.end) { tut.end -= dt; if (tut.end <= 0) toMenu(); return; }
+  if (tut.end) { tut.end -= dt; if (tut.end <= 0) { if (save.stats.runs) toMenu(); else start(false); } return; }
   const st = TUT[tut.step];
   if (st.keep && enemies.length < 2) tutSpawn(2, st.keep[0], st.keep[1]);
   if (st.dummies && !enemies.length) tutDummies();
@@ -1468,7 +1616,7 @@ function tutorialUpdate(dt) {
 const fmt = t => Math.floor(t / 60) + ':' + String(Math.floor(t % 60)).padStart(2, '0');
 function saveBest() {
   let nb = false;
-  if (T > best.time) { best.time = T; nb = true; }
+  if (RT > best.time) { best.time = RT; nb = true; }
   if (kills > best.kills) best.kills = kills;
   const sc0 = calcScore(state === 'win'); newBestScore = !daily && sc0 > (best.score || 0); if (newBestScore) best.score = sc0;
   if (won) best.won = true;
@@ -1476,7 +1624,7 @@ function saveBest() {
   return nb;
 }
 function bestLine() { return best.time > 0 ? 'Best: ' + (best.score ? num(best.score) + ' pts · ' : '') + fmt(best.time) + ' · ' + num(best.kills) + ' squashed' + (best.won ? ' ★ saw the dawn' : '') : ''; }
-const DMG_SRC = { flare: ['Dash flare', '#ffe9a0'], dash: ['Dash', '#ffd76a'], flight: ['Firefly flash', '#fff3b0'], power: ['Pickups', '#ff9a4d'] };
+const DMG_SRC = { flare: ['Dash flare', '#ffe9a0'], dash: ['Dash', '#ffd76a'], flight: ['Firefly flash', '#fff3b0'], power: ['Pickups', '#ff9a4d'], ember: ['Ember Dash', '#ff8a3a'], swarm: ['Trail fireflies', '#fff3b0'] };
 // bars for every source of damage this run, biggest first
 function dmgHTML() {
   const rows = Object.entries(dmgDone).filter(r => r[1] >= 1).sort((a, b) => b[1] - a[1]), top = rows.length ? rows[0][1] : 1, tot = rows.reduce((a, r) => a + r[1], 0) || 1;
@@ -1486,40 +1634,49 @@ function dmgHTML() {
     return '<div class="dmgRow" style="--c:' + col + '"><span class="dn"><i>' + ic + '</i>' + nm + '</span><span class="db"><span style="width:' + (v / top * 100).toFixed(1) + '%"></span></span><b>' + num(Math.round(v)) + '</b><em>' + Math.round(v / tot * 100) + '%</em></div>';
   }).join('');
 }
+// amber from a run: time, squashes, bosses and the dawn. It's paid as the run goes, so an endless night after a win only adds the difference.
+const amberEarned = () => Math.round((RT / 6 + kills / 50 + bossKills * 20 + (won ? 50 : 0)) * (nm ? 1.5 : 1) * (TR.amber ? 1.15 : 1));
+function payAmber() {
+  if (tut || !P || state === 'menu') return 0;
+  const a = amberEarned() - run.amber; if (a > 0) { save.amber += a; run.amber += a; persist(); }
+  return run.amber;
+}
 function finish(win) {
   if (win) wonW = scoreParts(true).w; // kept so an endless run after the win still counts its dawn bonus
   if (win) { award('dawn'); if (nm) award('nm'); if (Object.keys(wl).length <= 3) award('mini'); }
   if (!endless) recordRun(win);
   const firstWin = win && !save.won;
-  if (win) { save.won = true; if (nm) save.nmWon = true; persist(); unlock('wasp'); }
+  if (win) { save.won = true; if (nm) save.nmWon = true; persist(); }
   state = win ? 'win' : 'over'; const nb = saveBest();
-  $('unlockLine').textContent = (newUnlocks.length ? 'Unlocked: ' + newUnlocks.join(', ') : '') + (firstWin ? (newUnlocks.length ? ', and ' : 'Unlocked: ') + 'Nightmare mode' : '');
+  $('unlockLine').textContent = firstWin ? 'Unlocked: Nightmare mode, at the Lantern Gate' : '';
+  { const a = payAmber(); $('amberLine').innerHTML = a ? iconImg(ART.AMBER_PILE, 3) + '+' + num(a) + ' amber' : ''; }
   $('overTitle').textContent = win ? 'Dawn breaks. You made it!' : 'The night got you';
   $('overSub').textContent = win ? 'The last boss is down and the meadow is yours. You can keep going into the endless night if you want to see how far this build goes.'
-    : T < 120 ? 'Tip: dashing makes you untouchable for a moment, and it hurts whatever you fly through.'
-    : T < 270 ? 'Tip: a few weapons leveled high will carry you further than a little bit of everything.'
-    : T < 360 ? 'So close. Dawn comes once the third boss falls, right after the 6 minute mark.' : 'That was a serious run.';
-  $('stTime').textContent = fmt(T); $('stKills').textContent = kills; $('stLevel').textContent = P.level; $('stFlight').textContent = flight.length;
+    : RT < 120 ? 'Tip: dashing makes you untouchable for a moment, and it hurts whatever you fly through.'
+    : RT < 270 ? 'Tip: a few weapons leveled high will carry you further than a little bit of everything.'
+    : RT < 360 ? 'So close. Dawn comes once the third boss falls, right after the 6 minute mark.' : 'That was a serious run.';
+  $('stTime').textContent = fmt(RT); $('stKills').textContent = kills; $('stLevel').textContent = P.level; $('stFlight').textContent = flight.length;
   { const sp = scoreParts(win); $('stScore').textContent = num(sp.total);
     $('scoreLine').textContent = 'time ' + num(sp.t) + ' · squashed ' + num(sp.k) + ' · bosses ' + num(sp.b) + ' · fireflies ' + num(sp.f) + (sp.w ? ' · dawn ' + num(sp.w) : '') + (nm ? ' · ×1.5 Nightmare' : ''); }
   $('bestOver').textContent = newBestScore ? 'New best score!' : bestLine();
   $('endlessBtn').classList.toggle('hidden', !win); $('shareBtn').classList.toggle('hidden', !daily);
   if (daily) {
     const sc = calcScore(win), d = save.daily, nbd = sc > d.best; if (nbd) d.best = sc; persist();
-    lastDaily = { num: dday - DAY0 + 1, char: ch.name, T, win, kills, level: P.level, flight: flight.length, score: sc, attempt: d.attempts, build: Object.keys(wl).map(k => WEAPONS[k].icon + (wl[k] >= 7 ? '★' : '')).join(' ') };
+    lastDaily = { num: dday - DAY0 + 1, char: ch.name, T: RT, win, kills, level: P.level, flight: flight.length, score: sc, attempt: d.attempts, build: Object.keys(wl).map(k => WEAPONS[k].icon + (wl[k] >= 7 ? '★' : '')).join(' ') };
     $('overTitle').textContent = 'Daily #' + lastDaily.num + (win ? ' · you saw the dawn' : '');
     $('bestOver').textContent = (nbd ? 'Your best today!' : 'Your best today: ' + num(d.best)) + ' · attempt ' + d.attempts + (d.streak > 1 ? ' · ' + d.streak + ' day streak' : '');
     $('shareBtn').textContent = 'Copy result';
 
   }
   $('overDmg').innerHTML = dmgHTML(); $('overDmg').classList.add('hidden'); $('dmgBtn').textContent = 'Damage';
+  $('havenGoBtn').classList.toggle('hidden', save.met || !save.stats.runs); $('againBtn').classList.toggle('ghost', !save.met);
   $('over').classList.remove('hidden'); $('topbtns').classList.add('hidden'); $('dashBtn').classList.add('hidden');
   if (win) sfx('win');
 }
 function start(d, tutorial) {
   initAudio(); mStep = 0; tut = tutorial === true ? { step: -1 } : null; daily = d === true && !tut; if (daily) beginDaily(); reset(); state = 'play';
   if (tut) { banner = null; tutNext(); } $('tutBox').classList.toggle('hidden', !tut);
-  for (const id of ['start', 'over', 'pause', 'levelup']) $(id).classList.add('hidden');
+  for (const id of ['start', 'over', 'pause', 'levelup', 'haven']) $(id).classList.add('hidden'); if (hollow) hollow.active(false); where = 'run';
   $('topbtns').classList.remove('hidden'); $('dashBtn').classList.toggle('hidden', !touchUI);
 }
 function togglePause(force) {
@@ -1531,38 +1688,15 @@ function toggleMute() {
   $('muteBtn').style.opacity = muted ? .4 : 1; try { localStorage.setItem('firefliers.muted', muted ? '1' : '0'); } catch (e) {}
 }
 $('muteBtn').style.opacity = muted ? .4 : 1;
-$('bestStart').textContent = bestLine();
-$('playBtn').onclick = () => start(false, !save.tut); $('dailyBtn').onclick = () => start(true);
-$('againBtn').onclick = () => start(daily); $('restartBtn').onclick = () => start(daily); $('shareBtn').onclick = copyResult;
+$('againBtn').onclick = () => start(daily); $('restartBtn').onclick = () => { payAmber(); start(daily); }; $('shareBtn').onclick = copyResult;
 $('resumeBtn').onclick = () => togglePause(false);
-function buildStart() {
-  const box = $('chars'); box.innerHTML = '';
-  for (const id in CHARS) {
-    const c = CHARS[id], un = !!save.unlocked[id], b = document.createElement('button');
-    b.className = 'char' + (un ? '' : ' locked') + (save.char === id ? ' sel' : ''); b.style.setProperty('--c', c.col);
-    b.innerHTML = '<img class="pt" alt="" src="' + portrait(id, !un) + '"><b>' + (un ? c.name : '???') + '</b><span>' + (un ? c.perk : 'Locked: ' + c.lock) + '</span>';
-    if (un) { b.setAttribute('aria-pressed', save.char === id); b.onclick = () => { save.char = id; persist(); buildStart(); }; } else b.setAttribute('aria-disabled', 'true');
-    box.appendChild(b);
-  }
-  const td = today(), sd = save.daily, mine = sd.day === td && sd.best > 0;
-  $('dailyBtn').textContent = 'Daily #' + (td - DAY0 + 1);
-  $('dailyInfo').textContent = "Today's bug: " + CHARS[dailyCharId(td)].name + (mine ? ' · your best ' + num(sd.best) + (sd.streak > 1 ? ' · ' + sd.streak + ' day streak' : '') : ' · same cards and waves for everyone');
-  const n = $('nmBtn');
-  n.textContent = !save.won ? 'Nightmare mode: see the dawn to unlock' : 'Nightmare mode: ' + (save.nm ? 'ON' : 'off') + (save.nmWon ? ' ★' : '');
-  n.style.opacity = save.won ? 1 : .5; n.style.borderColor = save.won && save.nm ? '#ff6b8a' : ''; n.style.color = save.won && save.nm ? '#ff6b8a' : '';
-}
-function toMenu() {
-  tut = null; $('tutBox').classList.add('hidden');
-  state = 'menu'; for (const id of ['over', 'pause', 'levelup']) $(id).classList.add('hidden');
-  $('start').classList.remove('hidden'); $('topbtns').classList.add('hidden'); $('dashBtn').classList.add('hidden');
-  $('bestStart').textContent = bestLine(); buildStart();
-}
-(() => { const f = $('flies'); for (let i = 0; i < 18; i++) { const e = document.createElement('i'); e.style.cssText = 'left:' + rand(2, 96) + '%;top:' + rand(4, 94) + '%;--d:' + rand(7, 15).toFixed(1) + 's;--dl:-' + rand(0, 15).toFixed(1) + 's;--dx:' + rand(-70, 70).toFixed(0) + 'px;--dy:' + rand(-60, 30).toFixed(0) + 'px'; f.appendChild(e); } })();
-$('nmBtn').onclick = () => { if (!save.won) return; save.nm = !save.nm; persist(); buildStart(); };
 $('dmgBtn').onclick = () => { const h = $('overDmg').classList.toggle('hidden'); $('dmgBtn').textContent = h ? 'Damage' : 'Hide damage'; };
-$('menuBtn').onclick = toMenu; $('quitBtn').onclick = toMenu; $('rerollBtn').onclick = reroll;
-$('howBtn').onclick = () => start(false, true);
-$('statsBtn').onclick = showStats; $('statsBack').onclick = () => { $('stats').classList.add('hidden'); $('start').classList.remove('hidden'); };
+$('menuBtn').onclick = toMenu; $('havenGoBtn').onclick = () => toHaven();
+$('playBtn').onclick = () => playMode('night'); $('dailyBtn').onclick = () => playMode('daily'); $('nmBtn').onclick = () => playMode('nightmare');
+$('havenBtn').onclick = () => toHaven(); $('howBtn').onclick = () => playMode('tutorial'); $('statsBtn').onclick = showStats; $('setMenuBtn').onclick = openSettings;
+(() => { const f = $('flies'); for (let i = 0; i < 18; i++) { const e = document.createElement('i'); e.style.cssText = 'left:' + rand(2, 96) + '%;top:' + rand(4, 94) + '%;--d:' + rand(7, 15).toFixed(1) + 's;--dl:-' + rand(0, 15).toFixed(1) + 's;--dx:' + rand(-70, 70).toFixed(0) + 'px;--dy:' + rand(-60, 30).toFixed(0) + 'px'; f.appendChild(e); } })();
+$('quitBtn').onclick = () => { const a = payAmber(); toMenu(); if (a) toast('+' + num(a) + ' amber'); }; $('setBtn').onclick = openSettings; $('rerollBtn').onclick = reroll;
+$('statsBack').onclick = () => { $('stats').classList.add('hidden'); if (statsFrom === 'haven') toHaven('records'); else toMenu(); };
 for (const id of ['luBuild', 'pauseBuild']) {
   const el = $(id), over = e => { const c = e.target.closest ? e.target.closest('.chip') : null; synLight(c ? c.dataset.syn : ''); };
   el.addEventListener('mouseover', over); el.addEventListener('focusin', over); el.addEventListener('mouseleave', () => synLight('')); el.addEventListener('focusout', () => synLight(''));
@@ -1574,6 +1708,18 @@ $('dashBtn').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPr
 
 /* ---------- input ---------- */
 addEventListener('keydown', e => {
+  if (!$('settings').classList.contains('hidden')) { if (e.code === 'Escape') closeSettings(); return; }
+  if (state === 'menu') {
+    const typing = /^(INPUT|TEXTAREA|BUTTON)$/.test((document.activeElement || {}).tagName || '');
+    if (dlg) {
+      if (!typing && ['Enter', 'Space', 'KeyE'].includes(e.code) && !e.repeat) { e.preventDefault(); dlgAdvance(); }
+      const n = ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5'].indexOf(e.code), o = $('dlgOpts').querySelectorAll('.opt-btn'); if (n >= 0 && o[n] && !/^(INPUT|TEXTAREA)$/.test((document.activeElement || {}).tagName || '')) o[n].click();
+      if (e.code === 'Escape' && save.met) endTalk(true);
+    } else if (e.code === 'Escape' && hubOpen) hubClose();
+    else if (where === 'menu' && e.code === 'Enter' && !typing) playMode('night');
+    if (e.code === 'KeyM' && !/^(INPUT|TEXTAREA)$/.test((document.activeElement || {}).tagName || '')) toggleMute();
+    return;
+  }
   if (e.repeat) { if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault(); return; }
   keys[e.code] = true;
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code) && state !== 'menu' && state !== 'over' && state !== 'win') e.preventDefault();
@@ -1581,8 +1727,8 @@ addEventListener('keydown', e => {
     if (e.code === 'Space' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') dash();
     else if (e.code === 'Escape' || e.code === 'KeyP') togglePause();
   } else if (state === 'pause') { if (e.code === 'Escape' || e.code === 'KeyP') togglePause(); }
-  else if (state === 'levelup') { const n = ['Digit1', 'Digit2', 'Digit3', 'Numpad1', 'Numpad2', 'Numpad3'].indexOf(e.code); if (n >= 0) choose(n % 3); else if (e.code === 'KeyR') reroll(); }
-  else if (state === 'menu' || state === 'over') { if (e.code === 'Enter') start(state === 'over' && daily, state === 'menu' && !save.tut); }
+  else if (state === 'levelup') { const n = ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Numpad1', 'Numpad2', 'Numpad3', 'Numpad4'].indexOf(e.code); if (n >= 0) choose(n % 4); else if (e.code === 'KeyR') reroll(); }
+  else if (state === 'over') { if (e.code === 'Enter') start(daily); }
   if (e.code === 'KeyM') toggleMute();
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
@@ -1718,6 +1864,32 @@ function shellbyRows(f) {
 }
 const SHELLBY_PAL = { S: ['#3a2410', '#6a4420', '#a8703a', '#d8a060', '#ffd8a0'], d: '#4a2c12', W: P.wood, w: '#2a160c', k: '#ffd27a', y: '#ffd86a', B: ['#2a3a24', '#4a6a3a', '#7a9a5a', '#a8c47a', '#d8eaa8'], b: '#4a6a3a', e: '#1a1208', m: '#2a3a24', A: ['#3a1a10', '#8a3a1a', '#c86a30', '#f0a050', '#ffd090'] };
 const SHELLBY = [0, 1].map(f => bake(SHELLBY_PAL, shellbyRows(f)));
+
+// Wick: a young firefly with big round glasses who keeps the Records. Frame 1 flaps and glows brighter.
+function wickRows(f) {
+  const g = pg(18, 22);
+  line(g, 7, 4, 5, 0, 'a'); line(g, 10, 4, 12, 0, 'a');
+  ell(g, 2.6, 11, 2.4, f ? 2.6 : 4, 'W'); ell(g, 15.4, 11, 2.4, f ? 2.6 : 4, 'W');
+  ell(g, 9, 13.5, 4.6, 4, 'B'); ell(g, 9, 18.6, 4, 3.2, 'G');
+  ell(g, 9, 7, 5, 4.4, 'H');
+  for (const cx of [6.6, 11.4]) { ell(g, cx, 7, 2.2, 2.2, 'o'); ell(g, cx, 7, 1.3, 1.3, 'l'); }
+  put(g, 9, 7, 'o'); put(g, 7, 7, 'e'); put(g, 12, 7, 'e'); put(g, 8, 10, 'm'); put(g, 9, 10, 'm');
+  rect(g, 12, 12, 16, 16, 'P'); line(g, 12, 12, 16, 12, 'p'); line(g, 12, 16, 16, 16, 'p'); for (const y of [13, 14, 15]) line(g, 13, y, 15, y, y === 14 ? 'q' : 'P');
+  return g;
+}
+const WICK = [0, 1].map(f => bake({ a: '#4a3a6a', W: WINGS, B: ['#1a1028', '#2b2140', '#3d2f5a', '#56447a', '#7a68a0'], H: ['#120a1e', '#20163a', '#2b2140', '#3d2f5a', '#56447a'],
+  G: f ? ['#d8a820', '#ffe066', '#fff3a0', '#ffffe0', '#ffffff'] : ['#8a6a10', '#d8a820', '#ffe066', '#fff3a0', '#ffffe0'], o: '#d8a03a', l: '#cfe8ff', e: '#120a1e', m: '#7a68a0', P: P.cream, p: '#8a7050', q: '#4a3a2a' }, wickRows(f)));
+// Pell: a sleepy frog who sits by the pond and fishes for the stars reflected in it. The line sways between frames.
+function pellRows(f) {
+  const g = pg(30, 22);
+  ell(g, 6, 17, 4.6, 3.4, 'F'); ell(g, 11, 14, 8.6, 6.4, 'F'); ell(g, 15, 9, 7, 5, 'F');
+  for (const cx of [12, 18]) { ell(g, cx, 5, 2.6, 2.5, 'F'); put(g, cx, 5, 'e'); put(g, cx - 1, 5, 'e'); line(g, cx - 2, 4, cx + 1, 4, 'K'); } // heavy lids
+  ell(g, 13.5, 16, 5, 4, 'b'); line(g, 15, 11, 21, 10, 'm'); put(g, 20, 8, 'c'); put(g, 21, 9, 'c');
+  ell(g, 18.5, 18.5, 2.6, 2, 'F'); ell(g, 7, 20, 4, 1.6, 'F');
+  line(g, 19, 15, 28, 1, 'r'); line(g, 28, 1, f ? 29 : 28, 21, 's');
+  return g;
+}
+const PELL = [0, 1].map(f => bake({ F: ['#12301e', '#245a2e', '#3c8a3e', '#6ab85a', '#b0e890'], e: '#1a1208', K: '#245a2e', b: '#d8d0a0', m: '#12301e', c: '#e8a0a0', r: '#8f5c36', s: '#9ab0c4' }, pellRows(f)));
 
 // the fireflies that trail behind you, and a lost one waiting to be rescued
 const FIREFLY = [0, 1].map(f => bake({ G: ['#8a6a10', '#d8a820', '#ffe066', '#fff3a0', '#ffffe0'], w: WING, b: '#3d2f5a' }, f ? ['.w.w.', 'bGGG.', '.GGG.'] : ['ww.ww', 'bGGG.', '.GGG.'], '#1a1208'));
@@ -2007,7 +2179,541 @@ const POOF = [0, 1, 2, 3].map(f => px(16, 16, (c, dot) => { reseed(9 + f); const
 const LEVEL_BURST = [0, 1].map(f => px(24, 24, (c, dot) => { for (let i = 0; i < 12; i++) { const a = i / 12 * TAU, r0 = 3 + f * 4, r1 = r0 + 4; for (let r = r0; r <= r1; r++) dot(Math.round(12 + Math.cos(a) * r), Math.round(12 + Math.sin(a) * r), r === r1 ? '#ffffff' : i % 2 ? '#6fd0c0' : '#3d79c9'); } }));
 const HEAL = px(9, 9, (c, dot, box) => { box(3, 0, 3, 9, '#7dff9a'); box(0, 3, 9, 3, '#7dff9a'); box(4, 1, 1, 7, '#e0ffe8'); box(1, 4, 7, 1, '#e0ffe8'); });
 
-return { BUGS, FIREFLY, WEAPON_ICONS, EVOLVED_ICONS, PASSIVE_ICONS, PICKUPS, SPARKS, ICO, PLAYER_SHOTS, ENEMY_SHOTS, RUN_TILES, STUMP, STANDING, DEAD_LAMP, flipX };
+// ---------- UI kit: pixel 9-slice pieces, turned into data URIs and used by real HTML controls ----------
+const U = 3; // one art pixel = 3 CSS pixels
+const uri = cv => cv.toDataURL();
+// a framed slab: outline, inner bevel, and optional corner brackets in an accent colour
+function frame(w, h, o) {
+  return px(w, h, (c, dot, box) => {
+    box(0, 0, w, h, o.outline); box(1, 1, w - 2, h - 2, o.fill);
+    if (o.hi) { box(1, 1, w - 2, 1, o.hi); box(1, 1, 1, h - 2, o.hi); } if (o.lo) { box(1, h - 2, w - 2, 1, o.lo); box(w - 2, 1, 1, h - 2, o.lo); }
+    if (o.bevel) box(1, h - 1 - o.bevel, w - 2, o.bevel, o.lo);
+    if (o.corner) for (const [x, y, sx, sy] of [[1, 1, 1, 1], [w - 2, 1, -1, 1], [1, h - 2, 1, -1], [w - 2, h - 2, -1, -1]]) { dot(x, y, o.corner); dot(x + sx, y, o.corner); dot(x + 2 * sx, y, o.corner); dot(x, y + sy, o.corner); dot(x, y + 2 * sy, o.corner); }
+    if (o.notch) { dot(0, 0, 'rgba(0,0,0,0)'); c.clearRect(0, 0, 1, 1); c.clearRect(w - 1, 0, 1, 1); c.clearRect(0, h - 1, 1, 1); c.clearRect(w - 1, h - 1, 1, 1); }
+  });
+}
+const KIT = {
+  panel: frame(12, 12, { outline: '#030405', fill: '#10161a', hi: '#263030', lo: '#070a0b', corner: '#d8d2c2' }),
+  panelGold: frame(12, 12, { outline: '#030405', fill: '#141410', hi: '#3a3220', lo: '#070605', corner: '#f2c14e' }),
+  // buttons: 10x10, 3px slices; the bottom bevel moves to the top when pressed
+  btn: frame(10, 10, { outline: '#1d1404', fill: '#f0b848', hi: '#fff3c8', lo: '#b4741c', bevel: 2, notch: 1 }),
+  btnHover: frame(10, 10, { outline: '#1d1404', fill: '#ffcc60', hi: '#ffffff', lo: '#c8862a', bevel: 2, notch: 1 }),
+  btnDown: frame(10, 10, { outline: '#1d1404', fill: '#d89a30', hi: '#8a5a10', lo: '#d89a30', notch: 1 }),
+  btnOff: frame(10, 10, { outline: '#0a0c0d', fill: '#2a2e30', hi: '#3a4042', lo: '#1a1e20', bevel: 2, notch: 1 }),
+  stone: frame(10, 10, { outline: '#030405', fill: '#1a2122', hi: '#3a4746', lo: '#0c1011', bevel: 2, notch: 1 }),
+  stoneHover: frame(10, 10, { outline: '#030405', fill: '#24302f', hi: '#5a6a68', lo: '#121818', bevel: 2, notch: 1 }),
+  stoneDown: frame(10, 10, { outline: '#030405', fill: '#141a1b', hi: '#0c1011', lo: '#141a1b', notch: 1 }),
+  danger: frame(10, 10, { outline: '#1a0404', fill: '#c8402f', hi: '#ff9a80', lo: '#7a1a14', bevel: 2, notch: 1 }),
+  dangerHover: frame(10, 10, { outline: '#1a0404', fill: '#e05440', hi: '#ffc0a8', lo: '#8a2018', bevel: 2, notch: 1 }),
+  mint: frame(10, 10, { outline: '#05201a', fill: '#5cbaa4', hi: '#d0fff2', lo: '#2e7a68', bevel: 2, notch: 1 }),
+  tab: frame(10, 10, { outline: '#030405', fill: '#10161a', hi: '#3a4746', lo: '#10161a', notch: 1 }),
+  tabOff: frame(10, 10, { outline: '#030405', fill: '#0a0e10', hi: '#1a2122', lo: '#0a0e10', notch: 1 }),
+  inset: frame(8, 8, { outline: '#030405', fill: '#06090a', hi: '#020303', lo: '#1e2626' }), // grooves for sliders, bars and inputs
+  key: frame(9, 10, { outline: '#030405', fill: '#d8d2c2', hi: '#ffffff', lo: '#8d9491', bevel: 2, notch: 1 }),
+  bossBar: frame(10, 8, { outline: '#030405', fill: '#06090a', hi: '#020303', lo: '#1e2626', corner: '#d8d2c2' }),
+  tip: frame(8, 8, { outline: '#030405', fill: '#1a1a14', hi: '#3a3220', lo: '#0a0a08' }),
+  toast: frame(12, 10, { outline: '#030405', fill: '#141410', hi: '#3a3220', lo: '#070605', corner: '#f2c14e' }),
+};
+// small single images
+const IMG = {
+  knob: bake({ L: P.brass, g: '#fff3a0', k: '#3a2208' }, ['.LLL.', 'LLLLL', 'LgggL', 'LgggL', 'LgggL', 'LLLLL', '.k.k.']),
+  toggleOff: px(22, 12, (c, dot, box) => { c.drawImage(frame(22, 12, { outline: '#030405', fill: '#06090a', hi: '#020303', lo: '#1e2626' }), 0, 0); box(2, 2, 8, 8, '#465150'); box(2, 2, 8, 1, '#8d9491'); box(2, 9, 8, 1, '#283030'); box(14, 5, 4, 2, '#283030'); }),
+  toggleOn: px(22, 12, (c, dot, box) => { c.drawImage(frame(22, 12, { outline: '#030405', fill: '#1e4a40', hi: '#123028', lo: '#2e7a68' }), 0, 0); box(12, 2, 8, 8, '#f0b848'); box(12, 2, 8, 1, '#fff3c8'); box(12, 9, 8, 1, '#b4741c'); box(15, 5, 2, 2, '#fff3c8'); box(4, 5, 4, 2, '#7fd6c2'); }),
+  boxOff: frame(11, 11, { outline: '#030405', fill: '#06090a', hi: '#020303', lo: '#2a3434' }),
+  boxOn: px(11, 11, c => { c.drawImage(frame(11, 11, { outline: '#030405', fill: '#06090a', hi: '#020303', lo: '#2a3434' }), 0, 0); c.drawImage(ICO.check, 1, 1, 9, 9); }),
+  radioOff: bake({ o: '#2a3434', i: '#06090a' }, ['..ooooo..', '.oiiiiio.', 'oiiiiiiio', 'oiiiiiiio', 'oiiiiiiio', 'oiiiiiiio', 'oiiiiiiio', '.oiiiiio.', '..ooooo..']),
+  radioOn: bake({ o: '#2a3434', i: '#06090a', g: '#f0b848', w: '#fff3c8' }, ['..ooooo..', '.oiiiiio.', 'oiigggiio', 'oiggwggio', 'oigggggio', 'oigggggio', 'oiigggiio', '.oiiiiio.', '..ooooo..']),
+  pipOn: bake({ A: P.amber }, ['..A..', '.AAA.', 'AAAAA', '.AAA.', '..A..']),
+  pipOff: bake({ o: '#465150', i: '#06090a' }, ['..o..', '.oio.', 'oiiio', '.oio.', '..o..'], '#030405'),
+  arrowDown: bake({ w: '#e9e4d6' }, ['wwwww', '.www.', '..w..'], null),
+  tipPoint: bake({ f: '#1a1a14' }, ['fffff', '.fff.', '..f..'], '#030405'),
+  scrollThumb: frame(6, 10, { outline: '#030405', fill: '#465150', hi: '#8d9491', lo: '#283030' }),
+  cursor: bake({ w: '#e9e4d6', g: '#ffe066' }, ['w.......', 'ww......', 'wgw.....', 'wggw....', 'wgggw...', 'wggggw..', 'wgggggw.', 'wggwwww.', 'ww.w....', 'w...w...', '....w...'], '#030405'),
+};
+// the CSS that turns those images into a working kit
+function kitCSS() {
+  const b = (img, slice) => 'border-style:solid;border-image:url(' + uri(img) + ') ' + slice + ' fill / ' + (slice * U) + 'px stretch;image-rendering:pixelated;';
+  return `
+  .k-btn{font:inherit;font-size:20px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:#1d1404;padding:6px 18px 9px;${b(KIT.btn, 3)}background:none;cursor:pointer;min-height:42px}
+  .k-btn:hover,.k-btn.is-hover{${b(KIT.btnHover, 3)}} .k-btn:active,.k-btn.is-down{${b(KIT.btnDown, 3)}padding:9px 18px 6px}
+  .k-btn:disabled,.k-btn.is-off{${b(KIT.btnOff, 3)}color:#5d6563;cursor:not-allowed}
+  .k-btn.stone{color:#e9e4d6;${b(KIT.stone, 3)}} .k-btn.stone:hover,.k-btn.stone.is-hover{${b(KIT.stoneHover, 3)}} .k-btn.stone:active,.k-btn.stone.is-down{${b(KIT.stoneDown, 3)}}
+  .k-btn.danger{color:#fff0e8;${b(KIT.danger, 3)}} .k-btn.danger:hover,.k-btn.danger.is-hover{${b(KIT.dangerHover, 3)}}
+  .k-btn.mint{color:#05201a;${b(KIT.mint, 3)}}
+  .k-btn:focus-visible{outline:3px solid #e9e4d6;outline-offset:3px}
+  .k-btn.icon{padding:6px 9px 9px;min-width:42px;display:inline-grid;place-items:center}
+  .k-panel{${b(KIT.panel, 4)}padding:6px 8px} .k-panel.gold{${b(KIT.panelGold, 4)}}
+  .k-inset{${b(KIT.inset, 3)}}
+  .k-tabs{display:flex;gap:4px;margin-bottom:-3px;position:relative;z-index:1}
+  .k-tab{font:inherit;color:#8d9491;padding:6px 14px 4px;${b(KIT.tabOff, 3)}border-bottom-width:0;background:none;cursor:pointer}
+  .k-tab[aria-selected="true"]{color:#e9e4d6;${b(KIT.tab, 3)}border-bottom-width:0}
+  .k-key{display:inline-grid;place-items:center;min-width:30px;height:30px;padding:0 6px 3px;font-size:18px;color:#1a1e20;${b(KIT.key, 3)}}
+  .k-toggle{appearance:none;width:${22 * U}px;height:${12 * U}px;background:url(${uri(IMG.toggleOff)}) 0 0/100% 100%;image-rendering:pixelated;cursor:pointer;margin:0}
+  .k-toggle:checked{background-image:url(${uri(IMG.toggleOn)})} .k-toggle:focus-visible,.k-check:focus-visible,.k-radio:focus-visible{outline:3px solid #e9e4d6;outline-offset:3px}
+  .k-check{appearance:none;width:${11 * U}px;height:${11 * U}px;background:url(${uri(IMG.boxOff)}) 0 0/100% 100%;image-rendering:pixelated;cursor:pointer;margin:0}
+  .k-check:checked{background-image:url(${uri(IMG.boxOn)})}
+  .k-radio{appearance:none;width:${11 * U}px;height:${11 * U}px;background:url(${uri(IMG.radioOff)}) 0 0/100% 100%;image-rendering:pixelated;cursor:pointer;margin:0}
+  .k-radio:checked{background-image:url(${uri(IMG.radioOn)})}
+  .k-slider{position:relative;height:${13 * U}px;min-width:160px}
+  .k-slider .tr{position:absolute;left:0;right:0;top:${4 * U}px;height:${5 * U}px;${b(KIT.inset, 2)}border-width:${2 * U}px}
+  .k-slider .fi{position:absolute;left:${U}px;top:${5 * U}px;height:${3 * U}px;background:repeating-linear-gradient(90deg,#f0b848 0 ${3 * U}px,#e09a30 ${3 * U}px ${4 * U}px)}
+  .k-slider .kn{position:absolute;top:${2 * U}px;width:${7 * U}px;height:${9 * U}px;margin-left:${-3.5 * U}px;background:url(${uri(IMG.knob)}) 0 0/100% 100%;image-rendering:pixelated;pointer-events:none}
+  .k-slider input{position:absolute;inset:0;width:100%;opacity:0;cursor:pointer;margin:0}
+  .k-slider:has(input:focus-visible){outline:3px solid #e9e4d6;outline-offset:3px}
+  .k-select{appearance:none;font:inherit;color:#e9e4d6;padding:6px 40px 7px 12px;${b(KIT.inset, 3)}background:none;cursor:pointer;width:100%}
+  .k-selwrap{position:relative;display:block}.k-selwrap::after{content:"";position:absolute;right:14px;top:50%;width:${5 * U}px;height:${3 * U}px;margin-top:${-1.5 * U}px;background:url(${uri(IMG.arrowDown)}) 0 0/100% 100%;image-rendering:pixelated;pointer-events:none}
+  .k-bar.boss{${b(KIT.bossBar, 3)}border-width:${3 * U}px}
+  .k-bar{position:relative;height:${8 * U}px;${b(KIT.inset, 3)}border-width:${3 * U}px} .k-bar i{position:absolute;inset:0 auto 0 0;display:block}
+  .k-tip{position:relative;display:inline-block;padding:6px 10px 7px;font-size:17px;${b(KIT.tip, 3)}}
+  .k-tip::after{content:"";position:absolute;left:50%;bottom:${-6 * U}px;width:${7 * U}px;height:${5 * U}px;margin-left:${-3.5 * U}px;background:url(${uri(IMG.tipPoint)}) 0 0/100% 100%;image-rendering:pixelated}
+  .k-toast{display:inline-flex;gap:10px;align-items:center;padding:6px 14px 8px;${b(KIT.toast, 4)}}
+  .k-pips{display:inline-flex;gap:3px} .k-pips i{width:${7 * U}px;height:${7 * U}px;background:url(${uri(IMG.pipOff)}) 0 0/100% 100%;image-rendering:pixelated}
+  .k-pips i.on{background-image:url(${uri(IMG.pipOn)});background-size:${5 * U}px ${5 * U}px;background-position:${U}px ${U}px;background-repeat:no-repeat}
+  .k-scroll{max-height:180px;overflow-y:auto;scrollbar-width:auto}
+  .k-scroll::-webkit-scrollbar{width:${6 * U}px} .k-scroll::-webkit-scrollbar-track{background:#06090a}
+  .k-scroll::-webkit-scrollbar-thumb{border-style:solid;border-image:url(${uri(IMG.scrollThumb)}) 3 fill / ${3 * U}px stretch;image-rendering:pixelated}
+  .k-cursor{cursor:url(${(() => { const c = document.createElement('canvas'); c.width = IMG.cursor.width * 2; c.height = IMG.cursor.height * 2; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(IMG.cursor, 0, 0, c.width, c.height); return c.toDataURL(); })()}) 2 2,auto}
+  `;
+}
+
+// ---------- big stations and scenery for the walkable Hollow ----------
+const blob = (g, pts, r0, r1, ch) => { for (let i = 0; i < pts.length - 1; i++) { const [x0, y0] = pts[i], [x1, y1] = pts[i + 1]; for (let t = 0; t <= 1; t += .02) { const k = (i + t) / (pts.length - 1), r = r0 + (r1 - r0) * k; ell(g, x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, r, r, ch); } } };
+const bez = (p0, p1, p2, n = 16) => Array.from({ length: n + 1 }, (_, i) => { const t = i / n, u = 1 - t; return [u * u * p0[0] + 2 * u * t * p1[0] + t * t * p2[0], u * u * p0[1] + 2 * u * t * p1[1] + t * t * p2[1]]; });
+const sprinkle = (g, ch, onto, n, seed) => { reseed(seed); let k = 0; for (let i = 0; i < n * 40 && k < n; i++) { const x = (rnd() * g[0].length) | 0, y = (rnd() * g.length) | 0; if (g[y][x] === onto) { g[y][x] = ch; k++; } } };
+
+// the Lantern Gate: a tall stone lantern with a living flame. Step into its light to fly out.
+function bigGate(f) {
+  const g = pg(52, 82);
+  for (let y = 0; y <= 13; y++) { const h = 3 + y * 1.55 + (y > 9 ? (y - 9) * 1.3 : 0); rect(g, Math.round(26 - h), y + 3, Math.round(25 + h), y + 3, 'R'); }
+  for (let y = 5; y <= 16; y += 3) for (let x = 0; x < 52; x++) if (g[y][x] === 'R' && x % 2) g[y][x] = 'r';
+  rect(g, 24, 0, 27, 3, 'S'); ell(g, 26, 1.5, 2.6, 2, 'S');
+  rect(g, 6, 17, 45, 18, 'D');
+  rect(g, 10, 19, 41, 44, 'S'); rect(g, 13, 22, 38, 41, 'g'); // the fire chamber
+  rect(g, 25, 22, 26, 41, 'S'); rect(g, 13, 31, 38, 31, 'S'); for (const x of [13, 38]) rect(g, x, 22, x, 41, 's');
+  const fl = [[[19, 39], [17, 33], [20, 27], [22, 33], [24, 25], [23, 39]], [[18, 39], [19, 31], [21, 26], [23, 31], [24, 27], [24, 39]], [[18, 39], [17, 34], [21, 28], [21, 33], [24, 28], [23, 39]]][f];
+  polyFill(g, fl, 'F'); polyFill(g, fl.map(([x, y]) => [x, y + 3]).map(([x, y], i) => [x + (i < 3 ? 1 : -1), y]), 'W');
+  polyFill(g, fl.map(([x, y]) => [52 - x - 1, y]), 'F'); polyFill(g, fl.map(([x, y]) => [52 - x - 1, y + 3]).map(([x, y], i) => [x + (i < 3 ? -1 : 1), y]), 'W');
+  rect(g, 7, 45, 44, 47, 'R'); for (let x = 8; x < 44; x += 3) put(g, x, 47, 'r');
+  rect(g, 19, 48, 32, 69, 'S'); for (const y of [53, 54, 62]) rect(g, 19, y, 32, y, 's'); rect(g, 23, 56, 28, 59, 'd'); put(g, 25, 57, 'g'); put(g, 26, 57, 'g'); put(g, 25, 58, 'g'); put(g, 26, 58, 'g');
+  rect(g, 13, 70, 38, 73, 'S'); rect(g, 6, 74, 45, 81, 'B'); rect(g, 6, 74, 45, 74, 's');
+  for (const [x0, y0, x1, y1] of [[22, 20, 20, 25], [36, 62, 34, 68], [10, 78, 14, 80]]) line(g, x0, y0, x1, y1, 'd');
+  sprinkle(g, 'm', 'R', 26, 3); sprinkle(g, 'M', 'B', 14, 4); sprinkle(g, 'm', 'S', 8, 5);
+  return g;
+}
+const BIG_GATE = [0, 1, 2].map(f => bake({ R: P.mossStone, r: '#1e2c26', S: P.stone, s: '#262a32', D: '#0e1014', B: P.mossStone, d: '#121418', g: '#ffb83a', F: '#ffe066', W: '#fff8d0', m: '#4a7a46', M: '#2e5a32' }, bigGate(f)));
+
+// the Elder Root: a great root arch hung with amber pods. Old Glim tends it. This is the skill tree.
+function elderRoot(f) {
+  const g = pg(104, 90);
+  ell(g, 52, 56, 22, 30, 'h');
+  for (const pts of [bez([20, 89], [6, 30], [52, 12]), bez([84, 89], [100, 30], [52, 12])]) blob(g, pts, 10, 6, 'B');
+  for (const [a, b, c] of [[[20, 86], [2, 88], [0, 80]], [[24, 88], [34, 82], [40, 89]], [[84, 86], [100, 88], [103, 80]], [[80, 88], [70, 82], [64, 89]], [[16, 70], [4, 66], [2, 58]], [[88, 68], [100, 62], [102, 54]]]) blob(g, bez(a, b, c, 8), 3.4, 1.6, 'B');
+  for (const side of [-1, 1]) { const pts = bez([52 + side * 32, 88], [52 + side * 48, 32], [52, 18]); for (const [x, y] of pts) { put(g, Math.round(x + side * 3), Math.round(y), 'd'); put(g, Math.round(x - side * 4), Math.round(y + 2), 'd'); } }
+  for (const [x, y, r] of [[52, 32, 1], [43, 44, 2], [60, 40, 1.5], [37, 58, 1], [66, 56, 2], [50, 62, 1], [57, 72, 1.5], [44, 74, 1]]) { ell(g, x, y, r + .4, r + .4, 'y'); }
+  for (const [x, y] of [[36, 24], [68, 24], [26, 36], [79, 38], [52, 19], [45, 20]]) { line(g, x, y, x, y + 5, 'k'); ell(g, x + .5, y + 9, 3.2, 4.2, 'A'); put(g, x - 1, y + 7, f ? 'G' : 'w'); }
+  sprinkle(g, 'm', 'B', 70, 11); sprinkle(g, 'n', 'B', 30, 12);
+  for (const [x, y] of [[30, 13], [33, 12], [72, 14], [60, 10]]) { ell(g, x, y, 2.4, 1.6, 'c'); put(g, x, y + 2, 'C'); }
+  return g;
+}
+const ELDER = [0, 1].map(f => bake({ B: P.bark, d: '#0c0706', h: '#07090a', y: '#c88a2a', k: '#2a1a10', A: P.amber, w: '#fff6d8', G: '#ffffff', m: '#3a6a3a', n: '#264a2a', c: '#7fd6c2', C: '#d8d0bc' }, elderRoot(f)));
+
+// the Roost: three big mushrooms, one per bug
+// the Roost: one domed mushroom per bug, low enough that its bug can perch on top of the cap
+function bigShroom(cap, spot) {
+  const g = pg(38, 34);
+  ell(g, 19, 13, 18, 12, 'C', (x, y) => y <= 14); // a dome, not a box
+  ell(g, 19, 14, 17.4, 3, 'C');
+  ell(g, 19, 15.4, 15, 2.4, 'G'); for (let x = 6; x < 33; x += 3) line(g, x, 15, 19 + (x - 19) * .7, 17, 'g'); // the gills underneath
+  ell(g, 19, 24, 5.4, 9, 'T', (x, y) => y >= 16); ell(g, 19, 31, 7, 2.4, 'T'); for (const [x, y] of [[17, 20], [21, 25], [18, 29]]) put(g, x, y, 't');
+  ell(g, 19, 32.6, 12, 1.8, 'm');
+  for (const [x, y, r] of [[9, 9, 2.2], [19, 4.4, 2.8], [29, 9, 2.2], [14, 12.6, 1.4], [25, 12.4, 1.6]]) ell(g, x, y, r, r * .85, 'w');
+  return bake({ C: cap, G: '#1a1208', g: '#3a2418', T: P.cream, t: '#8a7050', m: P.leaf, w: spot }, g);
+}
+// gold for the Firefly, sky blue for the Moth, pink for the Beetle (the colours of the bugs themselves)
+const BIG_SHROOMS = [bigShroom(P.brass, '#fff3c8'), bigShroom(P.blue, '#e8f4ff'), bigShroom(P.pink, '#ffe8f6')];
+
+// the Moonstone: today's run, the same for everyone
+function moonstone(f) {
+  const g = pg(36, 62);
+  polyFill(g, [[8, 61], [6, 18], [11, 4], [19, 0], [27, 5], [30, 20], [29, 61]], 'S');
+  ell(g, 18, 19, 8, 8, 'o'); ell(g, 18, 19, 6.4, 6.4, 'M'); ell(g, 21, 17, 5.6, 5.6, 'S'); ell(g, 18, 19, 8, 8, 'o', (x, y) => g[y][x] === 'o');
+  for (let y = 31; y <= 52; y += 4) { put(g, 17, y, f ? 'M' : 'r'); put(g, 19, y + 2, f ? 'r' : 'M'); }
+  for (const [x0, y0, x1, y1] of [[10, 10, 12, 16], [26, 40, 24, 48]]) line(g, x0, y0, x1, y1, 'd');
+  rect(g, 2, 57, 33, 61, 'B'); ell(g, 4, 58, 3.4, 2.6, 'B'); ell(g, 32, 58, 3.4, 2.6, 'B');
+  for (const x of [3, 33]) { rect(g, x, 53, x + 1, 56, 'c'); put(g, x, 52, f ? 'F' : 'f'); put(g, x + 1, 51, 'f'); }
+  sprinkle(g, 'm', 'S', 22, 21); sprinkle(g, 'm', 'B', 10, 22);
+  return g;
+}
+const MOONSTONE = [0, 1].map(f => bake({ S: P.mossStone, B: P.stone, o: '#2a4a40', M: f ? '#c8fff2' : '#7fd6c2', r: '#3a6a5a', d: '#121a16', c: '#e8e0c8', f: '#ffd86a', F: '#fff3a0', m: '#4a7a46' }, moonstone(f)));
+
+// the Records board: your best runs and achievements, pinned up
+function records() {
+  const g = pg(56, 46);
+  rect(g, 6, 14, 9, 45, 'P'); rect(g, 46, 14, 49, 45, 'P');
+  polyFill(g, [[0, 9], [28, 0], [55, 9], [52, 12], [28, 4], [3, 12]], 'R');
+  rect(g, 3, 12, 52, 38, 'W'); for (const y of [19, 26, 33]) rect(g, 4, y, 51, y, 'd');
+  for (const [x, y, w, h] of [[7, 15, 12, 9], [22, 14, 10, 12], [35, 16, 13, 8], [9, 27, 14, 9], [27, 28, 9, 8], [39, 27, 9, 9]]) { rect(g, x, y, x + w, y + h, 'p'); for (let yy = y + 2; yy < y + h; yy += 2) rect(g, x + 2, yy, x + w - 2 - ((yy * 3) % 4), yy, 'l'); put(g, x + (w >> 1), y, 'n'); }
+  for (const [x, y] of [[24, 18], [44, 31], [14, 30]]) { put(g, x, y, 'y'); put(g, x - 1, y, 'Y'); put(g, x + 1, y, 'Y'); put(g, x, y - 1, 'Y'); put(g, x, y + 1, 'Y'); }
+  sprinkle(g, 'm', 'R', 10, 31);
+  return g;
+}
+const RECORDS = bake({ P: P.wood, R: P.mossStone, W: P.bark, d: '#120b09', p: '#e8e0c8', l: '#8a7a68', n: '#e8604c', y: '#fff3a0', Y: '#f2c14e', m: '#4a7a46' }, records());
+
+// locked: the Pond gate, chained shut
+function pondGate() {
+  const g = pg(76, 58);
+  for (const x of [4, 58]) { rect(g, x, 10, x + 13, 57, 'S'); rect(g, x - 2, 4, x + 15, 9, 'R'); rect(g, x + 3, 0, x + 10, 3, 'R'); for (let y = 16; y < 56; y += 7) rect(g, x, y, x + 13, y, 's'); }
+  rect(g, 18, 14, 57, 55, 'W'); for (let x = 20; x < 57; x += 4) rect(g, x, 15, x, 54, 'w'); rect(g, 37, 14, 38, 55, 'd');
+  for (const y of [20, 46]) rect(g, 18, y, 57, y + 2, 'i');
+  line(g, 18, 24, 57, 44, 'n'); line(g, 18, 44, 57, 24, 'n'); line(g, 18, 25, 57, 45, 'n');
+  rect(g, 33, 29, 42, 39, 'L'); rect(g, 35, 24, 40, 28, 'l'); rect(g, 36, 25, 39, 27, '.'); rect(g, 37, 33, 38, 36, 'k');
+  sprinkle(g, 'm', 'S', 30, 41); sprinkle(g, 'm', 'R', 16, 42);
+  return g;
+}
+const POND_GATE = bake({ S: P.stone, s: '#262a32', R: P.mossStone, W: P.wood, w: '#43271a', d: '#1a0e08', i: '#3a3f48', n: '#7e848c', L: P.brass, l: '#a8701c', k: '#1a1208', m: '#4a7a46' }, pondGate());
+// locked: the Market, a mushroom stall boarded up
+function market() {
+  const g = pg(70, 62);
+  ell(g, 35, 14, 34.5, 14, 'C'); rect(g, 1, 14, 68, 19, 'C'); ell(g, 35, 19, 33, 3, 'G');
+  for (const [x, y, r] of [[14, 8, 3], [30, 5, 3.4], [48, 7, 3], [60, 13, 2], [22, 15, 2], [40, 15, 2.2]]) ell(g, x, y, r, r, 'w');
+  rect(g, 8, 22, 11, 59, 'P'); rect(g, 58, 22, 61, 59, 'P');
+  rect(g, 6, 40, 63, 59, 'W'); for (const y of [45, 50, 55]) rect(g, 7, y, 62, y, 'd');
+  rect(g, 12, 22, 57, 39, 'h');
+  for (const [y0, y1] of [[24, 36], [36, 25]]) { line(g, 12, y0, 57, y1, 'b'); line(g, 12, y0 + 1, 57, y1 + 1, 'b'); line(g, 12, y0 + 2, 57, y1 + 2, 'b'); }
+  for (const [x, y] of [[13, 25], [56, 36], [13, 37], [56, 26]]) put(g, x, y, 'i');
+  rect(g, 31, 43, 38, 51, 'L'); rect(g, 32, 39, 37, 42, 'l'); rect(g, 33, 40, 36, 42, '.'); rect(g, 34, 46, 35, 48, 'k');
+  for (let i = 0; i < 5; i++) line(g, 12, 22, 12 + i * 3, 30 - i, 'c');
+  return g;
+}
+const MARKET = bake({ C: ['#3a1c10', '#6a3418', '#9a5228', '#c07a40', '#e8a868'], G: '#1a0e08', w: '#e8d8c0', P: P.wood, W: P.wood, d: '#2a160c', h: '#06090a', b: '#6a4026', i: '#7e848c', L: P.brass, l: '#a8701c', k: '#1a1208', c: 'rgba(230,240,240,.5)' }, market());
+
+// scenery
+function bigTree(seed) {
+  reseed(seed); const g = pg(48, 72);
+  rect(g, 16, 20, 31, 64, 'B'); for (const [a, b, c] of [[[18, 62], [6, 66], [1, 71]], [[29, 62], [40, 66], [46, 71]], [[22, 64], [20, 69], [16, 71]], [[26, 64], [30, 69], [33, 71]]]) blob(g, bez(a, b, c, 8), 3, 1.4, 'B');
+  for (let x = 17; x < 31; x += 3) for (let y = 22; y < 62; y++) if (rnd() < .7) put(g, x + ((y >> 3) % 2), y, 'd');
+  for (const [x, y, r] of [[24, 14, 15], [12, 20, 10], [36, 20, 10], [24, 4, 9], [14, 8, 8], [34, 9, 8]]) ell(g, x, y, r, r * .85, 'L');
+  sprinkle(g, 'l', 'L', 90, seed + 1); sprinkle(g, 'f', 'L', 8, seed + 2); sprinkle(g, 'm', 'B', 16, seed + 3);
+  return bake({ B: P.bark, d: '#0c0706', L: ['#081810', '#0f2a1a', '#1a4026', '#2a5a32', '#467a44'], l: '#0c2014', f: '#ffd86a', m: '#3a6a3a' }, g);
+}
+const TREES = [bigTree(101), bigTree(202), bigTree(303)];
+const BIG_LAMP = [0, 1].map(f => { const g = pg(14, 40); rect(g, 6, 12, 7, 38, 't'); rect(g, 3, 38, 10, 39, 't'); rect(g, 7, 12, 11, 12, 't'); rect(g, 1, 1, 12, 2, 'L'); rect(g, 2, 3, 11, 10, 'L'); rect(g, 3, 4, 10, 9, f ? 'h' : 'g'); rect(g, 6, 4, 7, 9, 'L'); put(g, 6, 0, 'L'); put(g, 7, 0, 'L'); return bake({ t: '#2a2018', L: P.brass, g: '#ffd86a', h: '#fff3a0' }, g); });
+const FERN = bake({ L: P.leaf }, (() => { const g = pg(30, 18); for (const [a, c] of [[[15, 17], [2, 4]], [[15, 17], [8, 0]], [[15, 17], [22, 0]], [[15, 17], [28, 5]], [[15, 17], [15, 1]]]) { const pts = bez(a, [(a[0] + c[0]) / 2 + (c[0] < 15 ? -3 : 3), (a[1] + c[1]) / 2], c, 10); blob(g, pts, 1.6, .6, 'L'); for (let i = 2; i < pts.length - 1; i += 2) { const [x, y] = pts[i]; put(g, Math.round(x - 2), Math.round(y), 'L'); put(g, Math.round(x + 2), Math.round(y), 'L'); } } return g; })());
+const SHROOM_PATCH = bake({ c: '#7fd6c2', C: '#c8b0ff', h: '#e8fff8', s: '#d8d0bc' }, (() => { const g = pg(22, 14); for (const [x, y, rx, col] of [[5, 6, 4, 'c'], [12, 4, 5, 'C'], [18, 8, 3, 'c'], [9, 10, 2.6, 'C']]) { ell(g, x, y, rx, rx * .6, col); rect(g, x, y + 1, x, y + rx + 1, 's'); put(g, x - 1, y - 1, 'h'); } return g; })(), '#06100e');
+
+// ---------- the Root Tree: one skill tree instead of separate upgrades ----------
+// Three branches grow from First Light: Light (your attacks), Wing (dashing and your fireflies), Root (staying alive and amber).
+// Bridges between neighbouring branches unlock new weapons. Descriptions are a few words; trying things teaches the rest.
+const BR = { light: { col: '#f2c14e', dark: '#5a4210', name: 'Light' }, wing: { col: '#7fd6c2', dark: '#1e4a40', name: 'Wing' }, root: { col: '#8fd06a', dark: '#24481e', name: 'Root' }, core: { col: '#fff3a0', dark: '#5a4a10', name: '' } };
+const ICON24 = (fn, pal) => { const g = pg(24, 24); fn(g); return bake(pal, g); };
+const GOLD = ['#6a4a08', '#b88a18', '#ffd84a', '#fff0a0', '#ffffff'];
+const TREE_ICONS = {
+  first: ICON24(g => { polyFill(g, starPts(12, 12, 11, 4, 8), 'Y'); ell(g, 12, 12, 4.4, 4.4, 'W'); }, { Y: GOLD, W: '#ffffff' }),
+  bright: ICON24(g => { for (let i = 0; i < 8; i++) { const a = i * TAU / 8; line(g, Math.round(12 + Math.cos(a) * 7), Math.round(12 + Math.sin(a) * 7), Math.round(12 + Math.cos(a) * 11), Math.round(12 + Math.sin(a) * 11), 'y'); } ell(g, 12, 12, 6, 6, 'Y'); }, { Y: GOLD, y: '#ffd84a' }),
+  twin: ICON24(g => { for (const dy of [-5, 5]) polyFill(g, [[2, 12 + dy], [14, 9 + dy], [13, 7 + dy], [22, 12 + dy], [13, 17 + dy], [14, 15 + dy]], 'Y'); }, { Y: GOLD }),
+  chain: ICON24(g => { polyFill(g, [[14, 0], [4, 13], [10, 13], [7, 24], [20, 9], [13, 9], [17, 0]], 'V'); }, { V: P.violet }),
+  thorn: ICON24(g => { for (let t = 0; t < 2.7; t += .03) { const r = 10.5 - t * 2.6; for (const d of [0, 1, 2]) put(g, Math.round(12 + Math.cos(t * 2.4) * (r - d)), Math.round(12 + Math.sin(t * 2.4) * (r - d)), 'T'); } polyFill(g, [[20, 9], [23, 13], [18, 13]], 'T'); }, { T: P.cloth }),
+  overflow: ICON24(g => { for (const y0 of [2, 10]) polyFill(g, [[12, y0], [21, y0 + 9], [16, y0 + 9], [12, y0 + 5], [8, y0 + 9], [3, y0 + 9]], 'Y'); rect(g, 10, 19, 13, 23, 'Y'); }, { Y: GOLD }),
+  wings: ICON24(g => { ell(g, 14, 9, 9, 6.4, 'W'); ell(g, 13, 16, 7, 4.4, 'W'); line(g, 6, 12, 20, 6, 'w'); for (const y of [5, 11, 17]) line(g, 0, y, 3, y, 's'); }, { W: P.ice, w: '#2e6a80', s: '#e8fbff' }),
+  trail: ICON24(g => { for (const [x, y, r] of [[4, 19, 3], [11, 13, 3.6], [19, 5, 4.2]]) { ell(g, x, y, r, r, 'G'); put(g, x - 1, y - 1, 'w'); } for (const [x, y] of [[7, 17], [15, 9]]) put(g, x, y, 'g'); }, { G: GOLD, w: '#ffffff', g: '#ffd84a' }),
+  ember: ICON24(g => { polyFill(g, [[0, 20], [14, 8], [12, 4], [23, 2], [20, 13], [17, 11], [3, 23]], 'F'); polyFill(g, [[6, 18], [15, 10], [18, 6], [19, 9]], 'y'); }, { F: P.cloth, y: '#ffe066' }),
+  double: ICON24(g => { for (const x0 of [1, 10]) polyFill(g, [[x0, 2], [x0 + 6, 2], [x0 + 13, 12], [x0 + 6, 22], [x0, 22], [x0 + 7, 12]], 'M'); }, { M: P.teal }),
+  swarm: ICON24(g => { for (const [x, y, r] of [[7, 8, 3.4], [16, 6, 3], [12, 15, 4], [19, 15, 2.6], [5, 17, 2.4]]) ell(g, x, y, r, r, 'G'); for (const [x, y] of [[22, 4], [23, 3], [1, 2], [2, 3]]) put(g, x, y, 'w'); }, { G: GOLD, w: '#ffffff' }),
+  shell: ICON24(g => { ell(g, 12, 12, 11, 11, 'S'); line(g, 12, 1, 12, 23, 'd'); heartMask(g, 12, 13, 5, 'R'); }, { S: P.violet, d: '#1e1040', R: P.red }),
+  amber: ICON24(g => { polyFill(g, [[11, 1], [20, 7], [18, 19], [11, 23], [4, 19], [2, 7]], 'A'); put(g, 7, 6, 'w'); put(g, 8, 7, 'w'); put(g, 7, 7, 'w'); polyFill(g, starPts(19, 4, 4, 1.4, 4), 's'); }, { A: P.amber, w: '#fff6d8', s: '#ffffff' }),
+  fourth: ICON24(g => { for (const [x, y] of [[1, 4], [6, 3], [11, 3], [16, 4]]) rect(g, x, y, x + 6, y + 15, 'C'); for (const [x, y] of [[1, 4], [6, 3], [11, 3], [16, 4]]) { rect(g, x, y, x, y + 15, 'd'); } rect(g, 18, 8, 20, 13, 'y'); }, { C: P.cream, d: '#4a3a2a', y: '#ffd84a' }),
+  secondWind: ICON24(g => { heartMask(g, 12, 13, 7.4, 'R'); for (const s of [-1, 1]) { polyFill(g, [[12 + s * 6, 10], [12 + s * 12, 4], [12 + s * 11, 9], [12 + s * 12, 13], [12 + s * 7, 14]], 'W'); } }, { R: P.red, W: ['#6a6a7a', '#a0a0b0', '#d8d8e6', '#f4f4ff', '#ffffff'] }),
+  deepRoots: ICON24(g => { ell(g, 12, 7, 6, 6, 'H'); for (const [a, c] of [[[12, 12], [4, 23]], [[12, 12], [12, 23]], [[12, 12], [20, 23]], [[12, 14], [1, 17]], [[12, 14], [23, 17]]]) blob(g, bez(a, [(a[0] + c[0]) / 2, (a[1] + c[1]) / 2 + 2], c, 8), 1.6, .6, 'B'); }, { H: P.red, B: P.bark }),
+  spores: ICON24(g => { for (const [x, y, r] of [[7, 15, 6], [16, 15, 6], [12, 8, 6.5]]) ell(g, x, y, r, r * .9, 'S'); for (const [x, y] of [[9, 7], [15, 13], [6, 16], [2, 3], [21, 4]]) put(g, x, y, 'd'); }, { S: ['#3a4a10', '#6a8a1a', '#b8d84a', '#d6ff5c', '#f4ffc0'], d: '#3a4a10' }),
+  chill: ICON24(g => { for (let a = 0; a < 3; a++) { const an = a * Math.PI / 3; for (const o of [0, 1]) line(g, Math.round(12 - Math.cos(an) * 11 + o * Math.sin(an)), Math.round(12 - Math.sin(an) * 11), Math.round(12 + Math.cos(an) * 11 + o * Math.sin(an)), Math.round(12 + Math.sin(an) * 11), 'I'); } ell(g, 12, 12, 3, 3, 'I'); }, { I: P.ice }),
+  rerolls: ICON24(g => { for (let t = .4; t < 5.6; t += .04) for (const d of [0, 1, 2]) put(g, Math.round(12 + Math.cos(t) * (9 - d)), Math.round(12 + Math.sin(t) * (9 - d)), 'G'); polyFill(g, [[18, 0], [23, 6], [16, 8]], 'G'); }, { G: P.green }),
+};
+// moth and beetle unlock nodes show the bug itself
+TREE_ICONS.moth = px(24, 24, c => { c.drawImage(BUGS.moth[0], 4, 6); });
+TREE_ICONS.beetle = px(24, 24, c => { c.drawImage(BUGS.beetle[0], 4, 6); });
+
+// [id, branch, icon, name, short description, cost, x, y, requires]
+const TREE = [
+  ['first', 'core', 'first', 'First Light', 'Where it starts', 0, 0, 0, []],
+  ['bright', 'light', 'bright', 'Brighter', '+10% damage', 50, -2, -1, ['first']],
+  ['twin', 'light', 'twin', 'Twin Spark', 'Spark Shot fires two', 110, -3.2, -2, ['bright']],
+  ['chain', 'light', 'chain', 'Chain Zap', 'New weapon', 85, -1.9, -2.3, ['bright']],
+  ['thorn', 'light', 'thorn', 'Boomerang Thorn', 'New weapon', 130, -3.6, -3.2, ['twin']],
+  ['overflow', 'light', 'overflow', 'Overflow', 'Evolve a level sooner', 360, -3, -4.6, ['thorn', 'chain']],
+  ['wings', 'wing', 'wings', 'Quick Wings', 'Dash recharges faster', 50, 0, -1.3, ['first']],
+  ['ember', 'wing', 'ember', 'Ember Dash', 'Dashes leave fire', 145, -.6, -2.5, ['wings']],
+  ['trail', 'wing', 'trail', 'Long Trail', 'Start with 2 more fireflies', 85, .7, -2.5, ['wings']],
+  ['moth', 'wing', 'moth', 'Moth', 'Joins the Roost', 120, .1, -3.6, ['ember', 'trail']],
+  ['double', 'wing', 'double', 'Double Dash', 'Two dash charges', 240, -.8, -4.6, ['moth']],
+  ['swarm', 'wing', 'swarm', 'Swarm', 'Your fireflies shoot', 380, .8, -4.8, ['moth']],
+  ['shell', 'root', 'shell', 'Thick Shell', '+15 max health', 50, 2, -1, ['first']],
+  ['amber', 'root', 'amber', 'Amber Sense', '+15% amber', 70, 3.2, -2, ['shell']],
+  ['beetle', 'root', 'beetle', 'Beetle', 'Joins the Roost', 120, 1.9, -2.3, ['shell']],
+  ['fourth', 'root', 'fourth', 'Fourth Card', 'Level ups offer four', 205, 3.6, -3.2, ['amber']],
+  ['rerolls', 'root', 'rerolls', 'Second Look', '+2 rerolls', 110, 2.2, -3.5, ['beetle']],
+  ['wind', 'root', 'secondWind', 'Second Wind', 'Get up once per run', 290, 3, -4.6, ['fourth', 'rerolls']],
+  ['roots', 'root', 'deepRoots', 'Deep Roots', 'Bosses heal you halfway', 335, 4.4, -4.4, ['fourth']],
+  ['spores', 'light', 'spores', 'Spore Trail', 'New weapon', 95, -1, -1.6, ['bright', 'wings']],
+  ['chill', 'root', 'chill', 'Chill Aura', 'New weapon', 95, 1, -1.6, ['wings', 'shell']],
+];
+const NODE = {}; for (const n of TREE) NODE[n[0]] = { id: n[0], br: n[1], icon: TREE_ICONS[n[2]], name: n[3], desc: n[4], cost: n[5], x: n[6], y: n[7], req: n[8] };
+// a node badge: a round frame in its branch colour around the icon. owned = lit, open = ring, locked = dim.
+function badge(node, state) {
+  const b = BR[node.br];
+  return px(34, 34, (c, dot) => {
+    const g = pg(34, 34); ell(g, 17, 17, 16.6, 16.6, 'O'); ell(g, 17, 17, 14.6, 14.6, 'I');
+    c.drawImage(bake({ O: state === 'locked' ? '#283030' : state === 'open' ? b.col : state === 'off' ? b.dark : '#ffffff', I: state === 'owned' ? '#1a1a14' : '#0a0e10' }, g, '#030405'), -1, -1);
+    if (state === 'owned') { const r = pg(34, 34); ell(r, 17, 17, 14.6, 14.6, 'x'); ell(r, 17, 17, 13.4, 13.4, '.'); c.drawImage(bake({ x: b.col }, r, null), 0, 0); }
+    c.drawImage(state === 'locked' || state === 'off' ? px(24, 24, ic => { ic.drawImage(node.icon, 0, 0); ic.globalCompositeOperation = 'source-atop'; ic.fillStyle = 'rgba(8,12,14,.72)'; ic.fillRect(0, 0, 24, 24); }) : node.icon, 5, 5);
+  });
+}
+// the whole tree as one picture in art pixels: bark, branch veins (lit once both ends are grown) and the badges.
+// state(n) is 'owned', 'open' or 'locked'. treeAt(n) is a node's centre on that picture; First Light sits at the bottom.
+const TREE_U = 58, TREE_W = Math.round(10.6 * TREE_U), TREE_H = Math.round(6.6 * TREE_U);
+const treeAt = n => [Math.round((n.x + 4.6) * TREE_U), Math.round((n.y + 5.5) * TREE_U)];
+const BR_RGB = { light: [242, 193, 78], wing: [127, 214, 194], root: [143, 208, 106], core: [242, 193, 78] };
+const badgeMemo = {}, haloMemo = {};
+let treeBark = null;
+const treeCurve = (a, b, n) => { const [x0, y0] = treeAt(a), [x1, y1] = treeAt(b); return bez([x0, y0], [(x0 + x1) / 2 + (x1 - x0) * .1, (y0 + y1) / 2 + 6], [x1, y1], n); };
+function barkLayer() {
+  if (treeBark) return treeBark;
+  const nodes = TREE.map(t => NODE[t[0]]);
+  return treeBark = px(TREE_W, TREE_H, c => {
+    c.fillStyle = '#080b0c'; c.fillRect(0, 0, TREE_W, TREE_H); reseed(64);
+    for (let i = 0; i < 900; i++) { c.fillStyle = rnd() < .5 ? '#0c1012' : '#06090a'; c.fillRect((rnd() * TREE_W) | 0, (rnd() * TREE_H) | 0, 2, 1); }
+    // only the part of the grid each branch touches gets filled, so this stays quick
+    const [rx, ry] = treeAt(NODE.first), g = pg(TREE_W, TREE_H);
+    const fat = (pts, r0, r1) => { for (let i = 0; i < pts.length - 1; i++) { const [x0, y0] = pts[i], [x1, y1] = pts[i + 1]; for (let t = 0; t <= 1; t += .1) { const k = (i + t) / (pts.length - 1), r = r0 + (r1 - r0) * k, cx = x0 + (x1 - x0) * t, cy = y0 + (y1 - y0) * t; for (let y = Math.max(0, Math.floor(cy - r)); y <= Math.min(TREE_H - 1, Math.ceil(cy + r)); y++) for (let x = Math.max(0, Math.floor(cx - r)); x <= Math.min(TREE_W - 1, Math.ceil(cx + r)); x++) if ((x + .5 - cx) ** 2 + (y + .5 - cy) ** 2 <= r * r) g[y][x] = 'B'; } } };
+    fat(bez([rx, TREE_H], [rx - 4, ry + 40], [rx, ry]), 9, 5);
+    for (const [a, b] of [[[rx - 6, TREE_H], [rx - 40, TREE_H - 6]], [[rx + 6, TREE_H], [rx + 44, TREE_H - 4]]]) fat([a, b], 4, 1.5);
+    for (const n of nodes) for (const r of n.req) fat(treeCurve(NODE[r], n, 14), 3.4, 2.6);
+    c.drawImage(bake({ B: P.bark }, g, '#030405'), -1, -1);
+  });
+}
+function treeArt(state) {
+  const nodes = TREE.map(t => NODE[t[0]]), grownish = s => s === 'owned' || s === 'off';
+  return px(TREE_W, TREE_H, c => {
+    c.drawImage(barkLayer(), 0, 0);
+    for (const n of nodes) for (const r of n.req) { const a = state(NODE[r]), b = state(n), lit = a === 'owned' && b === 'owned', open = grownish(a); c.fillStyle = lit ? BR[n.br].col : open ? BR[n.br].dark : '#2a1c14'; for (const [x, y] of treeCurve(NODE[r], n, 40)) c.fillRect(Math.round(x), Math.round(y), 1, 1); }
+    for (const n of nodes) { const [x, y] = treeAt(n), s = state(n); if (s === 'owned') c.drawImage(haloMemo[n.br] || (haloMemo[n.br] = halo(24, BR_RGB[n.br], 4)), x - 24, y - 24); c.drawImage(badgeMemo[n.id + s] || (badgeMemo[n.id + s] = badge(n, s)), x - 17, y - 17); }
+  });
+}
+
+// ---------- the walkable Haven ----------
+// Stations sit on their own clearings around a central plaza, each with its own light. Everything to do with playing
+// (the Lantern Gate and the Moonstone) shares the plaza, so there's one obvious place to go to fly out.
+// Places that aren't built yet are paths fading into soft mist at the edges of the map.
+const WARM = [255, 200, 110], AMBERL = [255, 170, 60], MINT = [127, 214, 194], ROSE = [255, 150, 170];
+function makeHaven() {
+  const TW = 52, TH = 34, W = TW * 16, H = TH * 16;
+  reseed(4242);
+  const T = Array.from({ length: TH }, () => Array(TW).fill('g'));
+  const fill = (x0, y0, x1, y1, t) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (T[y] && T[y][x] !== undefined) T[y][x] = t; };
+  const disc = (cx, cy, r, t) => { for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) if ((x + .5 - cx) ** 2 + ((y + .5 - cy) * 1.15) ** 2 < r * r) T[y][x] = t; };
+  // paths are dirt with a stepping stone every other tile; the plaza is dirt ringed with stones
+  const path = (x0, y0, x1, y1) => { fill(x0, y0, x1, y1, 'd'); for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if ((x + y) % 2 === 0 && (x0 === x1 || y0 === y1 || (x - x0 + y - y0) % 3 === 0)) T[y][x] = 's'; };
+  path(12, 18, 20, 19); path(31, 18, 39, 19); path(25, 24, 26, 33); path(9, 26, 26, 27); path(9, 20, 10, 26); path(32, 22, 35, 23); path(38, 13, 39, 18); path(38, 24, 39, 29);
+  disc(26, 19, 6.2, 'd'); for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) { const d = Math.hypot(x + .5 - 26, (y + .5 - 19) * 1.15); if (d > 4.2 && d < 5.2) T[y][x] = 's'; }
+  disc(9, 16.5, 5, 'd'); disc(10, 28.5, 6.4, 'd'); disc(40, 15.5, 3.6, 'd'); disc(41, 28, 5, 'd'); disc(35, 24, 3.4, 'd');
+  fill(36, 3, 49, 9, 'w'); fill(36, 10, 49, 10, 'S');
+  fill(0, 0, TW - 1, 1, 'R'); fill(0, 2, TW - 1, 2, 'F'); fill(0, 0, 1, TH - 1, 'R'); fill(TW - 2, 0, TW - 1, TH - 1, 'R'); fill(0, TH - 2, 23, TH - 1, 'R'); fill(28, TH - 2, TW - 1, TH - 1, 'R');
+  const tiles = { g: HUB_TILES.grass, d: HUB_TILES.dirt, s: HUB_TILES.slab, w: HUB_TILES.water, S: HUB_TILES.shore, R: HUB_TILES.rootTop, F: HUB_TILES.rootFace };
+  const ground = px(W, H, c => { for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) { const set = tiles[T[y][x]], v = T[y][x] === 'w' || T[y][x] === 'S' ? set[0] : set[(rnd() * set.length) | 0]; c.drawImage(v, x * 16, y * 16); } });
+  const gc = ground.getContext('2d');
+  for (let i = 0; i < 70; i++) { const x = 40 + rnd() * (W - 80), y = 56 + rnd() * (H - 100), t = T[(y / 16) | 0][(x / 16) | 0]; if (t === 'g') gc.drawImage(rnd() < .75 ? FLOWERS[(rnd() * 3) | 0] : GLOW_SHROOMS[(rnd() * 3) | 0], x | 0, y | 0); }
+  for (const [x, y] of [[38, 5], [41, 7], [45, 4], [47, 8], [43, 9]]) gc.drawImage(LILY, x * 16, y * 16);
+  // things that stand up: a picture, a position (its feet), an optional solid footprint, station and light
+  const props = [];
+  const add = (frames, fx, fy, o = {}) => { frames = Array.isArray(frames) ? frames : [frames]; const w = frames[0].width, h = frames[0].height; const p = { frames, x: Math.round(fx * 16 - w / 2), y: Math.round(fy * 16 - h), w, h, foot: fy * 16, ms: o.ms || 400, ...o }; if (o.solid !== false) p.box = o.box || [p.x + w * .2, p.foot - 7, w * .6, 7]; props.push(p); return p; };
+  // the plaza: everything to do with playing
+  add(BIG_GATE, 26, 15.4, { ms: 140, station: 'gate', label: 'Fly out', light: [26 * 16, 12.2 * 16, 80, WARM], beacon: true });
+  add(MOONSTONE, 31.6, 16.4, { ms: 900, station: 'daily', label: 'Daily run', light: [31.6 * 16, 13.6 * 16, 46, MINT] });
+  add(SIGNPOST, 22.4, 22.6, { station: 'gate', label: 'Fly out' });
+  // the Root Tree and its keeper
+  add(ELDER, 9, 16, { ms: 900, station: 'tree', label: 'The Root Tree', box: [9 * 16 - 40, 16 * 16 - 10, 80, 10], light: [9 * 16, 13 * 16, 72, AMBERL] });
+  add(GLIM, 14, 17, { ms: 500, station: 'npc', npc: 'glim', label: 'Talk to Glim', anim: [0, 1, 0, 0] });
+  // the Roost: one mushroom per bug, each with its bug perched on top
+  for (const [i, x, bug] of [[0, 6.4, 'firefly'], [1, 10.4, 'moth'], [2, 14.4, 'beetle']]) add(BIG_SHROOMS[i], x, 29.4, { station: 'roost', label: 'Choose your bug', perch: bug, light: [x * 16, 28.2 * 16, 30, ROSE] });
+  // the Records board and Wick
+  add(RECORDS, 34, 23.8, { station: 'records', label: 'Records', light: [34 * 16, 21.8 * 16, 50, WARM] });
+  add(WICK, 37, 24.6, { ms: 260, station: 'npc', npc: 'wick', label: 'Talk to Wick' });
+  // the places that aren't built yet, with their neighbours waiting outside
+  add(POND_GATE, 42.5, 13.6, { station: 'locked', label: 'The Pond', box: [38 * 16, 12.6 * 16, 12 * 16, 16] });
+  add(PELL, 35.2, 11.2, { ms: 700, station: 'npc', npc: 'pell', label: 'Talk to Pell', light: [35.6 * 16, 9.6 * 16, 30, MINT] });
+  add(MARKET, 42, 31.6, { station: 'locked', label: 'The Market' });
+  add(SHELLBY, 36.4, 30.4, { ms: 600, station: 'npc', npc: 'shellby', label: 'Talk to Shellby', light: [36.4 * 16, 28.6 * 16, 34, WARM] });
+  add(SOON_BOARD, 25.5, 31.8, { station: 'locked', label: 'The Old Road', box: [24 * 16, 32 * 16, 4 * 16, 32] });
+  for (const [x, y] of [[21, 21.8], [31, 21.8], [21, 15.6], [31, 15.6], [16, 25.6], [30, 26.6], [12.5, 21.2]]) add(BIG_LAMP, x, y, { ms: 300, light: [x * 16, y * 16 - 34, 38, WARM], box: [x * 16 - 3, y * 16 - 4, 6, 4] });
+  for (const [i, x, y] of [[0, 4.6, 8.4], [1, 17, 7.6], [2, 31.5, 8], [0, 48.8, 15.6], [1, 48.6, 24], [2, 3.8, 22.6], [0, 20.6, 32.4], [1, 31.8, 32.6], [2, 48.6, 32]]) add(TREES[i], x, y, { box: [x * 16 - 9, y * 16 - 8, 18, 8] });
+  for (const [x, y] of [[19.2, 9.4], [34, 9.6], [3.6, 12.4], [21.8, 30.4], [46.6, 20.4], [15, 22.5], [44, 22]]) add(FERN, x, y, { solid: false });
+  for (const [x, y] of [[18, 29], [35.5, 17.2], [6, 20.6]]) add(SHROOM_PATCH, x, y, { solid: false });
+  add(BENCH, 29.5, 24.4);
+  const solidTile = (tx, ty) => { const t = T[ty] && T[ty][tx]; return t === undefined || t === 'R' || t === 'F' || t === 'w'; };
+  const blocked = (x, y) => { if (y > (TH - 2.4) * 16 || solidTile(Math.floor(x / 16), Math.floor(y / 16))) return true; for (const p of props) if (p.box) { const [bx, by, bw, bh] = p.box; if (x >= bx && x <= bx + bw && y >= by && y <= by + bh) return true; } return false; };
+  // mist over the unbuilt places: [x, y, w, h] in tiles
+  const mist = [[39, 2, 13, 11], [38, 26, 14, 8], [22, 31, 8, 3]].map(([x, y, w, h]) => [x * 16, y * 16, w * 16, h * 16]);
+  return { W, H, ground, props, blocked, mist, spawn: [26 * 16, 19.6 * 16] };
+}
+
+// soft mist: a feathered patch whose edge fades out over a couple of tiles, in a few pixel steps
+function mistPatch(w, h) {
+  return px(w, h, c => {
+    reseed(w * 7 + h);
+    const blobs = Array.from({ length: Math.round(w * h / 1400) + 4 }, () => [rnd() * w, rnd() * h, 18 + rnd() * 30]);
+    for (let y = 0; y < h; y += 2) for (let x = 0; x < w; x += 2) {
+      let k = Math.min(1, Math.min(x, y, w - x, h - y) / 34), n = 0;
+      for (const [bx, by, r] of blobs) { const d = Math.hypot(x - bx, y - by) / r; if (d < 1) n = Math.max(n, 1 - d); }
+      k *= .55 + .45 * n; k = Math.round(k * 5) / 5; if (k > 0) { c.fillStyle = 'rgba(16,22,30,' + (k * .82).toFixed(2) + ')'; c.fillRect(x, y, 2, 2); }
+    }
+  });
+}
+
+const FLIPPED = {}; for (const k in BUGS) FLIPPED[k] = BUGS[k].map(flipX);
+const SILHOUETTE = {}; for (const k in BUGS) SILHOUETTE[k] = BUGS[k].map(f => px(f.width, f.height, c => { c.drawImage(f, 0, 0); c.globalCompositeOperation = 'source-in'; c.fillStyle = '#0e1414'; c.fillRect(0, 0, 99, 99); }));
+// opt.keys: where to listen for keys (default: the root). opt.lit(p): is a station open yet. opt.bugOpen(bug): is that bug unlocked.
+function mountHaven(root, ui, opt = {}) {
+  const world = makeHaven(), lit = opt.lit || (() => true), bugOpen = opt.bugOpen || (() => true);
+  const cv = document.createElement('canvas'); cv.className = 'px hollow-cv'; root.appendChild(cv);
+  const ctx = cv.getContext('2d');
+  let S = 3, VW = 0, VH = 0, buf = null, bc = null;
+  const resize = () => { const r = root.getBoundingClientRect(); S = r.width < 600 ? 2 : 3; VW = Math.ceil(r.width / S); VH = Math.ceil(r.height / S); cv.width = VW * S; cv.height = VH * S; cv.style.width = VW * S + 'px'; cv.style.height = VH * S + 'px'; buf = px(Math.max(1, VW), Math.max(1, VH), () => {}); bc = buf.getContext('2d'); };
+  new ResizeObserver(resize).observe(root); resize();
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const me = { x: world.spawn[0], y: world.spawn[1], face: 1, moving: false, trail: [], bug: 'firefly', dash: 0, dvx: 0, dvy: 0, cd: 0, ghosts: [] };
+  const keys = {}; let joy = null, near = null, paused = false, t0 = performance.now(), iris = 1, focus = null, cam = null;
+  root.tabIndex = 0; const kt = opt.keys || root; let on = true, raf = 0;
+  const dash = () => {
+    if (paused || me.cd > 0) return;
+    let dx = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0), dy = (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0);
+    if (joy) { dx = joy.x - joy.x0; dy = joy.y - joy.y0; }
+    const d = Math.hypot(dx, dy); if (d < .1) { dx = me.face; dy = 0; } else { dx /= d; dy /= d; }
+    me.dvx = dx; me.dvy = dy; me.dash = .16; me.cd = .45; if (ui.dash) ui.dash();
+  };
+  kt.addEventListener('keydown', e => {
+    if (!on || (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA'))) return;
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault(); keys[e.code] = true;
+    if ((e.code === 'KeyE' || e.code === 'Enter') && near && !paused && !e.repeat) ui.open(near);
+    else if ((e.code === 'Space' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') && !e.repeat) dash();
+  });
+  kt.addEventListener('keyup', e => { keys[e.code] = false; });
+  root.addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+  cv.addEventListener('contextmenu', e => e.preventDefault());
+  cv.addEventListener('pointerdown', e => { root.focus(); if (e.button === 2 || (joy && e.pointerType === 'touch')) { dash(); return; } joy = { id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY }; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener('pointermove', e => { if (joy && e.pointerId === joy.id) { joy.x = e.clientX; joy.y = e.clientY; } });
+  const endJoy = e => { if (joy && e.pointerId === joy.id) joy = null; }; cv.addEventListener('pointerup', endJoy); cv.addEventListener('pointercancel', endJoy);
+  const motes = Array.from({ length: 50 }, () => ({ x: rnd() * world.W, y: rnd() * world.H, p: rnd() * TAU, s: .3 + rnd() * .6 }));
+  const mists = world.mist.map(([x, y, w, h]) => ({ x, y, w, h, img: mistPatch(w, h), wisps: Array.from({ length: 5 }, () => ({ x: x + rnd() * w, y: y + rnd() * h, p: rnd() * TAU, r: 20 + (rnd() * 14 | 0) })) }));
+  const darkness = px(1, 1, () => {});
+  let last = performance.now();
+  function frame(now) {
+    if (!on) { raf = 0; return; }
+    if (!VW || !VH) { raf = requestAnimationFrame(frame); return; } // not laid out yet
+    const dt = Math.min(.05, (now - last) / 1000); last = now; const T = (now - t0) / 1000;
+    // move (dashing is quick and does no harm here)
+    let ix = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0), iy = (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0);
+    if (joy) { const dx = joy.x - joy.x0, dy = joy.y - joy.y0, d = Math.hypot(dx, dy); if (d > 8) { ix = dx / d; iy = dy / d; } }
+    const m = Math.hypot(ix, iy); me.moving = (m > 0 || me.dash > 0) && !paused; me.cd -= dt;
+    const step = (vx, vy) => { const nx = me.x + vx, ny = me.y + vy; if (!world.blocked(nx, me.y)) me.x = nx; if (!world.blocked(me.x, ny)) me.y = ny; };
+    if (me.dash > 0 && !paused) { me.dash -= dt; for (let k = 0; k < 3; k++) step(me.dvx * 300 * dt / 3, me.dvy * 300 * dt / 3); if (me.dvx) me.face = me.dvx > 0 ? 1 : -1; me.ghosts.push({ x: me.x, y: me.y, f: me.face, t: .22 }); me.trail.unshift([me.x, me.y]); }
+    else if (m > 0 && !paused) { ix /= m; iy /= m; step(ix * 78 * dt, iy * 78 * dt); if (ix) me.face = ix > 0 ? 1 : -1; me.trail.unshift([me.x, me.y]); }
+    if (me.trail.length > 60) me.trail.length = 60;
+    for (const g of me.ghosts) g.t -= dt; me.ghosts = me.ghosts.filter(g => g.t > 0);
+    // what's close
+    near = null; let bd = 34;
+    for (const p of world.props) if (p.station) { const cx = p.x + p.w / 2, d = Math.hypot(me.x - cx, me.y - p.foot); if (d < bd + p.w * .35) { bd = d - p.w * .35; near = p; } }
+    ui.prompt(near && !paused ? near : null);
+    // camera: follows you, or glides to whatever Glim is pointing at
+    const tx = Math.max(0, Math.min(world.W - VW, (focus ? focus[0] : me.x) - VW / 2)), ty = Math.max(0, Math.min(world.H - VH, (focus ? focus[1] : me.y - 10) - VH / 2));
+    if (!cam || still) cam = [tx, ty]; else { const k = 1 - Math.exp(-dt * (focus ? 3 : 10)); cam[0] += (tx - cam[0]) * k; cam[1] += (ty - cam[1]) * k; }
+    const cx = Math.round(cam[0]), cy = Math.round(cam[1]);
+    bc.setTransform(1, 0, 0, 1, 0, 0); bc.fillStyle = '#06090a'; bc.fillRect(0, 0, VW, VH);
+    bc.drawImage(world.ground, -cx, -cy);
+    for (const g of me.ghosts) { const img = g.f < 0 ? FLIPPED[me.bug][0] : BUGS[me.bug][0]; bc.globalAlpha = g.t / .22 * .4; bc.drawImage(img, Math.round(g.x - img.width / 2 - cx), Math.round(g.y - img.height - 4 - cy)); } bc.globalAlpha = 1;
+    // things, sorted by their feet so you can walk behind them
+    const list = world.props.map(p => ({ p, foot: p.foot })); list.push({ me: true, foot: me.y });
+    list.sort((a, b) => a.foot - b.foot);
+    for (const it of list) {
+      if (it.me) {
+        bc.fillStyle = 'rgba(0,0,0,.35)'; bc.fillRect(Math.round(me.x - 6 - cx), Math.round(me.y - 1 - cy), 12, 2);
+        const fi = me.moving ? Math.floor(T * 10) % 2 : Math.floor(T * 2) % 2, img = me.face < 0 ? FLIPPED[me.bug][fi] : BUGS[me.bug][fi], bob = me.moving ? 0 : Math.round(Math.sin(T * 3));
+        bc.drawImage(img, Math.round(me.x - img.width / 2 - cx), Math.round(me.y - img.height - 4 + bob - cy));
+        continue;
+      }
+      const p = it.p; if (p.x - cx > VW || p.x + p.w - cx < 0 || p.y - cy > VH + 20 || p.foot - cy < -10) continue;
+      const open = lit(p);
+      if (p.solid !== false) { bc.fillStyle = 'rgba(0,0,0,.3)'; bc.beginPath(); bc.ellipse(Math.round(p.x + p.w / 2 - cx), Math.round(p.foot - 2 - cy), Math.round(p.w * .4), 4, 0, 0, TAU); bc.fill(); }
+      const seq = p.anim || p.frames.map((_, i) => i), f = p.frames[still ? 0 : seq[Math.floor(now / p.ms) % seq.length]] || p.frames[0];
+      if (!open) bc.globalAlpha = .55;
+      bc.drawImage(f, p.x - cx, p.y - cy); bc.globalAlpha = 1;
+      if (p.perch) { const b = p.perch, ok = bugOpen(b), fr = ok && !still ? Math.floor(T * 3 + p.x) % 2 : 0, img = ok ? BUGS[b][fr] : SILHOUETTE[b][0]; bc.drawImage(img, Math.round(p.x + p.w / 2 - img.width / 2 - cx), Math.round(p.y - img.height + 5 - cy)); }
+      const arrow = (p === near && open) || (p.beacon && open && !near), ax = Math.round(p.x + p.w / 2 - cx), ay = Math.round(p.y - (p.beacon ? 10 : 6) - cy + Math.sin(T * 5) * 1.5);
+      if (arrow) { bc.fillStyle = p.beacon ? '#ffe066' : '#f2c14e'; bc.fillRect(ax - 3, ay, 7, 1); bc.fillRect(ax - 2, ay + 1, 5, 1); bc.fillRect(ax - 1, ay + 2, 3, 1); bc.fillRect(ax, ay + 3, 1, 1); }
+    }
+    // your fireflies, trailing behind
+    for (let i = 0; i < 3; i++) { const q = me.trail[(i + 1) * 9] || [me.x - me.face * (8 + i * 7), me.y + 2]; bc.drawImage(FIREFLY[Math.floor(T * 8 + i) % 2], Math.round(q[0] - 2 - cx), Math.round(q[1] - 12 - cy + Math.sin(T * 4 + i) * 2)); }
+    // the unbuilt places sit in slow, soft mist
+    for (const mi of mists) {
+      if (mi.x - cx > VW || mi.x + mi.w - cx < 0 || mi.y - cy > VH || mi.y + mi.h - cy < 0) continue;
+      bc.drawImage(mi.img, mi.x - cx, mi.y - cy);
+      bc.globalAlpha = .5; for (const w of mi.wisps) { const x = Math.round(w.x + Math.sin(T * .2 + w.p) * 26 - cx), y = Math.round(w.y + Math.cos(T * .15 + w.p) * 10 - cy); bc.drawImage(mistWisp(w.r), x - w.r, y - w.r); }
+      bc.globalAlpha = 1;
+    }
+    // dusk, with warm holes around the open stations and you
+    if (darkness.width !== VW || darkness.height !== VH) { darkness.width = VW; darkness.height = VH; }
+    const lights = world.props.filter(p => p.light && lit(p)).map(p => p.light);
+    const dc = darkness.getContext('2d'); dc.globalCompositeOperation = 'source-over'; dc.clearRect(0, 0, VW, VH); dc.fillStyle = 'rgba(4,8,14,.5)';
+    // darker between features, so the lit stations stand out
+    dc.fillRect(0, 0, VW, VH); dc.globalCompositeOperation = 'destination-out';
+    for (const [lx, ly, r] of [...lights, [me.x, me.y - 8, 50]]) dc.drawImage(haloOf(r), Math.round(lx - r - cx), Math.round(ly - r - cy));
+    bc.drawImage(darkness, 0, 0);
+    bc.globalCompositeOperation = 'lighter';
+    for (const [lx, ly, r, col] of lights) { const k = .9 + Math.sin(T * 5 + lx) * .08, rr = Math.round(r * .62); bc.globalAlpha = k; bc.drawImage(warmOf(rr, col), Math.round(lx - rr - cx), Math.round(ly - rr - cy)); }
+    bc.globalAlpha = 1;
+    for (const mo of motes) { const x = Math.round((mo.x + Math.sin(T * mo.s + mo.p) * 12) - cx), y = Math.round((mo.y + Math.cos(T * mo.s * .8 + mo.p) * 8) - cy); if (x < -4 || y < -4 || x > VW + 4 || y > VH + 4) continue; const b = .5 + .5 * Math.sin(T * 2 + mo.p); if (b > .25) { bc.globalAlpha = b; bc.drawImage(warmOf(3), x - 3, y - 3); bc.fillStyle = '#fff3a0'; bc.fillRect(x, y, 1, 1); } }
+    bc.globalAlpha = 1; bc.globalCompositeOperation = 'source-over';
+    // coming in: a circle of light opens out from your bug
+    if (iris < 1) {
+      iris = Math.min(1, iris + dt / (still ? .25 : .75)); const e = 1 - Math.pow(1 - iris, 3), R = e * Math.hypot(VW, VH);
+      bc.fillStyle = '#030405'; bc.beginPath(); bc.rect(0, 0, VW, VH); bc.arc(Math.round(me.x - cx), Math.round(me.y - 10 - cy), R, 0, TAU, true); bc.fill('evenodd');
+      if (iris < .35) { bc.globalAlpha = 1 - iris / .35; bc.fillRect(0, 0, VW, VH); bc.globalAlpha = 1; }
+    }
+    ctx.imageSmoothingEnabled = false; ctx.drawImage(buf, 0, 0, VW * S, VH * S);
+    raf = requestAnimationFrame(frame);
+  }
+  const hc = {}, wc = {}, mc = {}; const haloOf = r => hc[r] || (hc[r] = px(r * 2, r * 2, (c, dot) => { for (let y = 0; y < r * 2; y++) for (let x = 0; x < r * 2; x++) { const d = Math.hypot(x + .5 - r, y + .5 - r) / r; if (d < 1) dot(x, y, 'rgba(0,0,0,' + (Math.ceil((1 - d) * 5) / 5).toFixed(2) + ')'); } }));
+  const mistWisp = r => mc[r] || (mc[r] = px(r * 2, r * 2, c => { for (let y = 0; y < r * 2; y += 2) for (let x = 0; x < r * 2; x += 2) { const d = Math.hypot(x + 1 - r, y + 1 - r) / r; if (d < 1) { c.fillStyle = 'rgba(70,86,100,' + (Math.ceil((1 - d) * 3) / 3 * .22).toFixed(3) + ')'; c.fillRect(x, y, 2, 2); } } }));
+  const warmOf = (r, col = WARM) => wc[r + '' + col] || (wc[r + '' + col] = halo(r, col, 4));
+  raf = requestAnimationFrame(frame);
+  const stationAt = s => world.props.find(p => p.npc === s) || world.props.find(p => p.station === s);
+  return {
+    active: v => { on = v; if (!v) { for (const k in keys) keys[k] = false; joy = null; } else if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } },
+    enter: at => { iris = 0; focus = null; cam = null; me.ghosts = []; me.trail = []; const p = at && stationAt(at); if (p) { me.x = p.x + p.w / 2 - 14; me.y = p.foot + 16; } else { me.x = world.spawn[0]; me.y = world.spawn[1]; } },
+    focusOn: s => { if (!s) { focus = null; return; } const p = stationAt(s); focus = p ? [p.x + p.w / 2, p.y + p.h / 2] : null; },
+    goto: (tx, ty) => { me.x = tx * 16; me.y = ty * 16; }, setBug: b => { me.bug = b; },
+    pause: v => { paused = v; for (const k in keys) keys[k] = false; joy = null; }, get near() { return near; }, get me() { return me; }, get irisDone() { return iris >= 1; },
+  };
+}
+// the names the design page still uses
+const makeHollow = makeHaven, mountHollow = mountHaven;
+
+// the whole Haven in one still picture, lit the same way as the walkable version
+function hollowOverview() {
+  const w = makeHaven(), M = px(w.W, w.H, () => {}), c = M.getContext('2d');
+  c.drawImage(w.ground, 0, 0);
+  for (const p of [...w.props].sort((a, b) => a.foot - b.foot)) { if (p.solid !== false) { c.fillStyle = 'rgba(0,0,0,.3)'; c.beginPath(); c.ellipse(Math.round(p.x + p.w / 2), Math.round(p.foot - 2), Math.round(p.w * .4), 4, 0, 0, TAU); c.fill(); } c.drawImage(p.frames[0], p.x, p.y); if (p.perch) { const im = BUGS[p.perch][0]; c.drawImage(im, Math.round(p.x + p.w / 2 - im.width / 2), p.y - im.height + 5); } }
+  c.drawImage(BUGS.firefly[0], w.spawn[0] - 8, w.spawn[1] - 16);
+  for (const [x, y, ww, hh] of w.mist) c.drawImage(mistPatch(ww, hh), x, y);
+  const lights = w.props.filter(p => p.light).map(p => p.light);
+  const dark = px(w.W, w.H, dc => { dc.fillStyle = 'rgba(4,8,14,.5)'; dc.fillRect(0, 0, w.W, w.H); dc.globalCompositeOperation = 'destination-out'; for (const [lx, ly, r] of lights) dc.drawImage(px(r * 2, r * 2, (hc, dot) => { for (let y = 0; y < r * 2; y++) for (let x = 0; x < r * 2; x++) { const d = Math.hypot(x + .5 - r, y + .5 - r) / r; if (d < 1) dot(x, y, 'rgba(0,0,0,' + (Math.ceil((1 - d) * 5) / 5).toFixed(2) + ')'); } }), lx - r, ly - r); });
+  c.drawImage(dark, 0, 0); c.globalCompositeOperation = 'lighter';
+  for (const [lx, ly, r, col] of lights) { const rr = Math.round(r * .62); c.globalAlpha = .9; c.drawImage(halo(rr, col || WARM, 4), lx - rr, ly - rr); }
+  c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
+  return M;
+}
+// the Haven's residents, for the dialogue box portraits
+const NPC_ART = { glim: GLIM, shellby: SHELLBY, wick: WICK, pell: PELL };
+
+return { BUGS, FIREFLY, WEAPON_ICONS, EVOLVED_ICONS, PASSIVE_ICONS, PICKUPS, SPARKS, ICO, PLAYER_SHOTS, ENEMY_SHOTS, RUN_TILES, STUMP, STANDING, DEAD_LAMP, flipX, px, halo, pg, ell, bake, kitCSS, AMBER, AMBER_SMALL, AMBER_PILE, BR, TREE, NODE, badge, treeArt, treeAt, TREE_W, TREE_H, mountHaven, NPC_ART, SILHOUETTE, BUG_NAMES };
 })();
 /* ART:END */
 const shadeCache = {};
@@ -2090,16 +2796,6 @@ function drawForeground() {
     ctx.drawImage(fgSprites[(hash2(i, j, 6) * fgSprites.length) | 0], -200, -200); ctx.restore();
   }
 }
-function drawRain() {
-  if (reduceMotion) return;
-  const rt = performance.now() / 1000; ctx.strokeStyle = 'rgba(196,214,212,.085)'; ctx.lineWidth = 1; ctx.beginPath();
-  for (let i = 0; i < 90; i++) {
-    const sp = 700 + hash2(i, 0, 7) * 500, len = 10 + hash2(i, 0, 8) * 18, y = ((hash2(i, 0, 9) * (VH + 120) + rt * sp) % (VH + 120)) - 60;
-    const x = (((hash2(i, 0, 10) * (VW + 160) + y * .22) % (VW + 160)) + VW + 160) % (VW + 160) - 80;
-    ctx.moveTo(x, y); ctx.lineTo(x + len * .22, y + len);
-  }
-  ctx.stroke();
-}
 let grainPat = null;
 function drawGrain() {
   if (!grainPat) {
@@ -2115,7 +2811,6 @@ function atmos() {
   drawForeground();
   const fg = ctx.createLinearGradient(0, 0, 0, VH); fg.addColorStop(0, 'rgba(70,96,100,.08)'); fg.addColorStop(.55, 'rgba(40,55,60,0)'); fg.addColorStop(1, 'rgba(30,18,12,.06)');
   ctx.fillStyle = fg; ctx.fillRect(0, 0, VW, VH);
-  drawRain();
 }
 function poly(x, y, r, n, rot) {
   ctx.beginPath();
@@ -2420,6 +3115,7 @@ function render() {
   // player light
   if (alive) { ctx.globalAlpha = .28; ctx.drawImage(glow('#ffd34d'), P.x - 330, P.y - 330, 660, 660); ctx.globalAlpha = 1; }
   // frost aura
+  for (const z of embers) if (vis(z.x, z.y, z.r * 1.3)) { ctx.globalAlpha = .55 * Math.min(1, z.life * 1.5) * (.8 + Math.sin(T * 9 + z.x) * .2); ctx.drawImage(glow('#ff7a2a'), z.x - z.r * 1.3, z.y - z.r * 1.3, z.r * 2.6, z.r * 2.6); }
   for (const z of zones) if (vis(z.x, z.y, z.r * 1.3)) { ctx.globalAlpha = .5 * Math.min(1, z.life * 2) * (.85 + Math.sin(T * 5 + z.x) * .15); ctx.drawImage(glow('#d6ff5c'), z.x - z.r * 1.3, z.y - z.r * 1.3, z.r * 2.6, z.r * 2.6); }
   ctx.globalAlpha = 1;
   if (wl.frost && alive) { const Rr = frostR(); ctx.globalAlpha = .16 + Math.sin(T * 3) * .03; ctx.drawImage(glow('#9ff0ff'), P.x - Rr * 1.25, P.y - Rr * 1.25, Rr * 2.5, Rr * 2.5); ctx.globalAlpha = 1; }
@@ -2516,7 +3212,8 @@ function render() {
     const maxLen = ropeLen(); let acc = 0, px = P.x, py = P.y;
     ctx.beginPath(); ctx.moveTo(px, py);
     for (let i = path.length - 1; i >= 0; i--) { const q = path[i]; if (q.s < ringSer) break; acc += Math.hypot(px - q.x, py - q.y); if (acc > maxLen) break; ctx.lineTo(q.x, q.y); px = q.x; py = q.y; }
-    ctx.strokeStyle = P.dashCd > 0 ? 'rgba(255,215,106,.1)' : 'rgba(255,215,106,.3)'; // the trail brightens when a flare is ready ctx.lineWidth = 2.5; ctx.lineJoin = 'round'; ctx.stroke();
+    // the trail brightens when a flare is ready
+    ctx.strokeStyle = P.dashN <= 0 ? 'rgba(255,215,106,.1)' : 'rgba(255,215,106,.3)'; ctx.lineWidth = 2.5; ctx.lineJoin = 'round'; ctx.stroke();
     for (let i = 0; i < flight.length; i++) {
       const f = flight[i], lit = f.fl > 0, sz = lit ? 26 : 13;
       ctx.globalAlpha = lit ? 1 : .55 + .45 * Math.sin(T * 4 - i * .6); ctx.drawImage(glow('#ffe9a0'), f.x - sz, f.y - sz, sz * 2, sz * 2);
@@ -2537,7 +3234,8 @@ function render() {
     drawBug(ctx, ch, P.wing, 1 + Math.sin(T * 6) * .08, false, Math.cos(P.face) < 0);
     ctx.restore(); ctx.globalAlpha = 1;
     // dash ready ring + hp
-    const dk = clamp(1 - P.dashCd / 1.6, 0, 1);
+    const dk = P.dashN > 0 ? 1 : clamp(1 - P.dashCd / P.dashCdMax, 0, 1);
+    if (P.dashMax > 1) for (let i = 0; i < P.dashMax; i++) { ctx.fillStyle = i < P.dashN ? '#ffe066' : '#ffffff33'; ctx.fillRect(P.x - 7 + i * 10, P.y - 30, 4, 4); }
     ctx.strokeStyle = dk >= 1 ? '#ffe066aa' : '#ffffff44'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(P.x, P.y, 21, -Math.PI / 2, -Math.PI / 2 + TAU * dk); ctx.stroke();
     ctx.fillStyle = 'rgba(5,7,8,.85)'; ctx.fillRect(P.x - 21, P.y + 26, 42, 7);
     ctx.fillStyle = P.hp / P.maxhp < .3 ? '#ff6a50' : '#d9574a'; ctx.fillRect(P.x - 20, P.y + 27, 40 * clamp(P.hp / P.maxhp, 0, 1), 5);
@@ -2555,7 +3253,7 @@ function render() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   atmos();
   if (state !== 'menu') {
-    const dawn = won ? 1 : clamp((T - 210) / 170, 0, 1);
+    const dawn = won ? 1 : clamp((RT - 210) / 170, 0, 1);
     if (dawn > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = 'rgba(255,140,80,' + (dawn * .075).toFixed(3) + ')'; ctx.fillRect(0, 0, VW, VH); ctx.globalCompositeOperation = 'source-over'; }
   }
   ctx.fillStyle = vignette; ctx.fillRect(0, 0, VW, VH);
@@ -2617,8 +3315,9 @@ function render() {
   { const tag = daily ? 'DAILY #' + (dday - DAY0 + 1) : nm ? 'NIGHTMARE' : ''; if (tag) { ctx.font = '15px ' + F; txt(tag, VW - 12, 113, daily ? '#7fd6c2' : '#e8604c', 1); } }
   // the clock
   const tcx = narrow ? (Math.max(96, nW * (ws + 3)) + 24 + VW - 96) / 2 : VW / 2;
-  ctx.textAlign = 'center'; ctx.font = (narrow ? 33 : 40) + 'px ' + F; txt(fmt(T), tcx, 40, '#e9e4d6', 3);
-  if (!won && !boss && !tut) { ctx.font = '15px ' + F; txt(T < 360 ? 'DAWN AT 6:00' : 'BEAT THE LAST BOSS', tcx, 64, '#8d9491', 1); }
+  ctx.textAlign = 'center'; ctx.font = (narrow ? 33 : 40) + 'px ' + F; txt(fmt(RT), tcx, 40, boss ? '#8d9491' : '#e9e4d6', 3);
+  if (boss && !tut) { ctx.font = '15px ' + F; txt('CLOCK PAUSED · BOSS ' + fmt(T - boss.born), tcx, 64, '#f2c14e', 1); }
+  else if (!won && !tut) { ctx.font = '15px ' + F; txt(RT < 360 ? 'DAWN AT 6:00' : 'BEAT THE LAST BOSS', tcx, 64, '#8d9491', 1); }
   // boss bar, with corner brackets
   if (boss) {
     const w = Math.min(440, VW - 140), x = VW / 2 - w / 2, y = narrow ? 130 : 82, f = Math.max(0, boss.hp / boss.maxhp);
@@ -2643,6 +3342,397 @@ function render() {
   }
 }
 
+/* ---------- the main menu, and the Haven behind it ---------- */
+// The game always opens on the main menu: the logo, your bug and every way to play in one box. The Haven is a walkable
+// place you visit from there, where the Root Tree, the Roost, the records and the residents live.
+let hollow = null, hubOpen = null, where = 'menu'; // the walkable Haven, which station's panel is open, and which screen is up
+const amberTag = n => '<span class="price">' + iconImg(ART.AMBER_SMALL, 3) + num(n) + '</span>';
+const fresh = () => !save.stats.runs; // nobody has finished a run yet: only Play is open
+const revealed = new Set(); // during Glim's tour, the stations he has shown you so far
+const stationOpen = p => save.met || p.station === 'locked' || p.npc === 'glim' || revealed.has(p.station) || revealed.has(p.npc);
+
+// ---- main menu ----
+function buildStart() {
+  const box = $('chars'); box.innerHTML = '';
+  for (const id in CHARS) {
+    const c = CHARS[id], un = hasBug(id), b = document.createElement('button');
+    b.className = 'char' + (un ? '' : ' locked') + (save.char === id ? ' sel' : ''); b.style.setProperty('--c', c.col);
+    b.innerHTML = '<img class="pt" alt="" src="' + portrait(id, !un) + '"><b>' + (un ? c.name : 'Locked') + '</b><span>' + (un ? c.role : 'Grow it on the Root Tree in the Haven') + '</span>';
+    if (un) { b.setAttribute('aria-pressed', save.char === id); b.onclick = () => { save.char = id; persist(); buildStart(); sfx('select'); }; } else b.setAttribute('aria-disabled', 'true');
+    box.appendChild(b);
+  }
+  const td = today(), sd = save.daily, mine = sd.day === td && sd.best > 0, first = fresh();
+  $('dailyBtn').innerHTML = 'Daily #' + (td - DAY0 + 1);
+  $('dailyInfo').textContent = first ? '' : "Today's bug is the " + CHARS[dailyCharId(td)].name + (mine ? ', and your best so far is ' + num(sd.best) + (sd.streak > 1 ? ' (' + sd.streak + ' day streak)' : '') : ', with the same cards and waves for everyone');
+  $('nmBtn').innerHTML = 'Nightmare' + (save.nmWon ? ' ★' : '');
+  const lock = (id, on, why) => { const b = $(id); b.disabled = !on; b.title = on ? '' : why; };
+  lock('dailyBtn', !first, 'Finish your first run to open this'); lock('nmBtn', save.won, first ? 'Finish your first run to open this' : 'See the dawn once to open Nightmare');
+  lock('havenBtn', !first, 'Finish your first run to open the Haven'); lock('howBtn', !first, 'Finish your first run first'); lock('statsBtn', !first, 'Finish your first run first');
+  $('modeNote').textContent = first ? 'Your first flight starts with a short lesson. You can skip it.' : save.won ? 'Nightmare is tougher, and the Root Tree only keeps what it unlocked.' : '';
+  $('havenAmber').innerHTML = first ? iconImg(ART.ICO.lock, 2) : amberTag(save.amber);
+  $('havenBtn').classList.toggle('calling', !first && !save.met);
+  $('havenNote').textContent = first ? 'Opens after your first run' : !save.met ? "Someone's waiting for you there" : 'Grow the Root Tree, pick your bug and catch up with everyone';
+  $('bestStart').textContent = bestLine();
+  $('whoLine').textContent = save.name ? 'Flying as ' + save.name : '';
+}
+function playMode(mode) { // every way to play goes through here
+  initAudio(); hubCloseAll();
+  if (mode === 'daily') { start(true); return; }
+  if (mode === 'tutorial') { start(false, true); return; }
+  save.nm = mode === 'nightmare' && save.won; persist();
+  start(false, !save.tut);
+}
+function toMenu() {
+  tut = null; $('tutBox').classList.add('hidden');
+  state = 'menu'; where = 'menu'; for (const id of ['over', 'pause', 'levelup', 'haven']) $(id).classList.add('hidden');
+  if (hollow) hollow.active(false);
+  $('start').classList.remove('hidden'); $('topbtns').classList.add('hidden'); $('dashBtn').classList.add('hidden');
+  buildStart();
+}
+
+// ---- the Haven ----
+function hubInit() {
+  const k = document.createElement('style'); k.textContent = ART.kitCSS(); document.head.appendChild(k);
+  hollow = ART.mountHaven($('haven'), hubUI, { keys: window, lit: stationOpen, bugOpen: b => hasBug(b === 'firefly' ? 'glow' : b) }); hollow.active(false);
+  $('hubGear').innerHTML = iconImg(ART.ICO.gear, 2); $('hubGear').onclick = openSettings;
+  $('hubBack').onclick = toMenu; $('hubFly').onclick = () => openGate();
+  $('setDone').onclick = closeSettings;
+  $('dlg').addEventListener('click', e => { if (!e.target.closest('button,input,textarea')) dlgAdvance(); });
+}
+function toHaven(at) {
+  if (fresh()) return;
+  initAudio(); state = 'menu'; where = 'haven';
+  for (const id of ['start', 'stats', 'over', 'pause', 'levelup']) $(id).classList.add('hidden'); $('haven').classList.remove('hidden');
+  hubCloseAll(); hubRefresh(); hollow.active(true); hollow.enter(at || (save.met ? null : 'glim'));
+  const t = $('hubTitle'); t.lastChild.textContent = isTouch() ? 'Drag to walk, tap a prompt to use it' : 'Walk with WASD, Space to dash, E to use';
+  t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
+  sendOutbox();
+  if (!save.met) setTimeout(() => { if (where === 'haven' && !dlg) glimIntro(); }, 900);
+}
+function hubRefresh() { $('hubAmber').innerHTML = amberTag(save.amber); hollow.setBug(BUG_OF[save.char]); }
+function hubClose() { const ov = $('hubOv'); ov.classList.add('hidden'); ov.innerHTML = ''; hubOpen = null; if (hollow && !dlg) hollow.pause(false); }
+function hubCloseAll() { if (dlg) endTalk(true); hubClose(); }
+function hubPanel(id, title, inner, cls) {
+  const ov = $('hubOv'); hubOpen = id;
+  ov.innerHTML = '<div class="panel hubPanel ' + (cls || '') + '" role="dialog" aria-label="' + title + '"><div class="hp-head"><h2>' + title + '</h2><button class="btn ghost small hp-x" aria-label="Close">' + iconImg(ART.ICO.close, 2) + '</button></div>' + inner + '</div>';
+  ov.classList.remove('hidden'); hollow.pause(true); $('hubHint').classList.add('hidden');
+  ov.querySelector('.hp-x').onclick = hubClose;
+  ov.onclick = e => { if (e.target === ov) hubClose(); };
+  const go = ov.querySelector('[data-go]'); (go || ov.querySelector('.hp-x')).focus();
+  return ov;
+}
+const hubUI = {
+  prompt(p) {
+    const h = $('hubHint');
+    if (!p || hubOpen || dlg) { h.classList.add('hidden'); return; }
+    const label = stationOpen(p) ? p.label : p.label + ' (later)';
+    if (h.dataset.k !== label) { h.dataset.k = label; h.innerHTML = '<button class="hint-btn">' + (isTouch() ? '' : '<span class="k-key">E</span>') + label + '</button>'; h.firstChild.onclick = () => hubUI.open(p); }
+    h.classList.remove('hidden');
+  },
+  open(p) {
+    if (dlg || hubOpen) return;
+    initAudio(); sfx('select');
+    if (!stationOpen(p)) { toast('Glim wants a word with you first'); return; }
+    if (p.station === 'npc') { talkTo(p.npc); return; }
+    if (p.station === 'locked') { toast(p.label + ' isn\'t built yet. Glim is working on it.'); return; }
+    ({ gate: openGate, daily: openGate, tree: openTree, roost: openRoost, records: openRecords })[p.station]();
+  },
+  dash() { sfx('dash'); },
+};
+// the Lantern Gate: every way to play, side by side
+function openGate() {
+  const td = today(), sd = save.daily, did = dailyCharId(td), mine = sd.day === td && sd.best > 0;
+  const card = (mode, cls, title, sub, on, why) => '<button class="mode ' + cls + '" data-mode="' + mode + '"' + (on ? '' : ' disabled') + '><b>' + title + '</b><span>' + (on ? sub : why) + '</span></button>';
+  const ov = hubPanel('gate', 'The Lantern Gate', '<p class="hp-sub">Pick how you want to fly out tonight. You\'ll go as the ' + CHARS[save.char].name + '.</p><div class="modes-grid">' +
+    card('night', 'gold', 'Night', 'The usual run. Last until dawn.', true) +
+    card('daily', 'mint', 'Daily #' + (td - DAY0 + 1), 'Everyone gets the same run as the ' + CHARS[did].name + '.' + (mine ? ' Your best is ' + num(sd.best) + '.' : ''), true) +
+    card('nightmare', 'red', 'Nightmare' + (save.nmWon ? ' ★' : ''), "Tougher, and the tree's boosts stay home. Unlocks still count.", save.won, 'See the dawn once to open this.') +
+    card('tutorial', 'stone', 'How to play', 'A short lesson on the basics.', true) + '</div>');
+  ov.querySelectorAll('.mode').forEach(b => b.onclick = () => playMode(b.dataset.mode));
+  ov.querySelector('.mode').focus();
+}
+function openRoost() {
+  const ov = hubPanel('roost', 'The Roost', '<div class="chars roost">' + Object.keys(CHARS).map(id => {
+    const c = CHARS[id], un = hasBug(id);
+    return '<button class="char' + (un ? '' : ' locked') + (save.char === id ? ' sel' : '') + '" style="--c:' + c.col + '" data-b="' + id + '"' + (un ? ' aria-pressed="' + (save.char === id) + '"' : ' aria-disabled="true"') + '><img class="pt" alt="" src="' + portrait(id, !un) + '"><b>' + (un ? c.name : 'Locked') + '</b><span>' + (un ? c.role : 'Grow it on the Root Tree') + '</span></button>';
+  }).join('') + '</div>');
+  ov.querySelectorAll('.char').forEach(b => b.onclick = () => { if (!hasBug(b.dataset.b)) { toast('Grow the ' + CHARS[b.dataset.b].name + ' on the Root Tree first'); return; } save.char = b.dataset.b; persist(); hubRefresh(); hubClose(); sfx('select'); });
+  (ov.querySelector('.char.sel') || ov.querySelector('.char')).focus();
+}
+function openRecords() {
+  const st = save.stats, got = ACH.filter(a => save.ach[a[0]]).length;
+  const ov = hubPanel('records', 'Records', (save.name ? '<p class="hp-sub">' + esc(save.name) + '\'s nights so far</p>' : '') + '<div class="stats rec"><div><b>' + num(best.score || 0) + '</b>best</div><div><b>' + fmt(best.time) + '</b>longest</div><div><b>' + num(st.runs) + '</b>runs</div><div><b>' + got + '/' + ACH.length + '</b>badges</div></div>' +
+    '<div class="row"><button class="btn ghost small" data-go>All records</button></div>');
+  ov.querySelector('[data-go]').onclick = () => { hubClose(); showStats(); };
+}
+function openTree() {
+  const ov = hubPanel('tree', 'The Root Tree', '<div class="hp-tree"></div><div class="tree-foot"><span id="treeBal"></span><p class="tree-help">Drag to look around, tap a node. Anything you grow can be switched off.</p><button class="btn ghost small" id="treeAll"></button></div>', 'big');
+  const v = treeView(ov.querySelector('.hp-tree'));
+  const all = ov.querySelector('#treeAll'), boosts = () => save.tree.filter(id => !UNLOCKS.has(id));
+  const label = () => { all.textContent = boosts().length && boosts().every(id => save.off.includes(id)) ? 'Switch all on' : 'Switch all off'; all.disabled = !boosts().length; };
+  all.onclick = () => { const allOff = boosts().every(id => save.off.includes(id)); save.off = allOff ? [] : boosts(); persist(); label(); v.refresh(); sfx('select'); };
+  label();
+}
+// the Root Tree: one picture you drag around, with a card for the node you picked
+function treeView(host) {
+  const mk = (t, c) => { const e = document.createElement(t); if (c) e.className = c; return e; };
+  const wrap = mk('div', 'tree'), cv = document.createElement('canvas'), bal = mk('div', 'tree-bal'), list = mk('div', 'sr-nodes'), card = mk('div', 'panel tree-card');
+  wrap.append(cv, bal, list, card); host.appendChild(wrap);
+  const nodes = ART.TREE.map(t => ART.NODE[t[0]]), S2 = 2, at = ART.treeAt;
+  const state = n => grown(n.id) ? (save.off.includes(n.id) ? 'off' : 'owned') : n.req.every(grown) ? 'open' : 'locked';
+  let pic = null, sel = nodes.find(n => state(n) === 'open') || ART.NODE.first, pan = [0, 0], drag = null, placed = false;
+  const clampPan = () => { pan[0] = Math.min(40, Math.max(cv.width - ART.TREE_W * S2 - 40, pan[0])); pan[1] = Math.min(40, Math.max(cv.height - ART.TREE_H * S2 - 40, pan[1])); };
+  const centre = n => { const [x, y] = at(n); pan = [cv.width / 2 - x * S2, cv.height * .4 - y * S2]; clampPan(); };
+  function draw() {
+    if (!cv.width) return;
+    const c = cv.getContext('2d'); c.imageSmoothingEnabled = false; c.fillStyle = '#06090a'; c.fillRect(0, 0, cv.width, cv.height);
+    c.drawImage(pic, Math.round(pan[0]), Math.round(pan[1]), ART.TREE_W * S2, ART.TREE_H * S2);
+    c.font = '20px "Jersey 20", monospace'; c.textAlign = 'center'; c.textBaseline = 'top';
+    for (const n of nodes) { const [x, y] = at(n), s = state(n), sx = pan[0] + x * S2, sy = pan[1] + y * S2 + 36; c.fillStyle = '#000c'; c.fillText(n.name, sx, sy + 2); c.fillStyle = s === 'owned' ? '#e9e4d6' : s === 'open' ? ART.BR[n.br].col : s === 'off' ? '#8d9491' : '#5d6563'; c.fillText(n.name + (s === 'off' ? ' (off)' : ''), sx, sy); }
+    if (sel) { const [x, y] = at(sel), sx = pan[0] + x * S2, sy = pan[1] + y * S2; c.strokeStyle = '#ffffff'; c.lineWidth = 2; c.setLineDash([6, 6]); c.lineDashOffset = reduceMotion ? 0 : -(performance.now() / 60); c.beginPath(); c.arc(sx, sy, 42, 0, TAU); c.stroke(); c.setLineDash([]); }
+  }
+  function showCard() {
+    const tb = document.getElementById('treeBal'); if (tb) tb.innerHTML = amberTag(save.amber);
+    if (!sel) { card.innerHTML = '<p class="tc-hint">Tap a node.</p>'; return; }
+    const s = state(sel), poor = sel.cost > save.amber, unlock = UNLOCKS.has(sel.id);
+    card.innerHTML = '<div class="tc">' + iconImg(ART.badge(sel, s), 2) + '<div><b>' + sel.name + '</b><span>' + sel.desc + '</span></div></div>' +
+      (s === 'owned' || s === 'off' ? (unlock ? '<div class="tc-own">Grown</div>' : '<div class="tc-row"><span class="' + (s === 'off' ? 'tc-need' : 'tc-own') + '">' + (s === 'off' ? 'Switched off' : 'Grown and on') + '</span><button class="btn ghost small" data-t>' + (s === 'off' ? 'Switch on' : 'Switch off') + '</button></div>')
+        : s === 'locked' ? '<div class="tc-need">Grow ' + sel.req.filter(r => !grown(r)).map(r => ART.NODE[r].name).join(' and ') + ' first</div>'
+        : '<button class="btn" data-g' + (poor ? ' disabled' : '') + '>Grow ' + iconImg(ART.AMBER_SMALL, 3) + sel.cost + '</button>' + (poor ? '<div class="tc-need">You need ' + (sel.cost - save.amber) + ' more amber</div>' : ''));
+    const g = card.querySelector('[data-g]'); if (g) g.onclick = () => grow(sel);
+    const t = card.querySelector('[data-t]'); if (t) t.onclick = () => { const i = save.off.indexOf(sel.id); if (i >= 0) save.off.splice(i, 1); else save.off.push(sel.id); persist(); sfx('select'); refresh(); const tb = card.querySelector('[data-t]'); if (tb) tb.focus(); const all = document.getElementById('treeAll'); if (all) all.textContent = save.tree.filter(id => !UNLOCKS.has(id)).every(id => save.off.includes(id)) ? 'Switch all on' : 'Switch all off'; };
+  }
+  function grow(n) {
+    if (state(n) !== 'open' || save.amber < n.cost) return;
+    save.amber -= n.cost; save.tree.push(n.id); persist(); sfx('level');
+    if (n.id === 'moth' || n.id === 'beetle') toast('The ' + n.name + ' has joined the Roost');
+    if (hasBug('moth') && hasBug('beetle')) award('bugs');
+    refresh(); hubRefresh(); const b = card.querySelector('button'); (b || wrap).focus();
+  }
+  // one hidden button per node, so the tree works from the keyboard and with a screen reader
+  function buildList() {
+    list.innerHTML = ''; for (const n of nodes) {
+      const b = document.createElement('button'), s = state(n);
+      b.textContent = n.name + ', ' + n.desc + ', ' + (s === 'owned' ? 'grown' : s === 'off' ? 'grown, switched off' : s === 'open' ? n.cost + ' amber' : 'locked');
+      b.onfocus = () => { sel = n; centre(n); showCard(); draw(); }; list.appendChild(b);
+    }
+  }
+  const refresh = () => { pic = ART.treeArt(state); buildList(); draw(); showCard(); };
+  function fit() { const r = wrap.getBoundingClientRect(); if (!r.width) return; cv.width = Math.round(r.width); cv.height = Math.round(r.height); if (!placed) { centre(ART.NODE.first); pan[1] = cv.height - at(ART.NODE.first)[1] * S2 - 70; placed = true; } clampPan(); draw(); }
+  cv.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, px: pan[0], py: pan[1], moved: 0 }; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener('pointermove', e => { if (!drag) return; drag.moved = Math.max(drag.moved, Math.hypot(e.clientX - drag.x, e.clientY - drag.y)); pan = [drag.px + e.clientX - drag.x, drag.py + e.clientY - drag.y]; clampPan(); draw(); });
+  cv.addEventListener('pointerup', e => {
+    if (drag && drag.moved < 6) { const r = cv.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top; let hitN = null; for (const n of nodes) { const [x, y] = at(n); if (Math.hypot(pan[0] + x * S2 - mx, pan[1] + y * S2 - my) < 36) hitN = n; } if (hitN) { sel = hitN; sfx('select'); } showCard(); draw(); }
+    drag = null;
+  });
+  wrap.tabIndex = 0; wrap.setAttribute('aria-label', 'Root Tree. Arrow keys look around, Tab picks a node.');
+  wrap.addEventListener('keydown', e => { const d = { ArrowLeft: [40, 0], ArrowRight: [-40, 0], ArrowUp: [0, 40], ArrowDown: [0, -40] }[e.key]; if (d) { e.preventDefault(); e.stopPropagation(); pan[0] += d[0]; pan[1] += d[1]; clampPan(); draw(); } });
+  const anim = setInterval(() => { if (!wrap.isConnected) { clearInterval(anim); return; } if (sel && !reduceMotion) draw(); }, 60);
+  pic = ART.treeArt(state); buildList(); showCard();
+  new ResizeObserver(fit).observe(wrap);
+  return { refresh };
+}
+
+// ---- talking: one dialogue box, a portrait, a name, text that types itself out, and answers to pick ----
+let dlg = null;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const NPC_NAME = { glim: 'Glim', shellby: 'Shellby', wick: 'Wick', pell: 'Pell' };
+const fillName = s => String(s).replace(/\{name\}/g, save.name || 'friend');
+function talk(who, steps, onEnd) {
+  hubClose(); dlg = { who, steps, i: -1, onEnd, typing: 0, wait: false };
+  const pt = $('dlgPt'), im = ART.NPC_ART[who][0], c = pt.getContext('2d'); pt.width = im.width * 4; pt.height = im.height * 4; c.imageSmoothingEnabled = false; c.drawImage(im, 0, 0, pt.width, pt.height);
+  $('dlgName').textContent = NPC_NAME[who]; $('dlg').classList.remove('hidden'); hollow.pause(true); $('hubHint').classList.add('hidden');
+  dlgNext();
+}
+function endTalk(quiet) {
+  if (!dlg) return; const d = dlg; dlg = null; clearInterval(d.typing); if (save.met) $('haven').classList.remove('intro');
+  $('dlg').classList.add('hidden'); $('dlgOpts').innerHTML = ''; if (hollow) { hollow.pause(false); hollow.focusOn(null); }
+  if (!quiet && d.onEnd) d.onEnd();
+}
+function dlgSay(text, then) {
+  const t = $('dlgText'), full = fillName(text); clearInterval(dlg.typing); $('dlgOpts').innerHTML = ''; dlg.wait = false; $('dlg').classList.remove('choosing');
+  if (reduceMotion) { t.textContent = full; dlg.typing = 0; if (then) then(); return; }
+  let n = 0; t.textContent = ''; dlg.full = full; dlg.then = then;
+  dlg.typing = setInterval(() => { n += 2; t.textContent = full.slice(0, n); if (n >= full.length) { clearInterval(dlg.typing); dlg.typing = 0; if (then) then(); } }, 16);
+}
+function dlgNext() {
+  if (!dlg) return; dlg.i++;
+  if (dlg.i >= dlg.steps.length) { endTalk(); return; }
+  const s = dlg.steps[dlg.i];
+  if (typeof s === 'function') { s(); dlgNext(); return; }
+  if (typeof s === 'string') { dlgSay(s); return; }
+  if (s.focus !== undefined) { hollow.focusOn(s.focus); if (s.reveal) for (const r of s.reveal) revealed.add(r); }
+  if (s.choices) { dlgSay(s.say || $('dlgText').textContent, () => dlgChoices(s.choices)); return; }
+  if (s.ask) { dlgSay(s.say, () => dlgAsk(s)); return; }
+  if (s.feedback) { dlgSay(s.say, dlgFeedback); return; }
+  dlgSay(s.say);
+}
+function dlgAdvance() {
+  if (!dlg || dlg.wait) return;
+  if (dlg.typing) { clearInterval(dlg.typing); dlg.typing = 0; $('dlgText').textContent = dlg.full; if (dlg.then) dlg.then(); return; }
+  dlgNext();
+}
+function dlgChoices(list) {
+  dlg.wait = true; $('dlg').classList.add('choosing'); const box = $('dlgOpts'); box.innerHTML = '';
+  list.forEach(([label, fn], i) => { const b = document.createElement('button'); b.className = 'opt-btn'; b.innerHTML = '<span class="k">' + (i + 1) + '</span>' + esc(fillName(label)); b.onclick = () => { sfx('select'); dlg.wait = false; fn(); }; box.appendChild(b); });
+  box.firstChild.focus();
+}
+// swap what's left of the conversation for a new branch
+function dlgGo(steps) { dlg.steps = steps; dlg.i = -1; dlgNext(); }
+function dlgAsk(s) {
+  dlg.wait = true; const box = $('dlgOpts');
+  box.innerHTML = '<form class="ask"><input id="nameIn" maxlength="16" autocomplete="nickname" placeholder="Your name" aria-label="Your name" value="' + esc(save.name || '') + '"><button class="btn small">That\'s me</button></form>';
+  const f = box.querySelector('form'), inp = box.querySelector('input'); inp.focus();
+  f.onsubmit = e => { e.preventDefault(); const v = inp.value.replace(/[^\p{L}\p{N} _.'-]/gu, '').trim().slice(0, 16); if (v.length < 2) { inp.focus(); toast('A name needs at least two letters'); return; } save.name = v; persist(); dlg.wait = false; dlgNext(); };
+}
+function dlgFeedback() {
+  dlg.wait = true; const box = $('dlgOpts');
+  box.innerHTML = '<form class="ask fb"><textarea id="fbIn" maxlength="1000" rows="3" placeholder="Anything you liked, hated or would change" aria-label="Your feedback" aria-describedby="fbNote"></textarea><p class="fb-note" id="fbNote">Sent with your name, your bug, how many runs you&#39;ve played and your best score, so the maker knows where you&#39;re coming from.</p><div class="fb-row"><button type="button" class="btn ghost small" data-x>Never mind</button><button class="btn small">Send it</button></div></form>';
+  const f = box.querySelector('form'), inp = box.querySelector('textarea'); inp.focus();
+  box.querySelector('[data-x]').onclick = () => { dlg.wait = false; dlgGo(["No harm done. If something comes to you later, you know where I'll be standing."]); };
+  f.onsubmit = async e => {
+    e.preventDefault(); const msg = inp.value.trim(); if (msg.length < 3) { inp.focus(); return; }
+    f.querySelector('button:not([data-x])').disabled = true;
+    const ok = await sendFeedback(msg);
+    dlg.wait = false; dlgGo([ok ? "Got it, and it's already on its way to the one who dreams this place up. Thank you for taking the time, {name}, it genuinely helps more than you'd think."
+      : "The roots are a bit tangled right now, so I've tucked your note away somewhere safe and I'll send it along the next time you come by."]);
+  };
+}
+// feedback goes to a small server function that forwards it to the maker's Discord. If it can't get through, it waits in the save.
+const fbPayload = msg => ({ msg, name: save.name || '', bug: CHARS[save.char].name, runs: save.stats.runs, best: best.score || 0, won: !!save.won, at: new Date().toISOString() });
+async function postFeedback(p) {
+  try { const r = await fetch('/api/feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }); return r.ok; } catch (e) { return false; }
+}
+async function sendFeedback(msg) {
+  const p = fbPayload(msg); if (await postFeedback(p)) return true;
+  save.outbox = (save.outbox || []).concat([p]).slice(-5); persist(); return false;
+}
+async function sendOutbox() {
+  if (!save.outbox || !save.outbox.length) return; const left = [];
+  for (const p of save.outbox) if (!(await postFeedback(p))) left.push(p);
+  save.outbox = left; persist();
+}
+
+// ---- the residents ----
+const pickLine = (key, lines) => { save.talk = save.talk || {}; const i = (save.talk[key] || 0) % lines.length; save.talk[key] = i + 1; persist(); return lines[i]; };
+function glimIntro() {
+  revealed.clear(); $('haven').classList.add('intro');
+  talk('glim', [
+    { focus: 'glim', ask: 'name', say: "There you are, back from the dark in one piece. Before anything else, what should I call you? I'm hopeless with faces, but once I've written a name down I never lose it." },
+    "{name}. That's a good one, it sounds like something that would still be glowing when the sun comes up. I'm Glim, and I'm glad the night handed you back.",
+    "I made this place, you know. Every root, every lamp and most of the mushrooms were my doing, back when the dark still came right up to the edge of the pond, so welcome to the Haven, {name}.",
+    "Now, that orange stuff stuck to your wings is amber. The night leaves it behind whenever somebody outlasts it, and if you bring it to me I can grow it into something useful.",
+    { focus: 'tree', reveal: ['tree'], say: "This is the Root Tree. Spend amber on it and it grows branches that change how your nights go, and if something I grow isn't to your taste you can switch it off without hurting my feelings. Much." },
+    { focus: 'gate', reveal: ['gate', 'daily'], say: "The Lantern Gate is how you get back out there, and everything to do with playing lives around it. The usual night, the daily run that everyone shares and Nightmare, once you've earned it, all leave from the same spot." },
+    { focus: 'roost', reveal: ['roost'], say: "Those mushrooms are the Roost, where bugs who are willing to fly for you like to rest. Only the firefly trusts you right now, but grow the right branches and the others will come around." },
+    { focus: 'wick', reveal: ['records', 'wick'], say: "Over by the board is Wick, who keeps the records. He gets very excited about numbers, so if you ever want to know how you're doing he'll tell you, probably at some length." },
+    { focus: 'shellby', reveal: ['shellby'], say: "Shellby's down by the Market. It isn't open yet, and she'll swear it's opening any day now, but she hears everything that goes on out there in the dark, so she's worth a chat." },
+    { focus: 'pell', reveal: ['pell'], say: "And that's Pell by the pond. He doesn't say much, and what he does say rarely makes sense straight away, but I've noticed it usually does by morning." },
+    { focus: 'locked', say: "The paths that fade into the mist lead to places I haven't finished building. I'll get to them, I just work at about the speed you'd expect from a very old moth." },
+    { focus: 'glim', say: "That's the whole tour. If anything here bothers you, or you've got an idea that would make the place better, come and tell me. I write it all down, and whoever dreams this place up reads every word." },
+    () => { save.met = true; persist(); hubRefresh(); },
+  ], () => { save.met = true; persist(); $('haven').classList.remove('intro'); });
+}
+function talkTo(who) {
+  if (who === 'glim' && !save.met) { glimIntro(); return; }
+  ({ glim: talkGlim, shellby: talkShellby, wick: talkWick, pell: talkPell })[who]();
+}
+function talkGlim() {
+  const menu = say => ({ say, choices: [
+    ['Grow the Root Tree', () => { endTalk(); openTree(); }],
+    ['I have feedback for the maker', () => dlgGo([{ feedback: true, say: "Go on, tell me what's on your mind. Good, bad or just plain strange, it all goes into the roots, and the one who dreams this place reads every word of it." }])],
+    ["What's new around here?", () => dlgGo([pickLine('glim', GLIM_NEWS), menu("Anything else I can do for you?")])],
+    ['Call me something else', () => dlgGo([{ ask: 'name', say: "Changing your name? Fair enough, I've changed mine twice. What should I write down instead?" }, "{name} it is. I've crossed out the old one so neatly you'd never know it was there."])],
+    ['Just saying hi', () => dlgGo(["Hi yourself. Mind the lamps on your way out, I only just got them all burning at once."])],
+  ] });
+  talk('glim', [menu(pickLine('glimHi', ["Back again, {name}? Good, the place feels emptier when nobody's walking around in it. What can I do for you?", "Ah, {name}. I was just admiring my own handiwork, which I'm told is a bad habit. What do you need?", "Welcome back. You look like someone who survived something, which around here is the highest compliment there is. What can I do for you?"]))]);
+}
+const GLIM_NEWS = [
+  "I've been meaning to fix the lamp by the bench for about a hundred nights now. I've decided it flickers on purpose, because it adds character, and that saves me a ladder.",
+  "Every time someone outlasts the night a little more amber washes up around the roots, and I like to think the whole Haven gets a bit brighter for it.",
+  "The Maw came sniffing around the pond once. Pell just stared at it until it got uncomfortable and wandered off, and I still think about that more than I should.",
+  "If the nights are starting to feel easy, the Gate has a Nightmare setting. I'll warn you now that my tree doesn't reach that far, so you'll be out there on your own.",
+  "Shellby has been opening that Market any day now for as long as I've known her. I've stopped asking, and honestly I think the asking was what she enjoyed.",
+];
+function talkShellby() {
+  const r = save.runs[0];
+  const lastRun = !r ? "You haven't been out there yet, so I've got nothing to gossip about. Fix that and come back, I'm counting on you."
+    : r.win ? "You saw the dawn last time out, and the whole Haven's been talking about it. Well, I've been talking about it, which is basically the same thing."
+    : r.T < 120 ? "That last one was over in " + fmt(r.T) + ". I've had customers take longer to pick a mushroom, but everybody has to start somewhere, and you started."
+    : fmt(r.T) + " out there and " + num(r.kills) + " squashed. That's respectable, and if I sold medals I'd give you one, but I don't, so you'll have to settle for this nod.";
+  const menu = say => ({ say, choices: [
+    ['Heard any gossip?', () => dlgGo([pickLine('shellby', SHELLBY_GOSSIP), menu("What else? Don't be shy, I've got all night and nowhere to be.")])],
+    ['How did my last run look?', () => dlgGo([lastRun, menu("Anything else on your mind?")])],
+    ['When does the Market open?', () => dlgGo([pickLine('market', ["Any day now. I've got the awning up and I've got the sign, and all I'm missing is stock, staff and a door that actually closes.", "Soon. I keep meaning to open at dawn, but every time dawn comes around I'm asleep, which is a real flaw in the plan.", "When it's ready, and not a moment before. Glim says that about his paths too, so at least we're consistent around here."]), menu("Anything else?")])],
+    ['Bye', () => dlgGo(["Off you go, then. Come back with some gossip of your own, I'm running a little low."])],
+  ] });
+  talk('shellby', [menu(pickLine('shellbyHi', ["Oh, it's you, {name}. Come closer, would you, I don't shout, it's bad for the shell.", "{name}! Perfect timing, I was just about to tell somebody something, and you're somebody.", "Back again? Good. The Market's not open, but the gossip counter never closes."]))]);
+}
+const SHELLBY_GOSSIP = [
+  "The Gloom has been sending out those shockwave rings again. Word is you can dash straight through them, and the ones who try to outrun them usually don't get very far.",
+  "A little bird told me the Maw goes soft whenever it opens its mouth to breathe in. That's the moment to hit it hardest, assuming you aren't busy being swallowed.",
+  "Folks say the Eclipse's corona cracks if you catch it in a dash flare. Break it and the whole thing just hangs there, stunned, for a few lovely seconds.",
+  "The Weaver leaves webs everywhere and they'll slow you to a crawl. Dash, though, and you'll tear right out of them, or so I'm told by people who still have legs.",
+  "The Shade walks wherever you've already been, so if you keep doubling back you're basically holding the door open for it.",
+  "The Hive hides behind its drones. Flare them away and its shield goes with them, which is more than I can say for my awning in a storm.",
+  "Here's one for free: the boss clock stops while a boss is up, and the faster you put it down, the more points you walk away with.",
+];
+function talkWick() {
+  const st = save.stats, r = save.runs[0], newBest = r && best.score && r.score === best.score && save.wickSeen !== r.d;
+  if (r) { save.wickSeen = r.d; persist(); }
+  const hi = newBest ? "You beat your best score! I knew it the second you walked over, you've got that new-record glow and it's honestly a little blinding."
+    : pickLine('wickHi', ["Oh! {name}! Hi! Did you know you've flown " + num(st.runs) + " runs so far? I counted. I count everything, it's sort of my whole thing.", "{name}! I just finished re-sorting the board by how much each run made me gasp. You're on it, by the way, more than once.", "Hi! Hold on, let me find your page, I keep everyone's numbers in order of how fun they are to read out loud."]);
+  const todo = ACH.filter(a => !save.ach[a[0]]), goal = todo.length ? todo[(save.stats.runs + todo.length) % todo.length] : null;
+  const menu = say => ({ say, choices: [
+    ['How am I doing?', () => dlgGo(["Your best score is " + num(best.score || 0) + " and your longest night lasted " + fmt(best.time) + ". I've got both of those written down twice, just in case one of them wanders off.",
+      best.won ? "And you've seen the dawn, which I underlined three times and then drew a little sun next to, because it felt like it deserved one." : "You haven't seen the dawn yet, but you will, and I've already saved you a spot on the board for when it happens.", menu("Want to hear anything else?")])],
+    ['What should I go for next?', () => dlgGo([goal ? "Nobody's written up '" + goal[1] + "' for you yet, and that's the one for when you " + goal[2].charAt(0).toLowerCase() + goal[2].slice(1) + ". I'd really love to add that to the board, if you're taking requests." : "You've got every badge I know about. I'm going to have to invent brand new ones, which honestly sounds like the best day of my life.", menu("Anything else?")])],
+    ['Show me the full records', () => { endTalk(); showStats(); }],
+    ['Bye', () => dlgGo(["Bye! I'll keep counting while you're gone, I promise I won't lose any of it!"])],
+  ] });
+  talk('wick', [menu(hi)]);
+}
+function talkPell() {
+  const bug = { glow: "A firefly. Steady. You don't see many things that are steady these days, and I think that's a shame, so thank you for being one of them.",
+    moth: "A moth. Bold choice. They never sit still for long, which is the exact opposite of me, so I admire it from right here.",
+    beetle: "A beetle. Slow and tough, like a good log. I mean that as the highest compliment I know, and I know about four." }[save.char];
+  const menu = say => ({ say, choices: [
+    ['Sit with Pell for a while', () => dlgGo([pickLine('pell', PELL_THOUGHTS), menu("...")])],
+    ['What do you make of my bug?', () => dlgGo([bug, menu("...")])],
+    ['Bye', () => dlgGo(["Mm. Go on, then. The pond will still be here, and so will I, probably in this exact spot."])],
+  ] });
+  talk('pell', [menu(pickLine('pellHi', ["Oh. Hello, {name}. Mind the line, I've almost got one.", "...Mm? Oh, it's you. Sit down if you like, the stars are biting tonight.", "Shh. No, it's fine, you didn't scare anything off. They always come back."]))]);
+}
+const PELL_THOUGHTS = [
+  "The stars in the pond are easier to catch than the ones up there. They're the same stars, mind you, they've just come a bit closer to the ground.",
+  "Every night ends eventually. Most of them don't even need any help, but it's nice to be around when they do.",
+  "I caught a star once. It was very bright and very wet, and I let it go again, because it looked like it had somewhere to be.",
+  "Glim says I don't say much. I say plenty, I just leave long gaps so the words have room to sit down.",
+  "The fireflies you carry aren't following you, you know. They're keeping you company, which is a different thing entirely.",
+  "Shellby asked me once what I'd sell if I had a shop. I said quiet, and she laughed, but I still think there'd be a market for it.",
+];
+
+// ---- settings: Music, Sounds and Screen shake. The game already follows the device's reduce-motion setting. ----
+function openSettings() {
+  const s = save.set, slider = (k, label) => '<label class="field"><span>' + label + '</span><div class="k-slider"><div class="tr"></div><div class="fi"></div><div class="kn"></div><input type="range" min="0" max="100" step="5" value="' + s[k] + '" data-k="' + k + '" aria-label="' + label + '"></div><output>' + s[k] + '</output></label>';
+  $('setBody').innerHTML = slider('music', 'Music') + slider('sfx', 'Sounds') + '<label class="opt"><input id="setShake" class="k-toggle" type="checkbox"' + (s.shake ? ' checked' : '') + '> Screen shake</label>';
+  $('setBody').querySelectorAll('.k-slider').forEach(sl => {
+    const inp = sl.querySelector('input'), out = sl.parentElement.querySelector('output');
+    const paint = () => { const v = +inp.value; sl.querySelector('.fi').style.width = 'calc(' + v + '% - ' + (v / 100 * 6) + 'px)'; sl.querySelector('.kn').style.left = 'calc(' + v + '% + ' + (3.5 - v / 100 * 7) * 3 + 'px)'; out.textContent = v; };
+    inp.addEventListener('input', () => { s[inp.dataset.k] = +inp.value; paint(); initAudio(); applyVol(); });
+    inp.addEventListener('change', () => { persist(); if (inp.dataset.k === 'sfx') sfx('select'); });
+    paint();
+  });
+  $('setShake').onchange = e => { s.shake = e.target.checked; persist(); };
+  $('settings').classList.remove('hidden'); if (hollow) hollow.pause(true);
+  $('setDone').focus();
+}
+function closeSettings() {
+  persist(); $('settings').classList.add('hidden');
+  if (where === 'haven' && !hubOpen && !dlg && hollow) hollow.pause(false);
+  if (state === 'pause') $('setBtn').focus();
+}
+
 /* ---------- loop ---------- */
 let last = performance.now();
 function frame(now) {
@@ -2652,17 +3742,17 @@ function frame(now) {
     update(dt); music();
   } else if (state === 'levelup') { music();
   } else if (state === 'dying') { fx(dt * .6); dieT -= dt; if (dieT <= 0) finish(false); }
-  else if (state === 'menu') { cam.x += dt * 16; cam.y += dt * 6; } // the meadow drifts slowly behind the menu
-  render();
+  if (state !== 'menu' || where === 'menu') render();
+  if (state === 'menu' && where === 'menu') { cam.x += dt * 16; cam.y += dt * 6; } // the meadow drifts slowly behind the menu
   requestAnimationFrame(frame);
 }
-reset(); state = 'menu'; buildStart();
+reset(); state = 'menu'; hubInit(); toMenu();
 $('muteBtn').innerHTML = iconImg(ART.ICO.soundOn, 2); $('pauseBtn').innerHTML = iconImg(ART.ICO.pause, 2); // after the drawing helpers exist, since it paints the bug portraits
 requestAnimationFrame(frame);
 
 // small hook for automated playtests
 window.__glow = { sprite, SPRITES, get dmgDone() { return dmgDone; }, get state() { return state; }, get T() { return T; }, get P() { return P; }, get enemies() { return enemies; }, get ebullets() { return ebullets; },
-  get kills() { return kills; }, get wl() { return wl; }, get pl() { return pl; }, get gems() { return gems; }, get pickups() { return pickups; }, get flight() { return flight; }, get strays() { return strays; }, get shocks() { return shocks; }, get dmgLog() { return dmgLog; }, get webs() { return webs; }, get bossOrder() { return bossOrder; }, setBosses: a => { bossOrder = a; }, award, showStats, get rings() { return ringsMade; }, scoreParts, get boss() { return boss; }, keys, update, choose, start, dash, render, save, reroll, toMenu, music, shareText, get lastDaily() { return lastDaily; } };
+  get kills() { return kills; }, get wl() { return wl; }, get pl() { return pl; }, get gems() { return gems; }, get pickups() { return pickups; }, get flight() { return flight; }, get strays() { return strays; }, get shocks() { return shocks; }, get dmgLog() { return dmgLog; }, get webs() { return webs; }, get bossOrder() { return bossOrder; }, setBosses: a => { bossOrder = a; }, award, showStats, get rings() { return ringsMade; }, scoreParts, get boss() { return boss; }, keys, update, choose, start, dash, render, save, reroll, toMenu, music, shareText, get hollow() { return hollow; }, get embers() { return embers; }, finish, ART, hub: { openGate, openTree, openRoost, openRecords, openSettings, hubRefresh, payAmber, toHaven, toMenu, glimIntro, talkTo, endTalk, get dlg() { return dlg; }, get where() { return where; }, dlgAdvance, sendFeedback, get RT() { return RT; }, get TR() { return TR; } }, get lastDaily() { return lastDaily; } };
 })();
 </script>
 </body>
