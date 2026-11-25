@@ -73,7 +73,7 @@ Then go to http://localhost:8765.
 
 ## How it's built
 
-Everything is in `index.html`: the graphics are drawn on a canvas, the sound effects and music are synthesized with the Web Audio API, and the only thing loaded from outside is the Pixelify Sans font from Google Fonts (it falls back to a system font offline).
+Everything is in `index.html`: the graphics are drawn on a canvas (the creatures are pixel art, written as small grids of characters and shaded in code when the game loads), the sound effects and music are synthesized with the Web Audio API, and the only thing loaded from outside is the Pixelify Sans font from Google Fonts (it falls back to a system font offline).
 
 The daily challenge works without a server. The day's bug, upgrade offers, and enemy waves all come from a hash of the UTC date, so two people who open the game on the same day get the same run.
 
