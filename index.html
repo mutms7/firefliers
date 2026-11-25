@@ -89,6 +89,8 @@
   #hubHint{position:absolute;z-index:2;left:50%;bottom:22px;transform:translateX(-50%)}
   .hint-btn{font-size:20px;color:var(--ink);display:inline-flex;gap:10px;align-items:center;background:rgba(6,9,10,.8);border:1px solid var(--line2);padding:5px 14px 5px 6px;text-shadow:0 2px 0 #000;white-space:nowrap}
   .hint-btn:hover,.hint-btn:focus-visible{border-color:var(--gold);outline:none}
+  /* a plain key cap: light face, dark edge, a hard bottom lip, and the letter at full size */
+  .keycap{display:inline-grid;place-items:center;min-width:30px;height:30px;padding:0 7px 3px;font-size:22px;line-height:1;color:#141818;text-shadow:none;background:#e9e4d6;border:2px solid #030405;box-shadow:inset 0 -4px 0 #8d9491,inset 0 2px 0 #ffffff}
   #hubOv{position:absolute;inset:0;z-index:3;display:grid;place-items:center;padding:16px;background:rgba(4,6,7,.62);overflow-y:auto}
   .hubPanel{--k:var(--gold);display:flex;flex-direction:column;gap:6px;text-align:center}
   .hubPanel.big{width:min(900px,100%)}
@@ -2576,11 +2578,12 @@ function mountHaven(root, ui, opt = {}) {
   const cv = document.createElement('canvas'); cv.className = 'px hollow-cv'; root.appendChild(cv);
   const ctx = cv.getContext('2d');
   let S = 3, VW = 0, VH = 0, buf = null, bc = null;
-  const resize = () => { const r = root.getBoundingClientRect(); S = r.width < 600 ? 2 : 3; VW = Math.ceil(r.width / S); VH = Math.ceil(r.height / S); cv.width = VW * S; cv.height = VH * S; cv.style.width = VW * S + 'px'; cv.style.height = VH * S + 'px'; buf = px(Math.max(1, VW), Math.max(1, VH), () => {}); bc = buf.getContext('2d'); };
+  let RW = -1, RH = -1; // the size we last laid out for
+  const resize = () => { const r = root.getBoundingClientRect(); RW = root.clientWidth; RH = root.clientHeight; S = r.width < 600 ? 2 : 3; VW = Math.ceil(r.width / S); VH = Math.ceil(r.height / S); cv.width = VW * S; cv.height = VH * S; cv.style.width = VW * S + 'px'; cv.style.height = VH * S + 'px'; buf = px(Math.max(1, VW), Math.max(1, VH), () => {}); bc = buf.getContext('2d'); };
   new ResizeObserver(resize).observe(root); resize();
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const me = { x: world.spawn[0], y: world.spawn[1], face: 1, moving: false, trail: [], bug: 'firefly', dash: 0, dvx: 0, dvy: 0, cd: 0, ghosts: [] };
-  const keys = {}; let joy = null, near = null, paused = false, t0 = performance.now(), iris = 1, focus = null, cam = null;
+  const keys = {}; let joy = null, near = null, paused = false, t0 = performance.now(), iris = 1, irisAt = 0, focus = null, cam = null;
   root.tabIndex = 0; const kt = opt.keys || root; let on = true, raf = 0;
   const dash = () => {
     if (paused || me.cd > 0) return;
@@ -2607,6 +2610,8 @@ function mountHaven(root, ui, opt = {}) {
   let last = performance.now();
   function frame(now) {
     if (!on) { raf = 0; return; }
+    // measure every frame rather than waiting for a resize event, which never comes if the Haven was hidden when it mounted
+    if (root.clientWidth !== RW || root.clientHeight !== RH) resize();
     if (!VW || !VH) { raf = requestAnimationFrame(frame); return; } // not laid out yet
     const dt = Math.min(.05, (now - last) / 1000); last = now; const T = (now - t0) / 1000;
     // move (dashing is quick and does no harm here)
@@ -2673,7 +2678,8 @@ function mountHaven(root, ui, opt = {}) {
     bc.globalAlpha = 1; bc.globalCompositeOperation = 'source-over';
     // coming in: a circle of light opens out from your bug
     if (iris < 1) {
-      iris = Math.min(1, iris + dt / (still ? .25 : .75)); const e = 1 - Math.pow(1 - iris, 3), R = e * Math.hypot(VW, VH);
+      // timed by the clock, so a slow frame rate can't leave it half shut
+      iris = Math.min(1, (now - irisAt) / (still ? 250 : 750)); const e = 1 - Math.pow(1 - iris, 3), R = e * Math.hypot(VW, VH);
       bc.fillStyle = '#030405'; bc.beginPath(); bc.rect(0, 0, VW, VH); bc.arc(Math.round(me.x - cx), Math.round(me.y - 10 - cy), R, 0, TAU, true); bc.fill('evenodd');
       if (iris < .35) { bc.globalAlpha = 1 - iris / .35; bc.fillRect(0, 0, VW, VH); bc.globalAlpha = 1; }
     }
@@ -2686,8 +2692,8 @@ function mountHaven(root, ui, opt = {}) {
   raf = requestAnimationFrame(frame);
   const stationAt = s => world.props.find(p => p.npc === s) || world.props.find(p => p.station === s);
   return {
-    active: v => { on = v; if (!v) { for (const k in keys) keys[k] = false; joy = null; } else if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } },
-    enter: at => { iris = 0; focus = null; cam = null; me.ghosts = []; me.trail = []; const p = at && stationAt(at); if (p) { me.x = p.x + p.w / 2 - 14; me.y = p.foot + 16; } else { me.x = world.spawn[0]; me.y = world.spawn[1]; } },
+    active: v => { on = v; if (!v) { for (const k in keys) keys[k] = false; joy = null; } else { resize(); } if (v && !raf) { last = performance.now(); raf = requestAnimationFrame(frame); } },
+    enter: at => { iris = 0; irisAt = performance.now(); focus = null; cam = null; me.ghosts = []; me.trail = []; const p = at && stationAt(at); if (p) { me.x = p.x + p.w / 2 - 14; me.y = p.foot + 16; } else { me.x = world.spawn[0]; me.y = world.spawn[1]; } },
     focusOn: s => { if (!s) { focus = null; return; } const p = stationAt(s); focus = p ? [p.x + p.w / 2, p.y + p.h / 2] : null; },
     goto: (tx, ty) => { me.x = tx * 16; me.y = ty * 16; }, setBug: b => { me.bug = b; },
     pause: v => { paused = v; for (const k in keys) keys[k] = false; joy = null; }, get near() { return near; }, get me() { return me; }, get irisDone() { return iris >= 1; },
@@ -3426,7 +3432,7 @@ const hubUI = {
     const h = $('hubHint');
     if (!p || hubOpen || dlg) { h.classList.add('hidden'); return; }
     const label = stationOpen(p) ? p.label : p.label + ' (later)';
-    if (h.dataset.k !== label) { h.dataset.k = label; h.innerHTML = '<button class="hint-btn">' + (isTouch() ? '' : '<span class="k-key">E</span>') + label + '</button>'; h.firstChild.onclick = () => hubUI.open(p); }
+    if (h.dataset.k !== label) { h.dataset.k = label; h.innerHTML = '<button class="hint-btn">' + (isTouch() ? '' : '<span class="keycap" aria-hidden="true">E</span>') + label + '</button>'; h.firstChild.onclick = () => hubUI.open(p); }
     h.classList.remove('hidden');
   },
   open(p) {
