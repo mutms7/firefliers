@@ -1,0 +1,28 @@
+// ---------- projectiles and effects ----------
+// Rule: your shots are warm, bright and pointed in the direction they fly. Enemy shots are round, deep red or magenta,
+// with a dark core and a bright rim, so the two never read alike even in a crowd.
+const F = (rowsOrFn, pal, ol = null) => { if (typeof rowsOrFn === 'function') { const g = rowsOrFn(); return bake(pal, g, ol); } return bake(pal, rowsOrFn, ol); };
+const SPARK_PAL = { a: '#8a5a10', b: '#ffb83a', c: '#ffe066', w: '#ffffff' };
+const PLAYER_SHOTS = {
+  'Spark Shot': [F(['..aab....', '.abbccw..', '..aab....'], SPARK_PAL), F(['...aab...', 'aabbccw..', '...aab...'], SPARK_PAL)],
+  'Starstorm': [F(['.....c...', '...aacw..', 'aabbcwwc.', '...aacw..', '.....c...'], SPARK_PAL)],
+  'Moon scythe': [F(() => { const g = pg(20, 12); ell(g, 10, 12, 10, 11, 'M'); ell(g, 10, 14.5, 9, 11, '.'); return g; }, { M: P.ice }, '#0a1a24')],
+  'Pulse ring': [0, 1, 2].map(f => px(28, 28, (c, dot) => { const r = 5 + f * 4.5; for (let a = 0; a < TAU; a += .02) { const x = Math.round(14 + Math.cos(a) * r), y = Math.round(14 + Math.sin(a) * r); dot(x, y, f === 2 ? '#ff7ad9' : '#ffd0f0'); if (f < 2) dot(Math.round(14 + Math.cos(a) * (r - 1)), Math.round(14 + Math.sin(a) * (r - 1)), '#ff7ad9'); } })),
+  'Chain Zap': [F(['......vv......', '..vvvv..v.....', 'vv.......vvwvv', '..........v...'], { v: '#9070e0', w: '#ffffff' }), F(['.v.v.', 'v.w.v', '.vwv.', 'v.w.v', '.v.v.'], { v: '#c8b0ff', w: '#ffffff' })],
+  'Firefly': [F(['ww.ww', 'bGGGy', '.GGG.'], { G: ['#1e5a20', '#3a9a3a', '#9dff8a', '#d4ffc8', '#ffffff'], w: 'rgba(220,240,255,.6)', b: '#14281a', y: '#ffffff' }, '#06140a'), ...[0, 1, 2].map(f => px(14, 14, (c, dot) => { for (let i = 0; i < 18; i++) { const a = i / 18 * TAU, r = 2 + f * 2.5 + (i % 2); dot(Math.round(7 + Math.cos(a) * r), Math.round(7 + Math.sin(a) * r), f === 2 ? '#3a9a3a' : i % 2 ? '#9dff8a' : '#ffffff'); } }))],
+  'Thorn': [0, 1, 2, 3].map(f => { let cv = F(() => { const g = pg(11, 11); polyFill(g, [[5.5, 0], [7, 4], [11, 5.5], [7, 7], [5.5, 11], [4, 7], [0, 5.5], [4, 4]], 'T'); ell(g, 5.5, 5.5, 1.4, 1.4, 'd'); return g; }, { T: P.cloth, d: '#3a1a10' }, '#140804'); if (f % 2) cv = px(13, 13, c => { c.translate(6.5, 6.5); c.rotate(Math.PI / 4); c.drawImage(cv, -6.5, -6.5); }); return cv; }),
+  'Spore cloud': [0, 1].map(f => F(() => { const g = pg(18, 12); for (const [x, y, r] of f ? [[5, 7, 4], [11, 7, 4.5], [8, 4, 3.6], [14, 5, 2.6]] : [[5, 6, 4], [12, 7, 4], [9, 4, 4], [3, 3, 2]]) ell(g, x, y, r, r * .85, 'S'); return g; }, { S: ['#3a4a10', '#6a8a1a', '#b8d84a', '#d6ff5c', '#f4ffc0'] }, '#141c04')),
+  'Chill': [F(['..w..', 'w.i.w', '.iwi.', 'w.i.w', '..w..'], { i: '#9ad8e8', w: '#e8fbff' })],
+};
+const ENEMY_SHOT = (rim, mid, core, size = 7) => px(size + 2, size + 2, (c, dot) => { const m = (size + 1) / 2; for (let y = 0; y < size + 2; y++) for (let x = 0; x < size + 2; x++) { const d = Math.hypot(x + .5 - m - .5, y + .5 - m - .5); if (d <= size / 2 + .5) dot(x, y, d > size / 2 - .6 ? rim : d > size / 2 - 1.8 ? mid : core); } dot(Math.floor(m) - 1, Math.floor(m) - 1, '#ffffff'); });
+const ENEMY_SHOTS = {
+  'Beetle spit': ENEMY_SHOT('#ff4a8a', '#c0205a', '#3a0418'), 'Maw spit': ENEMY_SHOT('#ff5a4a', '#b01c24', '#2a0408', 9), 'Eclipse ember': ENEMY_SHOT('#ff7a3a', '#c03a10', '#2a0a04'),
+  'Shade orb': ENEMY_SHOT('#c8a0ff', '#4a2080', '#0a0418'), 'Hive sting': ENEMY_SHOT('#ffb03a', '#a04a10', '#2a1004', 5), 'Generic shot': ENEMY_SHOT('#ff4a6a', '#a01838', '#24040e'),
+};
+const SHOCKWAVE = [0, 1].map(f => px(34, 34, (c, dot) => { const r = 10 + f * 5; for (let a = 0; a < TAU; a += .015) { for (const [dr, col] of [[0, '#ffffff'], [-1, '#c8a0ff'], [1, '#9070e0'], [2, '#4a2080']]) dot(Math.round(17 + Math.cos(a) * (r + dr)), Math.round(17 + Math.sin(a) * (r + dr)), col); } }));
+const WEB = px(26, 26, (c, dot) => { const col = 'rgba(220,255,245,.85)'; for (let i = 0; i < 8; i++) { const a = i / 8 * TAU; for (let r = 0; r < 12.5; r += .5) dot(Math.round(13 + Math.cos(a) * r), Math.round(13 + Math.sin(a) * r), col); } for (const R of [4, 8, 12]) for (let i = 0; i < 8; i++) { const a0 = i / 8 * TAU, a1 = (i + 1) / 8 * TAU; for (let t = 0; t <= 1; t += .08) dot(Math.round(13 + (Math.cos(a0) * (1 - t) + Math.cos(a1) * t) * R), Math.round(13 + (Math.sin(a0) * (1 - t) + Math.sin(a1) * t) * R), col); } });
+// hits, deaths and other little bursts
+const HIT = [0, 1, 2].map(f => px(9, 9, (c, dot) => { const m = 4; dot(m, m, '#ffffff'); for (let i = 1; i <= f + 2; i++) { dot(m - i, m, f === 2 && i > 2 ? '#ffb83a' : '#ffffff'); dot(m + i, m, '#ffffff'); dot(m, m - i, '#ffe066'); dot(m, m + i, '#ffe066'); } if (f) { dot(m - 2, m - 2, '#ffe066'); dot(m + 2, m + 2, '#ffe066'); dot(m + 2, m - 2, '#ffe066'); dot(m - 2, m + 2, '#ffe066'); } }));
+const POOF = [0, 1, 2, 3].map(f => px(16, 16, (c, dot) => { reseed(9 + f); const n = [5, 9, 11, 8][f], r = [2, 4, 6, 7][f]; for (let i = 0; i < n; i++) { const a = i / n * TAU + f * .3, d = r * (.7 + rnd() * .3), s = [3, 3, 2, 1][f]; const x = Math.round(8 + Math.cos(a) * d - s / 2), y = Math.round(8 + Math.sin(a) * d - s / 2); c.fillStyle = f < 3 ? ['#e9e4d6', '#b8bcb8', '#8d9491'][Math.min(2, f)] : '#5d6563'; c.fillRect(x, y, s, s); } }));
+const LEVEL_BURST = [0, 1].map(f => px(24, 24, (c, dot) => { for (let i = 0; i < 12; i++) { const a = i / 12 * TAU, r0 = 3 + f * 4, r1 = r0 + 4; for (let r = r0; r <= r1; r++) dot(Math.round(12 + Math.cos(a) * r), Math.round(12 + Math.sin(a) * r), r === r1 ? '#ffffff' : i % 2 ? '#6fd0c0' : '#3d79c9'); } }));
+const HEAL = px(9, 9, (c, dot, box) => { box(3, 0, 3, 9, '#7dff9a'); box(0, 3, 9, 3, '#7dff9a'); box(4, 1, 1, 7, '#e0ffe8'); box(1, 4, 7, 1, '#e0ffe8'); });

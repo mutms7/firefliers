@@ -1,0 +1,128 @@
+<title>The Hollow Art Kit</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Layout: one long review sheet, a section per family of assets, pixel art always at whole-number scale. Single dark look, matching the game. */
+  :root{--bg:#0a0c0d;--panel:#0e1213;--stage:#111a1b;--ink:#e9e4d6;--dim:#8d9491;--mute:#5d6563;--line:#283030;--line2:#465150;--gold:#f2c14e;--mint:#7fd6c2;--red:#e8604c;
+    --px:"Pixelify Sans",ui-monospace,Consolas,monospace;color-scheme:dark}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--px);font-variant-ligatures:none;line-height:1.45}
+  .wrap{max-width:1180px;margin:0 auto;padding-block:28px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  header{display:grid;gap:10px;margin-bottom:10px}
+  h1{margin:0;font-size:clamp(34px,6vw,58px);letter-spacing:.04em;line-height:1;color:var(--gold);text-shadow:0 4px 0 #140c03;text-wrap:balance}
+  .lede{max-width:68ch;color:var(--dim);margin:0;font-size:16px}
+  .lede b{color:var(--ink);font-weight:500}
+  nav{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 6px}
+  nav a{color:var(--ink);text-decoration:none;font-size:13px;padding:4px 9px;border:1px solid var(--line2);background:#0c1011}
+  nav a:hover,nav a:focus-visible{border-color:var(--gold);color:var(--gold);outline:none}
+  section{padding-top:30px;margin-top:22px;border-top:1px solid var(--line)}
+  h2{margin:0 0 4px;font-size:26px;letter-spacing:.05em;text-transform:uppercase;text-wrap:balance}
+  h2 small{font-size:13px;color:var(--mute);letter-spacing:.2em;margin-left:8px}
+  h3{margin:20px 0 8px;font-size:15px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute);font-weight:500}
+  .intro{color:var(--dim);max-width:70ch;margin:0 0 12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+  .card{margin:0;background:var(--panel);border:1px solid var(--line);display:flex;flex-direction:column;min-width:0}
+  .card.wide{grid-column:span 2}
+  .stage{flex:1;display:grid;place-items:center;padding:14px 8px;min-height:120px;background:var(--stage);overflow:hidden}
+  .stage canvas{max-width:100%}
+  figcaption{padding:7px 9px 9px;display:grid;gap:2px;border-top:1px solid var(--line)}
+  figcaption b{font-weight:600;font-size:14px}
+  figcaption span{font-size:12px;color:var(--dim);line-height:1.35}
+  canvas.px,img.pxi{image-rendering:pixelated;image-rendering:crisp-edges}
+  img.pxi{vertical-align:middle}
+  .mapwrap{position:relative;overflow-x:auto;border:1px solid var(--line);background:#06090a}
+  .mapin{position:relative;width:max(100%,760px)}
+  canvas.map{display:block;width:100%;height:auto}
+  .pin{position:absolute;transform:translate(-50%,-50%);width:26px;height:26px;display:grid;place-items:center;font-size:14px;font-weight:700;color:#1d1404;background:var(--gold);border:2px solid #1d1404;box-shadow:0 3px 0 #000a}
+  .pin.locked{background:#465150;color:#e9e4d6}
+  ol.legend{list-style:none;padding:0;margin:14px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+  ol.legend li{display:flex;gap:10px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);padding:9px 10px}
+  ol.legend li .pin{position:static;transform:none;flex:none}
+  ol.legend li b{display:block;font-size:15px}ol.legend li span{font-size:13px;color:var(--dim)}
+  ol.legend li.locked b{color:var(--dim)}
+  .rule{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin:0 0 14px}
+  .rule div{background:var(--panel);border:1px solid var(--line);padding:9px 11px;font-size:13px;color:var(--dim)}
+  .rule b{display:block;color:var(--ink);font-size:14px;font-weight:600;margin-bottom:2px}
+  .kitgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
+  .kitbox{background:var(--panel);border:1px solid var(--line);padding:14px;display:grid;gap:12px;align-content:start;min-width:0}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .row.end{justify-content:flex-end;margin-top:10px}
+  .field{display:grid;grid-template-columns:110px minmax(0,1fr) 34px;gap:10px;align-items:center;font-size:14px}
+  .field output{color:var(--dim);font-variant-numeric:tabular-nums;text-align:right}
+  .opt{display:inline-flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
+  .bars{display:grid;gap:8px} .bars small{color:var(--dim);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+  .price{display:inline-flex;gap:6px;align-items:center;font-size:16px;color:var(--gold)} .price.poor{color:var(--red)}
+  .prompt{display:inline-flex;gap:8px;align-items:center;font-size:14px}
+  .curs{display:inline-flex;gap:10px;align-items:center;padding:10px 12px;border:1px dashed var(--line2);font-size:13px;color:var(--dim)}
+  .screens{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:14px}
+  .screens>div{min-width:0}
+  .screen-shop .shop-head{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;margin-bottom:10px}
+  .shop-head h3,.screen-set h3,.screen-lock h3,.screen-sum h3{margin:0;color:var(--gold);font-size:20px;letter-spacing:.06em}
+  .say{margin:4px 0 0;color:var(--dim);font-size:14px}
+  .balance{display:inline-flex;gap:6px;align-items:center;font-size:20px;color:var(--gold);align-self:start}
+  .shop-list{display:grid;gap:4px;max-height:430px;overflow-y:auto}
+  .shop-row{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 4px;border-bottom:1px solid var(--line)}
+  .sr-t{display:grid;gap:3px}.sr-t b{font-size:15px}.sr-t span{font-size:12.5px;color:var(--dim)}
+  .shop-row .k-btn{display:inline-flex;gap:6px;align-items:center;font-size:15px;padding-inline:12px}
+  .maxed{display:inline-flex;gap:6px;align-items:center;color:var(--mint);font-size:14px}
+  .screen-set h3{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+  .set-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+  .set-grid>div{display:grid;gap:10px;align-content:start}
+  .set-grid h4{margin:0;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute);font-weight:500}
+  .set-grid .field{grid-template-columns:minmax(0,1fr) 30px}.set-grid .field>span{grid-column:1/-1}
+  .note{margin:0;font-size:13px;color:var(--dim)}
+  .screen-lock{display:flex;gap:16px;align-items:center}.screen-lock p{color:var(--dim);margin:6px 0 12px}
+  .screen-dialog{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:start}
+  .portrait{padding:6px;background:#06090a;border:2px solid #465150}
+  .nameplate{display:inline-block;background:var(--gold);color:#1d1404;padding:2px 10px;font-size:14px;letter-spacing:.06em}
+  .screen-dialog p{margin:8px 0 10px;font-size:15px}
+  .hudmock{position:relative;height:190px;border:1px solid var(--line);background-color:#0d1715}
+  .hudmock .amt{position:absolute;left:12px;top:12px;display:inline-flex;gap:6px;align-items:center;font-size:20px;color:var(--gold);text-shadow:0 2px 0 #000}
+  .hudmock .right{position:absolute;right:10px;top:10px}
+  .hudmock .hint{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);display:inline-flex;gap:8px;align-items:center;font-size:15px;text-shadow:0 2px 0 #000;white-space:nowrap}
+  .sum-amber{display:flex;gap:14px;align-items:center;margin-top:10px}.sum-amber b{display:block;font-size:24px;color:var(--gold)}.sum-amber span{font-size:13px;color:var(--dim)}
+  .ask{margin-top:30px;background:#141410;border:1px solid #7c6630;border-left:4px solid var(--gold);padding:14px 16px;max-width:76ch}
+  .ask b{color:var(--gold)}
+  @media (max-width:560px){.card.wide{grid-column:auto}.field{grid-template-columns:90px minmax(0,1fr) 30px}.screen-dialog{grid-template-columns:1fr}}
+  @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+<style id="kit"></style>
+
+<div class="wrap">
+  <header>
+    <h1>The Hollow</h1>
+    <p class="lede">Every new piece of art for Firefliers, drawn and ready for your sign-off before any of it goes into the game: <b>the hub you'll walk around</b>, its merchant and locked areas, the <b>permanent upgrades</b>, <b>projectiles</b>, the run's <b>level tiles</b>, and a working <b>UI kit</b> down to the sliders and checkboxes. Animated pieces play their frames. Everything is drawn at whole-pixel scale.</p>
+    <nav aria-label="Sections"><a href="#hub">The Hollow</a><a href="#cast">Characters</a><a href="#hubart">Hub props and tiles</a><a href="#shopart">Upgrades and icons</a><a href="#shotsart">Projectiles</a><a href="#levelart">The run</a><a href="#kitart">UI kit</a><a href="#screensart">Screens</a></nav>
+  </header>
+
+  <section id="hub"><h2>The Hollow <small>hub</small></h2>
+    <p class="intro">A sheltered nook under the roots of an old tree at the meadow's edge, where the fireflies rest by day. You walk around it between runs. Lit areas work today; the three foggy corners are locked, with a padlocked gate and a coming-soon board, ready for new modes and merchants.</p>
+    <div class="mapwrap"><div class="mapin" id="map"></div></div>
+    <ol class="legend" id="legend"></ol>
+  </section>
+
+  <section id="cast"><h2>Characters</h2><p class="intro">Your five bugs as pixel sprites to match the enemies, the two merchants, and the fireflies. Locked bugs sit on the Roost as shadows.</p><div id="chars"></div></section>
+
+  <section id="hubart"><h2>Hub props and tiles</h2><p class="intro">Warmer and greener than the run, because this is home. Tiles are 16 by 16 with clusters that wrap across their edges so the grid doesn't show.</p>
+    <h3>Props</h3><div id="props"></div><h3>Tiles</h3><div id="tiles"></div></section>
+
+  <section id="shopart"><h2>Upgrades and icons</h2>
+    <p class="intro">Old Glim sells twelve permanent upgrades for amber, which you bring home from every run. Prices are a first pass and can be tuned. All the old font symbols in the game get replaced by drawn icons.</p>
+    <h3>Permanent upgrades</h3><div id="upgrades"></div><h3>Amber</h3><div id="currency"></div><h3>Weapons and their evolutions</h3><div id="weapons"></div>
+    <h3>Run boosts</h3><div id="passives"></div><h3>Pickups and sparks</h3><div id="pickups"></div><h3>HUD and menu icons</h3><div id="hudicons"></div></section>
+
+  <section id="shotsart"><h2>Projectiles and effects</h2>
+    <div class="rule"><div><b>Yours</b>Warm, bright and pointed the way they fly.</div><div><b>Enemies'</b>Round, deep red or magenta, with a dark core and a bright rim.</div><div><b>Why</b>They should never read alike, even in a crowd of both.</div></div>
+    <h3>Your shots</h3><div id="shots"></div><h3>Enemy shots</h3><div id="eshots"></div><h3>Effects</h3><div id="effects"></div></section>
+
+  <section id="levelart"><h2>The run</h2><p class="intro">The meadow ruin as real 16 by 16 tiles instead of a painted backdrop: colder and darker than the Hollow, so the creatures and your light stand out. This mock shows your bug, its trail, your shots and enemy shots together.</p>
+    <div class="mapwrap"><div class="mapin" id="level"></div></div><h3>Run tiles and props</h3><div id="runtiles"></div></section>
+
+  <section id="kitart"><h2>UI kit</h2><p class="intro">Every control is built from small pixel pieces that stretch as 9-slice frames, so they work at any size. These are live: hover, press, drag and tick them.</p>
+    <div class="kitgrid"><div class="kitbox"><h3 style="margin:0">Buttons</h3><div id="k-buttons"></div></div><div class="kitbox"><h3 style="margin:0">Sliders, toggles, checkboxes, radios, dropdown</h3><div id="k-inputs" style="display:grid;gap:12px"></div></div><div class="kitbox"><h3 style="margin:0">Tabs, bars, pips, prices, tooltip, toast, keys, scrolling, cursor</h3><div id="k-misc" style="display:grid;gap:12px"></div></div></div></section>
+
+  <section id="screensart"><h2>Screens</h2><p class="intro">The kit put together into the screens the hub needs.</p>
+    <div class="screens"><div><h3>Old Glim's shop</h3><div id="shop"></div></div><div><h3>Settings</h3><div id="settings"></div></div><div><h3>Talking to Glim</h3><div id="dialog"></div></div><div><h3>Locked area</h3><div id="locked"></div></div><div><h3>Hub HUD</h3><div id="hubhud"></div></div><div><h3>After a run</h3><div id="summary"></div></div></div>
+    <div class="ask"><b>Your call.</b> Tell me what to change, cut or redraw. Once you're happy with these, I'll build the Hollow, the shop and the upgrades into the game.</div></section>
+</div>

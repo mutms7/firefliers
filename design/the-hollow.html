@@ -1,0 +1,998 @@
+<title>The Hollow Art Kit</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Layout: one long review sheet, a section per family of assets, pixel art always at whole-number scale. Single dark look, matching the game. */
+  :root{--bg:#0a0c0d;--panel:#0e1213;--stage:#111a1b;--ink:#e9e4d6;--dim:#8d9491;--mute:#5d6563;--line:#283030;--line2:#465150;--gold:#f2c14e;--mint:#7fd6c2;--red:#e8604c;
+    --px:"Pixelify Sans",ui-monospace,Consolas,monospace;color-scheme:dark}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--px);font-variant-ligatures:none;line-height:1.45}
+  .wrap{max-width:1180px;margin:0 auto;padding-block:28px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  header{display:grid;gap:10px;margin-bottom:10px}
+  h1{margin:0;font-size:clamp(34px,6vw,58px);letter-spacing:.04em;line-height:1;color:var(--gold);text-shadow:0 4px 0 #140c03;text-wrap:balance}
+  .lede{max-width:68ch;color:var(--dim);margin:0;font-size:16px}
+  .lede b{color:var(--ink);font-weight:500}
+  nav{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 6px}
+  nav a{color:var(--ink);text-decoration:none;font-size:13px;padding:4px 9px;border:1px solid var(--line2);background:#0c1011}
+  nav a:hover,nav a:focus-visible{border-color:var(--gold);color:var(--gold);outline:none}
+  section{padding-top:30px;margin-top:22px;border-top:1px solid var(--line)}
+  h2{margin:0 0 4px;font-size:26px;letter-spacing:.05em;text-transform:uppercase;text-wrap:balance}
+  h2 small{font-size:13px;color:var(--mute);letter-spacing:.2em;margin-left:8px}
+  h3{margin:20px 0 8px;font-size:15px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute);font-weight:500}
+  .intro{color:var(--dim);max-width:70ch;margin:0 0 12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+  .card{margin:0;background:var(--panel);border:1px solid var(--line);display:flex;flex-direction:column;min-width:0}
+  .card.wide{grid-column:span 2}
+  .stage{flex:1;display:grid;place-items:center;padding:14px 8px;min-height:120px;background:var(--stage);overflow:hidden}
+  .stage canvas{max-width:100%}
+  figcaption{padding:7px 9px 9px;display:grid;gap:2px;border-top:1px solid var(--line)}
+  figcaption b{font-weight:600;font-size:14px}
+  figcaption span{font-size:12px;color:var(--dim);line-height:1.35}
+  canvas.px,img.pxi{image-rendering:pixelated;image-rendering:crisp-edges}
+  img.pxi{vertical-align:middle}
+  .mapwrap{position:relative;overflow-x:auto;border:1px solid var(--line);background:#06090a}
+  .mapin{position:relative;width:max(100%,760px)}
+  canvas.map{display:block;width:100%;height:auto}
+  .pin{position:absolute;transform:translate(-50%,-50%);width:26px;height:26px;display:grid;place-items:center;font-size:14px;font-weight:700;color:#1d1404;background:var(--gold);border:2px solid #1d1404;box-shadow:0 3px 0 #000a}
+  .pin.locked{background:#465150;color:#e9e4d6}
+  ol.legend{list-style:none;padding:0;margin:14px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+  ol.legend li{display:flex;gap:10px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);padding:9px 10px}
+  ol.legend li .pin{position:static;transform:none;flex:none}
+  ol.legend li b{display:block;font-size:15px}ol.legend li span{font-size:13px;color:var(--dim)}
+  ol.legend li.locked b{color:var(--dim)}
+  .rule{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin:0 0 14px}
+  .rule div{background:var(--panel);border:1px solid var(--line);padding:9px 11px;font-size:13px;color:var(--dim)}
+  .rule b{display:block;color:var(--ink);font-size:14px;font-weight:600;margin-bottom:2px}
+  .kitgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
+  .kitbox{background:var(--panel);border:1px solid var(--line);padding:14px;display:grid;gap:12px;align-content:start;min-width:0}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .row.end{justify-content:flex-end;margin-top:10px}
+  .field{display:grid;grid-template-columns:110px minmax(0,1fr) 34px;gap:10px;align-items:center;font-size:14px}
+  .field output{color:var(--dim);font-variant-numeric:tabular-nums;text-align:right}
+  .opt{display:inline-flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
+  .bars{display:grid;gap:8px} .bars small{color:var(--dim);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+  .price{display:inline-flex;gap:6px;align-items:center;font-size:16px;color:var(--gold)} .price.poor{color:var(--red)}
+  .prompt{display:inline-flex;gap:8px;align-items:center;font-size:14px}
+  .curs{display:inline-flex;gap:10px;align-items:center;padding:10px 12px;border:1px dashed var(--line2);font-size:13px;color:var(--dim)}
+  .screens{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:14px}
+  .screens>div{min-width:0}
+  .screen-shop .shop-head{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;margin-bottom:10px}
+  .shop-head h3,.screen-set h3,.screen-lock h3,.screen-sum h3{margin:0;color:var(--gold);font-size:20px;letter-spacing:.06em}
+  .say{margin:4px 0 0;color:var(--dim);font-size:14px}
+  .balance{display:inline-flex;gap:6px;align-items:center;font-size:20px;color:var(--gold);align-self:start}
+  .shop-list{display:grid;gap:4px;max-height:430px;overflow-y:auto}
+  .shop-row{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 4px;border-bottom:1px solid var(--line)}
+  .sr-t{display:grid;gap:3px}.sr-t b{font-size:15px}.sr-t span{font-size:12.5px;color:var(--dim)}
+  .shop-row .k-btn{display:inline-flex;gap:6px;align-items:center;font-size:15px;padding-inline:12px}
+  .maxed{display:inline-flex;gap:6px;align-items:center;color:var(--mint);font-size:14px}
+  .screen-set h3{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+  .set-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+  .set-grid>div{display:grid;gap:10px;align-content:start}
+  .set-grid h4{margin:0;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute);font-weight:500}
+  .set-grid .field{grid-template-columns:minmax(0,1fr) 30px}.set-grid .field>span{grid-column:1/-1}
+  .note{margin:0;font-size:13px;color:var(--dim)}
+  .screen-lock{display:flex;gap:16px;align-items:center}.screen-lock p{color:var(--dim);margin:6px 0 12px}
+  .screen-dialog{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:start}
+  .portrait{padding:6px;background:#06090a;border:2px solid #465150}
+  .nameplate{display:inline-block;background:var(--gold);color:#1d1404;padding:2px 10px;font-size:14px;letter-spacing:.06em}
+  .screen-dialog p{margin:8px 0 10px;font-size:15px}
+  .hudmock{position:relative;height:190px;border:1px solid var(--line);background-color:#0d1715}
+  .hudmock .amt{position:absolute;left:12px;top:12px;display:inline-flex;gap:6px;align-items:center;font-size:20px;color:var(--gold);text-shadow:0 2px 0 #000}
+  .hudmock .right{position:absolute;right:10px;top:10px}
+  .hudmock .hint{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);display:inline-flex;gap:8px;align-items:center;font-size:15px;text-shadow:0 2px 0 #000;white-space:nowrap}
+  .sum-amber{display:flex;gap:14px;align-items:center;margin-top:10px}.sum-amber b{display:block;font-size:24px;color:var(--gold)}.sum-amber span{font-size:13px;color:var(--dim)}
+  .ask{margin-top:30px;background:#141410;border:1px solid #7c6630;border-left:4px solid var(--gold);padding:14px 16px;max-width:76ch}
+  .ask b{color:var(--gold)}
+  @media (max-width:560px){.card.wide{grid-column:auto}.field{grid-template-columns:90px minmax(0,1fr) 30px}.screen-dialog{grid-template-columns:1fr}}
+  @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+<style id="kit"></style>
+
+<div class="wrap">
+  <header>
+    <h1>The Hollow</h1>
+    <p class="lede">Every new piece of art for Firefliers, drawn and ready for your sign-off before any of it goes into the game: <b>the hub you'll walk around</b>, its merchant and locked areas, the <b>permanent upgrades</b>, <b>projectiles</b>, the run's <b>level tiles</b>, and a working <b>UI kit</b> down to the sliders and checkboxes. Animated pieces play their frames. Everything is drawn at whole-pixel scale.</p>
+    <nav aria-label="Sections"><a href="#hub">The Hollow</a><a href="#cast">Characters</a><a href="#hubart">Hub props and tiles</a><a href="#shopart">Upgrades and icons</a><a href="#shotsart">Projectiles</a><a href="#levelart">The run</a><a href="#kitart">UI kit</a><a href="#screensart">Screens</a></nav>
+  </header>
+
+  <section id="hub"><h2>The Hollow <small>hub</small></h2>
+    <p class="intro">A sheltered nook under the roots of an old tree at the meadow's edge, where the fireflies rest by day. You walk around it between runs. Lit areas work today; the three foggy corners are locked, with a padlocked gate and a coming-soon board, ready for new modes and merchants.</p>
+    <div class="mapwrap"><div class="mapin" id="map"></div></div>
+    <ol class="legend" id="legend"></ol>
+  </section>
+
+  <section id="cast"><h2>Characters</h2><p class="intro">Your five bugs as pixel sprites to match the enemies, the two merchants, and the fireflies. Locked bugs sit on the Roost as shadows.</p><div id="chars"></div></section>
+
+  <section id="hubart"><h2>Hub props and tiles</h2><p class="intro">Warmer and greener than the run, because this is home. Tiles are 16 by 16 with clusters that wrap across their edges so the grid doesn't show.</p>
+    <h3>Props</h3><div id="props"></div><h3>Tiles</h3><div id="tiles"></div></section>
+
+  <section id="shopart"><h2>Upgrades and icons</h2>
+    <p class="intro">Old Glim sells twelve permanent upgrades for amber, which you bring home from every run. Prices are a first pass and can be tuned. All the old font symbols in the game get replaced by drawn icons.</p>
+    <h3>Permanent upgrades</h3><div id="upgrades"></div><h3>Amber</h3><div id="currency"></div><h3>Weapons and their evolutions</h3><div id="weapons"></div>
+    <h3>Run boosts</h3><div id="passives"></div><h3>Pickups and sparks</h3><div id="pickups"></div><h3>HUD and menu icons</h3><div id="hudicons"></div></section>
+
+  <section id="shotsart"><h2>Projectiles and effects</h2>
+    <div class="rule"><div><b>Yours</b>Warm, bright and pointed the way they fly.</div><div><b>Enemies'</b>Round, deep red or magenta, with a dark core and a bright rim.</div><div><b>Why</b>They should never read alike, even in a crowd of both.</div></div>
+    <h3>Your shots</h3><div id="shots"></div><h3>Enemy shots</h3><div id="eshots"></div><h3>Effects</h3><div id="effects"></div></section>
+
+  <section id="levelart"><h2>The run</h2><p class="intro">The meadow ruin as real 16 by 16 tiles instead of a painted backdrop: colder and darker than the Hollow, so the creatures and your light stand out. This mock shows your bug, its trail, your shots and enemy shots together.</p>
+    <div class="mapwrap"><div class="mapin" id="level"></div></div><h3>Run tiles and props</h3><div id="runtiles"></div></section>
+
+  <section id="kitart"><h2>UI kit</h2><p class="intro">Every control is built from small pixel pieces that stretch as 9-slice frames, so they work at any size. These are live: hover, press, drag and tick them.</p>
+    <div class="kitgrid"><div class="kitbox"><h3 style="margin:0">Buttons</h3><div id="k-buttons"></div></div><div class="kitbox"><h3 style="margin:0">Sliders, toggles, checkboxes, radios, dropdown</h3><div id="k-inputs" style="display:grid;gap:12px"></div></div><div class="kitbox"><h3 style="margin:0">Tabs, bars, pips, prices, tooltip, toast, keys, scrolling, cursor</h3><div id="k-misc" style="display:grid;gap:12px"></div></div></div></section>
+
+  <section id="screensart"><h2>Screens</h2><p class="intro">The kit put together into the screens the hub needs.</p>
+    <div class="screens"><div><h3>Old Glim's shop</h3><div id="shop"></div></div><div><h3>Settings</h3><div id="settings"></div></div><div><h3>Talking to Glim</h3><div id="dialog"></div></div><div><h3>Locked area</h3><div id="locked"></div></div><div><h3>Hub HUD</h3><div id="hubhud"></div></div><div><h3>After a run</h3><div id="summary"></div></div></div>
+    <div class="ask"><b>Your call.</b> Tell me what to change, cut or redraw. Once you're happy with these, I'll build the Hollow, the shop and the upgrades into the game.</div></section>
+</div>
+
+<script>
+(() => {
+// ---------- core: grids, shading, baking (same rules as the game's creatures) ----------
+const TAU = Math.PI * 2;
+const pg = (w, h) => Array.from({ length: h }, () => Array(w).fill('.'));
+const rows = g => g.map(r => r.join(''));
+const put = (g, x, y, ch) => { if (g[y] && x >= 0 && x < g[0].length) g[y][x] = ch; };
+const rect = (g, x0, y0, x1, y1, ch) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) put(g, x, y, ch); };
+const ell = (g, cx, cy, rx, ry, ch, test) => { for (let y = 0; y < g.length; y++) for (let x = 0; x < g[0].length; x++) if (((x + .5 - cx) / rx) ** 2 + ((y + .5 - cy) / ry) ** 2 <= 1 && (!test || test(x, y))) g[y][x] = ch; };
+const line = (g, x0, y0, x1, y1, ch) => { const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) || 1; for (let i = 0; i <= n; i++) put(g, Math.round(x0 + (x1 - x0) * i / n), Math.round(y0 + (y1 - y0) * i / n), ch); };
+const polyFill = (g, pts, ch) => { for (let y = 0; y < g.length; y++) for (let x = 0; x < g[0].length; x++) { let inside = false; const px = x + .5, py = y + .5; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > py) !== (yj > py) && px < (xj - xi) * (py - yi) / (yj - yi) + xi) inside = !inside; } if (inside) g[y][x] = ch; } };
+const mirror = g => { const w = g[0].length; for (const r of g) for (let x = 0; x < w / 2; x++) if (r[x] !== '.') r[w - 1 - x] = r[x]; return g; };
+const replace = (g, from, to, test) => { for (let y = 0; y < g.length; y++) for (let x = 0; x < g[0].length; x++) if (g[y][x] === from && (!test || test(x, y))) g[y][x] = to; return g; };
+const copy = g => g.map(r => r.slice());
+const fromRows = rs => { const w = Math.max(...rs.map(r => r.length)); return rs.map(r => (r + '.'.repeat(w)).slice(0, w).split('')); };
+let seedN = 7; const rnd = () => (seedN = (seedN * 16807) % 2147483647) / 2147483647; const reseed = s => { seedN = s; };
+
+// bake a grid into a canvas. Upper-case letters are shaded materials (lit from the top left, five-step hue-shifted ramp,
+// a dithered band into shadow); other characters are flat colours; '.' is empty. ol: outline colour or null.
+function bake(pal, g, ol = '#050608', opt = {}) {
+  const r = Array.isArray(g[0]) ? g : fromRows(g), W = r[0].length, H = r.length, pad = ol ? 1 : 0;
+  const cv = document.createElement('canvas'); cv.width = W + pad * 2; cv.height = H + pad * 2; const c = cv.getContext('2d');
+  const at = (x, y) => (y >= 0 && y < H && x >= 0 && x < W) ? r[y][x] : '.';
+  const bb = {};
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const ch = at(x, y); if (ch === '.') continue; const b = bb[ch] || (bb[ch] = { x0: x, x1: x, y0: y, y1: y }); b.x0 = Math.min(b.x0, x); b.x1 = Math.max(b.x1, x); b.y0 = Math.min(b.y0, y); b.y1 = Math.max(b.y1, y); }
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const ch = at(x, y); if (ch === '.') continue; const p = pal[ch]; let col;
+    if (Array.isArray(p)) {
+      const b = bb[ch], rx = (x - b.x0 + .5) / (b.x1 - b.x0 + 1), ry = (y - b.y0 + .5) / (b.y1 - b.y0 + 1), out = (dx, dy) => at(x + dx, y + dy) !== ch;
+      const lit = out(0, -1) || out(-1, 0), sh = out(0, 1) || out(1, 0); let t = 2;
+      if (lit && !sh) t = 3; else if (sh && !lit) t = 1;
+      if (!opt.flat) { if (ry > .68 || (ry > .56 && (x + y) % 2)) t--; if (ry > .86 && sh) t = 0; if (Math.hypot(rx - .32, ry - .28) < .16 && !sh) t = 4; }
+      col = p[Math.max(0, Math.min(4, t))];
+    } else col = p || '#ff00ff';
+    c.fillStyle = col; c.fillRect(x + pad, y + pad, 1, 1);
+  }
+  if (ol) { c.fillStyle = ol; for (let y = -1; y <= H; y++) for (let x = -1; x <= W; x++) if (at(x, y) === '.' && (at(x - 1, y) !== '.' || at(x + 1, y) !== '.' || at(x, y - 1) !== '.' || at(x, y + 1) !== '.')) c.fillRect(x + pad, y + pad, 1, 1); }
+  return cv;
+}
+// a blank pixel canvas to paint directly (tiles, UI pieces)
+function px(w, h, fn) { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; const c = cv.getContext('2d'); const dot = (x, y, col) => { c.fillStyle = col; c.fillRect(x, y, 1, 1); }; const box = (x, y, w2, h2, col) => { c.fillStyle = col; c.fillRect(x, y, w2, h2); }; fn(c, dot, box); return cv; }
+const flipX = cv => px(cv.width, cv.height, c => { c.translate(cv.width, 0); c.scale(-1, 1); c.drawImage(cv, 0, 0); });
+const rot90 = cv => px(cv.height, cv.width, c => { c.translate(cv.height, 0); c.rotate(Math.PI / 2); c.drawImage(cv, 0, 0); });
+// glow halo for warm lights, in pixel steps rather than a smooth gradient
+function halo(r, col, steps = 4) { return px(r * 2, r * 2, (c, dot) => { const [R, G, B] = col; for (let y = 0; y < r * 2; y++) for (let x = 0; x < r * 2; x++) { const d = Math.hypot(x + .5 - r, y + .5 - r) / r; if (d < 1) { const k = Math.ceil((1 - d) * steps) / steps; dot(x, y, 'rgba(' + R + ',' + G + ',' + B + ',' + (k * k * .34).toFixed(3) + ')'); } } }); }
+
+// shared palette (matches the game's HUD and world)
+const P = {
+  ink: '#e9e4d6', dim: '#8d9491', line: '#283030', line2: '#465150', gold: '#f2c14e', mint: '#7fd6c2', red: '#e8604c', night: '#0a0c0d',
+  amber: ['#5a2408', '#9a4a10', '#e08a1c', '#ffb83a', '#ffe7a0'],
+  stone: ['#16181e', '#262a32', '#3a3f48', '#565c66', '#7e848c'], mossStone: ['#121a18', '#1e2c26', '#2e4234', '#466048', '#6a8a62'],
+  wood: ['#24140c', '#43271a', '#6a4026', '#8f5c36', '#b88452'], bark: ['#120b09', '#22150f', '#352318', '#4c3424', '#684a34'],
+  brass: ['#3a2208', '#6a420e', '#a8701c', '#d8a03a', '#ffd27a'], leaf: ['#0c2018', '#173a26', '#245834', '#3a7e44', '#64ae5e'],
+  teal: ['#0e2a2a', '#1a4a48', '#2a6e68', '#46a090', '#7ad0b8'], cream: ['#4a3a2a', '#8a7050', '#c8aa7a', '#ecd6a8', '#fff4d8'],
+  glass: ['#142232', '#22405a', '#3a6a88', '#6a9cba', '#bfe2f4'], red: ['#3a0614', '#7a1024', '#c8283c', '#f05a5a', '#ff9e88'],
+  pink: ['#4a0f3a', '#8a1f6a', '#d84aa8', '#ff7ad9', '#ffd0f0'], blue: ['#1a2a5a', '#2e4a8a', '#4f7ac8', '#86b0f0', '#d0e4ff'],
+  violet: ['#1e1040', '#3a2070', '#6040b0', '#9070e0', '#c8b0ff'], green: ['#12381e', '#22622e', '#3c9a44', '#7cd06a', '#c8f8a8'],
+  ice: ['#1a3a4a', '#2e6a80', '#5aaac0', '#9ad8e8', '#e8fbff'], cloth: ['#3a1a10', '#6e2e18', '#b0522a', '#e08040', '#ffc080'],
+};
+
+// ---------- characters ----------
+const WING = 'rgba(220,240,255,.55)', WINGS = ['#3a4a5e', '#6a8098', '#a8bfd4', '#d4e4f0', '#f6fbff']; // pale, opaque wings read better than see-through ones on a dark floor
+const bugPal = {
+  firefly: { W: WINGS, G: ['#8a6a10', '#d8a820', '#ffe066', '#fff3a0', '#ffffe0'], B: ['#1a1028', '#2b2140', '#3d2f5a', '#56447a', '#7a68a0'], H: ['#120a1e', '#20163a', '#2b2140', '#3d2f5a', '#56447a'], e: '#ffffff', w: WING, a: '#4a3a6a', l: '#2b2140' },
+  moth: { W: ['#2a3466', '#4a6aa0', '#8fb0e0', '#c4dcff', '#eef6ff'], B: ['#3a4a7a', '#6a84b8', '#a6c4ec', '#d6e8ff', '#ffffff'], H: ['#1e2a50', '#2e3e70', '#4a5e98', '#6a84b8', '#a6c4ec'], e: '#0e1430', a: '#8fb0e0', l: '#2e3e70' },
+  beetle: { S: ['#4a0f3a', '#8a1f6a', '#d84aa8', '#ff7ad9', '#ffd0f0'], B: ['#2a0a22', '#4a1a3e', '#6a2a5a', '#8a4a7a', '#b07aa0'], H: ['#1e0818', '#36122c', '#4a1a3e', '#6a2a5a', '#8a4a7a'], e: '#ffffff', k: '#ffd0f0', a: '#6a2a5a', l: '#36122c' },
+  lantern: { W: WINGS, G: ['#1e5a20', '#3a9a3a', '#9dff8a', '#d4ffc8', '#ffffff'], B: ['#0e1e14', '#1a3424', '#264a32', '#3a6a48', '#5a9068'], H: ['#0a160e', '#14281a', '#1a3424', '#264a32', '#3a6a48'], d: '#1e5a20', e: '#ffffff', w: WING, a: '#3a6a48', l: '#14281a' },
+  wasp: { W: WINGS, A: ['#5a2a08', '#a8501a', '#ff9a4d', '#ffc890', '#fff0d8'], B: ['#1e1208', '#3a2410', '#5a3a1a', '#7a5228', '#a07040'], H: ['#140c06', '#2a1a0c', '#3a2410', '#5a3a1a', '#7a5228'], d: '#2a1208', s: '#2a1208', e: '#ffffff', w: WING, a: '#5a3a1a', l: '#2a1a0c' },
+};
+const bugRows = {
+  firefly: [['....WW..........', '...WWWW....a..a.', '..WWWWWW....aa..', '...WWWWWWBBHH...', 'GGGBBBBBBBHHHH..', 'GGGBBBBBBBHHeH..', 'GGGBBBBBBBHHHH..', '.GGGBBBBBBHHH...', '....l..l..l.....', '...l..l..l......'],
+    ['................', '...........a..a.', '............aa..', '.........BBHH...', 'GGGBBBBBBBHHHH..', 'GGGBBWWWWWHHeH..', 'GGGBWWWWWWWHHH..', '.GGGWWWWWWWHH...', '....WWWWW.l.....', '...l..l..l......']],
+  moth: [['..WWWW..........', '.WWWWWWW...a..a.', 'WWWWWWWWW...aa..', '.WWWWWWWWWBHH...', '..BBBBBBBBHHHH..', '.BBBBBBBBBHHeH..', '..BBBBBBBBHHHH..', '...BBBBBBBHHH...', '....l..l..l.....', '...l..l..l......'],
+    ['................', '...........a..a.', '............aa..', '..........BHH...', '..BBBBBBBBHHHH..', '.BBBWWWWWWHHeH..', '..WWWWWWWWWHHH..', '.WWWWWWWWWHHH...', 'WWWWWWWl..l.....', '.WWWWl..l.......']],
+  beetle: [['................', '....SSSSS...a.a.', '..SSSkSSSSS..a..', '.SSSSSSSkSSHH...', 'SSkSSSSSSSSHHH..', 'SSSSSSkSSSSHeH..', 'SSSSSSSSSSHHHH..', '.BBBBBBBBBHHH...', '..l..l..l..l....', '.l..l..l..l.....'],
+    ['................', '....SSSSS...a.a.', '..SSSkSSSSS..a..', '.SSSSSSSkSSHH...', 'SSkSSSSSSSSHHH..', 'SSSSSSkSSSSHeH..', 'SSSSSSSSSSHHHH..', '.BBBBBBBBBHHH...', '.l..l..l..l.....', '..l..l..l..l....']],
+  lantern: [['....WW..........', '...WWWW....a..a.', '..WWWWWW....aa..', 'GGGGWWWWWBBHH...', 'GGGGGBBBBBHHHH..', 'GGdGGBBBBBHHeH..', 'GGGGGBBBBBHHHH..', 'GGGG.BBBBBHHH...', '....l..l..l.....', '...l..l..l......'],
+    ['................', '...........a..a.', '............aa..', 'GGGG.....BBHH...', 'GGGGGBBBBBHHHH..', 'GGdGGWWWWWHHeH..', 'GGGGWWWWWWWHHH..', 'GGGGWWWWWWWHH...', '....WWWWW.l.....', '...l..l..l......']],
+  wasp: [['....WW..........', '...WWWW....a..a.', '..WWWWWW....aa..', '...WWWWWWBBHH...', 'sAAdAAdBBBHHHH..', '.AAdAAdBBBHHeH..', '..AdAAdBBBHHHH..', '...AAAABBBHHH...', '.......l.l.l....', '......l.l.l.....'],
+    ['................', '...........a..a.', '............aa..', '.........BBHH...', 'sAAdAAdBBBHHHH..', '.AAdAAWWWWWHeH..', '..AdAWWWWWWWHH..', '...AAWWWWWWWH...', '.....WWWWW.l....', '......l.l.l.....']],
+};
+const BUGS = {}; for (const k in bugRows) BUGS[k] = bugRows[k].map(f => bake(bugPal[k], f));
+const BUG_NAMES = { firefly: 'Firefly', moth: 'Moth', beetle: 'Beetle', lantern: 'Lantern', wasp: 'Wasp' };
+
+// Old Glim: an old moth peddler with a jar-pack and a lantern on a staff
+function glimRows(f) {
+  const g = fromRows([
+    '............a...a...', '...........a.a.a.a..', '............aa.aa...', '.............HHH....', '............HHHHH...', '...........HHHeeH..t', '...........HHHHpH..t',
+    '..JJJ.......FFFF...t', '.JjJjJ....FFFFFFF..t', '.JJJJJJ..CCCCCCCC.LL', '.JjJjJJCCCCCCCCChhLg', '.JJJJJJCCCCCCCCC.tLL', '..JJJJCCCCCCCCCC..t.',
+    '......CCCCCCCCCC..t.', '.....CCCCcCCCCCC..t.', '.....CCCCCCCCcCC..t.', '....CCCcCCCCCCCC..t.', '....CCCCCCCCCCCC..t.', '...CCCCCCCcCCCCC..t.',
+    '...CCCCCCCCCCCCC..t.', '....CCCCCCCCCCC...t.', '.....ll....ll.....t.', '.....ll....ll.....t.', '....lll...lll.......']);
+  if (f === 1) { g[10][19] = 'k'; g[0] = fromRows(['...........a...a....'])[0]; g[1] = fromRows(['..........a.a.a.a...'])[0]; replace(g, 'j', 'k'); }
+  if (f === 2) { g[6][15] = 'm'; g[5][14] = 'e'; } // talking: mouth open
+  return g;
+}
+const GLIM_PAL = { H: P.cream, e: '#1a1208', p: '#fff4d8', m: '#3a1a10', F: ['#6a6a7a', '#a0a0b0', '#d8d8e6', '#f4f4ff', '#ffffff'], C: P.teal, c: '#7ad0b8', J: P.glass, j: '#ffd86a', k: '#fff6c0', L: P.brass, g: '#fff3a0', t: '#4a2a16', h: '#c8aa7a', a: '#8a7050', l: '#2a2018' };
+const GLIM = [0, 1, 2].map(f => bake(GLIM_PAL, glimRows(f)));
+const GLIM_PORTRAIT = (() => { const g = glimRows(2).slice(0, 13).map(r => r.slice(7, 20)); return bake(GLIM_PAL, g); })();
+
+// Shellby: a snail who runs a shop out of her shell (Mushroom Market, locked for now)
+function shellbyRows(f) {
+  const g = pg(30, 22);
+  ell(g, 12.5, 9.5, 9.5, 9, 'S');
+  for (let t = 0; t < 2.6 * TAU; t += .05) { const rr = 8.5 - t * .5; if (rr < 1) break; put(g, Math.round(12.5 + Math.cos(t) * rr), Math.round(9.5 + Math.sin(t) * rr * .95), 'd'); }
+  rect(g, 9, 11, 13, 17, 'W'); rect(g, 10, 12, 12, 16, 'w'); put(g, 12, 14, 'k'); // a little door
+  rect(g, 15, 5, 17, 7, 'y'); // lit window
+  ell(g, 15, 19.5, 15, 2.6, 'B'); rect(g, 22, 13, 27, 19, 'B'); ell(g, 25, 13.5, 3.5, 3, 'B');
+  line(g, 24, 11, 23, f ? 3 : 4, 'b'); line(g, 27, 11, 28, f ? 4 : 3, 'b'); put(g, 23, f ? 2 : 3, 'e'); put(g, 28, f ? 3 : 2, 'e');
+  put(g, 26, 15, 'm'); put(g, 27, 15, 'm');
+  rect(g, 5, 0, 19, 0, 'A'); for (let x = 5; x <= 19; x++) if (x % 3 === 0) put(g, x, 1, 'A'); // awning over the shell
+  return g;
+}
+const SHELLBY_PAL = { S: ['#3a2410', '#6a4420', '#a8703a', '#d8a060', '#ffd8a0'], d: '#4a2c12', W: P.wood, w: '#2a160c', k: '#ffd27a', y: '#ffd86a', B: ['#2a3a24', '#4a6a3a', '#7a9a5a', '#a8c47a', '#d8eaa8'], b: '#4a6a3a', e: '#1a1208', m: '#2a3a24', A: ['#3a1a10', '#8a3a1a', '#c86a30', '#f0a050', '#ffd090'] };
+const SHELLBY = [0, 1].map(f => bake(SHELLBY_PAL, shellbyRows(f)));
+
+// the fireflies that trail behind you, and a lost one waiting to be rescued
+const FIREFLY = [0, 1].map(f => bake({ G: ['#8a6a10', '#d8a820', '#ffe066', '#fff3a0', '#ffffe0'], w: WING, b: '#3d2f5a' }, f ? ['.w.w.', 'bGGG.', '.GGG.'] : ['ww.ww', 'bGGG.', '.GGG.'], '#1a1208'));
+const STRAY = [0, 1].map(f => px(9, 9, (c, dot) => { const pts = f ? [[4, 0], [0, 4], [8, 4], [4, 8]] : [[1, 1], [7, 1], [1, 7], [7, 7]]; for (const [x, y] of pts) dot(x, y, 'rgba(255,233,160,.7)'); c.drawImage(FIREFLY[f], 2, 2); }));
+
+// ---------- hub props ----------
+// The Lantern Gate: an old stone lantern. Walk into its light to fly out on a run.
+function lanternGate(f) {
+  const g = pg(26, 42);
+  for (let y = 0; y <= 6; y++) rect(g, 12 - y * 2, y + 1, 13 + y * 2, y + 1, 'R'); rect(g, 12, 0, 13, 0, 'R'); rect(g, 0, 8, 25, 8, 'R');
+  rect(g, 4, 9, 21, 19, 'S'); rect(g, 7, 11, 18, 17, 'g'); rect(g, 9, 12, 16, 16, f ? 'h' : 'G'); rect(g, 12, 11, 13, 17, 'S'); rect(g, 7, 14, 18, 14, 'S');
+  rect(g, 6, 20, 19, 21, 'R'); rect(g, 10, 22, 15, 33, 'S'); rect(g, 7, 34, 18, 36, 'S'); rect(g, 3, 37, 22, 41, 'B');
+  for (const [x, y] of [[3, 38], [4, 38], [21, 39], [5, 2 + 6], [20, 8], [8, 34], [16, 35], [11, 25], [14, 29], [1, 8], [2, 8]]) put(g, x, y, 'm');
+  return g;
+}
+const STONE_PAL = { S: P.stone, R: P.mossStone, B: P.stone, m: '#4a7a46', g: '#ffd86a', G: '#fff3a0', h: '#ffe4a0', d: '#1a1c22', y: P.gold };
+const LANTERN_GATE = [0, 1].map(f => bake(STONE_PAL, lanternGate(f)));
+const LAMP_POST = [0, 1].map(f => { const g = pg(9, 24); rect(g, 4, 6, 4, 22, 't'); rect(g, 2, 23, 6, 23, 't'); rect(g, 1, 1, 7, 1, 'L'); rect(g, 2, 2, 6, 5, 'L'); rect(g, 3, 2, 5, 4, f ? 'h' : 'g'); put(g, 4, 0, 'L'); return bake({ t: '#3a2a20', L: P.brass, g: '#ffd86a', h: '#fff3a0' }, g); });
+
+// Glim's cart: striped canopy, hanging jars, a counter of goods
+function cart(f) {
+  const g = pg(46, 36);
+  for (let x = 2; x <= 43; x++) for (let y = 0; y <= 7; y++) if (y >= Math.abs(x - 22.5) * .18) put(g, x, y, ((x >> 2) & 1) ? 'T' : 'A');
+  for (let x = 2; x <= 43; x++) if (x % 4 !== 0) put(g, x, 8, ((x >> 2) & 1) ? 'T' : 'A');
+  rect(g, 3, 9, 3, 24, 't'); rect(g, 42, 9, 42, 24, 't');
+  for (const [x, len] of [[9, 3], [16, 5], [29, 4], [36, 2]]) { line(g, x, 9, x, 9 + len, 'c'); rect(g, x - 1, 10 + len, x + 1, 13 + len, 'J'); put(g, x, 12 + len, f && x % 2 ? 'k' : 'j'); }
+  rect(g, 1, 20, 44, 21, 'W'); rect(g, 2, 22, 43, 30, 'W'); for (const y of [24, 27]) rect(g, 3, y, 42, y, 'd'); for (const x of [11, 23, 34]) rect(g, x, 22, x, 30, 'd');
+  rect(g, 6, 16, 10, 19, 'K'); rect(g, 13, 17, 16, 19, 'J'); put(g, 14, 18, 'j'); rect(g, 31, 15, 36, 19, 'K'); rect(g, 19, 17, 21, 19, 'y'); put(g, 20, 16, 'y'); rect(g, 25, 16, 28, 19, 'Q');
+  ell(g, 9.5, 31.5, 4.5, 4.5, 'K'); ell(g, 36.5, 31.5, 4.5, 4.5, 'K'); for (const cx of [9, 36]) { put(g, cx, 31, 'd'); put(g, cx + 1, 31, 'd'); put(g, cx, 32, 'd'); put(g, cx + 1, 32, 'd'); }
+  return g;
+}
+const CART = [0, 1].map(f => bake({ T: P.teal, A: P.amber, t: '#3a2416', c: '#2a1a10', J: P.glass, j: '#ffd86a', k: '#fff6c0', W: P.wood, d: '#2a160c', K: P.bark, y: '#ffb83a', Q: P.cloth }, cart(f)));
+
+// the Daily Moonstone
+function shrine(f) {
+  const g = pg(20, 28);
+  ell(g, 10, 6, 7.5, 6.5, 'S'); rect(g, 3, 6, 16, 22, 'S');
+  ell(g, 10, 9.5, 4, 4, 'm'); ell(g, 11.5, 8.5, 3.3, 3.3, 'S'); // carved crescent
+  for (let y = 15; y <= 19; y += 2) rect(g, 6, y, 13, y, 'd');
+  rect(g, 1, 23, 18, 27, 'B'); put(g, 2, 22, 'c'); put(g, 17, 22, 'c'); put(g, 2, 21, f ? 'h' : 'g'); put(g, 17, 21, f ? 'g' : 'h');
+  for (const [x, y] of [[4, 4], [5, 3], [15, 20], [14, 21], [3, 24], [16, 26]]) put(g, x, y, 'o');
+  return g;
+}
+const SHRINE = [0, 1].map(f => bake({ S: P.mossStone, B: P.stone, m: f ? '#b8fff0' : '#7fd6c2', d: '#1a2420', c: '#e8e0c8', g: '#ffd86a', h: '#fff3a0', o: '#4a7a46' }, shrine(f)));
+
+// the Wall of Glows: stats and achievements carved in an old slab
+function tablet() {
+  const g = pg(32, 24);
+  rect(g, 2, 2, 29, 20, 'S'); rect(g, 0, 21, 31, 23, 'B'); for (let x = 3; x <= 28; x += 2) put(g, x, 1, 'S');
+  for (const y of [6, 9, 12, 15]) for (let x = 6; x <= 25; x++) if ((x * 7 + y) % 5) put(g, x, y, 'd');
+  for (const [x, y] of [[5, 4], [26, 4], [8, 17], [23, 17], [15, 3]]) { put(g, x, y, 'y'); put(g, x - 1, y, 'Y'); put(g, x + 1, y, 'Y'); put(g, x, y - 1, 'Y'); put(g, x, y + 1, 'Y'); }
+  for (let x = 2; x <= 29; x++) if (rnd() < .45) put(g, x, 2, 'm'); for (let x = 2; x <= 12; x++) if (rnd() < .5) put(g, x, 3, 'm');
+  return g;
+}
+reseed(31); const TABLET = bake({ S: P.stone, B: P.mossStone, d: '#16181e', y: '#fff3a0', Y: '#f2c14e', m: '#4a7a46' }, tablet());
+
+// the Roost: mushroom perches your bugs sit on
+const PERCH = ['#c8283c', '#2a6e68', '#a8701c', '#6040b0', '#3c9a44'].map((cap, i) => { const g = pg(16, 14); ell(g, 8, 4, 7.5, 4, 'C'); rect(g, 6, 7, 9, 13, 'T'); for (const [x, y] of [[4, 2], [10, 3], [7, 1], [12, 5]]) put(g, x, y, 'w'); return bake({ C: [shade(cap, .35), shade(cap, .6), cap, shade(cap, 1.3), shade(cap, 1.7)], T: P.cream, w: '#f4ecd8' }, g); });
+function shade(hex, f) { const n = parseInt(hex.slice(1), 16), c = [n >> 16, n >> 8 & 255, n & 255].map(v => Math.max(0, Math.min(255, Math.round(f > 1 ? v + (255 - v) * (f - 1) * .8 : v * f)))); return '#' + c.map(v => v.toString(16).padStart(2, '0')).join(''); }
+
+// locked gates
+function reedGate() {
+  const g = pg(40, 26);
+  rect(g, 6, 4, 8, 25, 'W'); rect(g, 31, 4, 33, 25, 'W'); put(g, 7, 3, 'W'); put(g, 32, 3, 'W');
+  for (const y of [9, 17]) rect(g, 9, y, 30, y + 1, 'W'); for (let x = 11; x <= 29; x += 3) rect(g, x, 8, x, 21, 'w');
+  line(g, 9, 10, 30, 17, 'n'); line(g, 9, 17, 30, 10, 'n'); // chains across
+  rect(g, 17, 12, 22, 17, 'L'); rect(g, 18, 9, 21, 11, 'l'); put(g, 18, 10, '.'); put(g, 19, 10, '.'); put(g, 20, 10, '.'); rect(g, 19, 14, 20, 15, 'k');
+  for (let x = 0; x <= 39; x++) if (x < 5 || x > 34) { const h = 8 + ((x * 37) % 9); line(g, x, 25, x, 25 - h, 'r'); if (x % 2) { put(g, x, 25 - h, 'K'); put(g, x, 24 - h, 'K'); } }
+  return g;
+}
+const REED_GATE = bake({ W: P.wood, w: '#43271a', n: '#7e848c', L: P.brass, l: '#a8701c', k: '#1a1208', r: '#2e5a32', K: '#6a4026' }, reedGate());
+function fallenLog() {
+  const g = pg(48, 18);
+  rect(g, 4, 3, 40, 16, 'B'); for (const y of [6, 10, 13]) for (let x = 5; x <= 39; x++) if ((x + y) % 7 > 1) put(g, x, y, 'd');
+  ell(g, 42.5, 9.5, 5, 7, 'E'); ell(g, 42.5, 9.5, 3, 4.5, 'e'); ell(g, 42.5, 9.5, 1.2, 2, 'E');
+  for (const [x, y] of [[8, 2], [9, 2], [10, 1], [22, 2], [23, 2], [30, 2]]) put(g, x, y, 'm'); rect(g, 6, 3, 14, 3, 'm');
+  for (let i = 0; i < 6; i++) line(g, 0, 16, 2 + i * 3, 2 + i, 'c'); line(g, 0, 10, 12, 16, 'c'); // cobweb
+  return g;
+}
+const LOG = bake({ B: P.bark, d: '#120b09', E: P.wood, e: '#8f5c36', m: '#4a7a46', c: 'rgba(230,240,240,.55)' }, fallenLog());
+function rubble() { const g = pg(30, 16); for (const [x, y, rx, ry] of [[6, 11, 6, 4.5], [15, 9, 5, 6], [23, 11, 6, 4.5], [11, 5, 3, 3], [20, 4, 3.5, 3]]) ell(g, x, y, rx, ry, 'S'); for (const [x, y] of [[14, 3], [5, 7], [24, 7]]) put(g, x, y, 'm'); return g; }
+const RUBBLE = bake({ S: P.stone, m: '#4a7a46' }, rubble());
+function pillar() { const g = pg(12, 30); rect(g, 2, 6, 9, 27, 'S'); for (let x = 3; x <= 8; x += 2) rect(g, x, 8, x, 25, 'd'); rect(g, 0, 27, 11, 29, 'B'); for (let x = 2; x <= 9; x++) rect(g, x, 6 - ((x * 5) % 4) - (x === 4 ? 4 : 0), x, 6, 'S'); for (const [x, y] of [[2, 12], [3, 13], [9, 20], [8, 21]]) put(g, x, y, 'm'); return g; }
+const PILLAR = bake({ S: P.stone, B: P.mossStone, d: '#262a32', m: '#4a7a46' }, pillar());
+function telescope() { const g = pg(26, 30); line(g, 4, 22, 13, 14, 'W'); line(g, 22, 22, 13, 14, 'W'); line(g, 13, 26, 13, 14, 'W'); polyFill(g, [[6, 4], [21, 13], [18, 17], [3, 8]], 'L'); polyFill(g, [[2, 6], [6, 3], [8, 7], [4, 9]], 'g'); rect(g, 2, 26, 24, 29, 'S'); return g; }
+const TELESCOPE = bake({ W: P.wood, L: P.brass, g: '#bfe2f4', S: P.stone }, telescope());
+
+// small things
+const GLOW_SHROOMS = [['#7fd6c2', '#b8fff0'], ['#c8b0ff', '#f0e4ff'], ['#ffb83a', '#fff0b0']].map(([a, b]) => { const g = pg(12, 10); ell(g, 3.5, 3.5, 3, 2.2, 'c'); rect(g, 3, 5, 3, 9, 's'); ell(g, 8.5, 5.5, 2.4, 1.8, 'c'); rect(g, 8, 7, 8, 9, 's'); put(g, 2, 2, 'h'); put(g, 8, 4, 'h'); return bake({ c: a, h: b, s: '#d8d0bc' }, g, '#06100e'); });
+const JAR = [0, 1].map(f => { const g = fromRows(['.LLLLL.', '.lllll.', 'JJJJJJJ', 'JJJjJJJ', 'JJjjjJJ', 'JJJjJJJ', 'JJJJJJJ', '.JJJJJ.']); if (f) { g[3][3] = 'J'; g[4][2] = 'J'; g[4][4] = 'j'; g[5][4] = 'j'; } return bake({ L: P.brass, l: '#6a420e', J: P.glass, j: '#ffe066' }, g); });
+const CRATE = bake({ W: P.wood, d: '#2a160c' }, (() => { const g = pg(14, 13); rect(g, 0, 0, 13, 12, 'W'); rect(g, 0, 0, 13, 0, 'd'); rect(g, 0, 12, 13, 12, 'd'); line(g, 1, 1, 12, 11, 'd'); line(g, 12, 1, 1, 11, 'd'); return g; })());
+const BENCH = bake({ W: P.wood, d: '#2a160c', t: '#24140c' }, (() => { const g = pg(24, 11); rect(g, 0, 2, 23, 4, 'W'); rect(g, 0, 5, 23, 6, 'W'); rect(g, 0, 4, 23, 4, 'd'); rect(g, 2, 7, 3, 10, 't'); rect(g, 20, 7, 21, 10, 't'); rect(g, 0, 0, 23, 1, 'W'); return g; })());
+const SIGNPOST = bake({ W: P.wood, t: '#3a2416', d: '#2a160c', y: '#f2c14e' }, (() => { const g = pg(18, 20); rect(g, 8, 6, 9, 19, 't'); polyFill(g, [[0, 1], [15, 1], [18, 4.5], [15, 8], [0, 8]], 'W'); for (const x of [3, 6, 9, 12]) put(g, x, 4, 'd'); put(g, 14, 4, 'y'); return g; })());
+const SOON_BOARD = bake({ W: P.wood, d: '#2a160c', t: '#3a2416', y: '#f2c14e', n: '#7e848c' }, (() => { const g = pg(24, 20); rect(g, 3, 9, 4, 19, 't'); rect(g, 19, 9, 20, 19, 't'); rect(g, 0, 1, 23, 12, 'W'); for (const y of [4, 7, 10]) for (let x = 3; x <= 20; x++) if ((x + y) % 4) put(g, x, y, 'd'); line(g, 0, 1, 23, 12, 'n'); line(g, 23, 1, 0, 12, 'n'); rect(g, 10, 5, 13, 8, 'y'); return g; })());
+const BUSH = bake({ L: P.leaf, f: '#ffd0f0' }, (() => { const g = pg(18, 13); for (const [x, y, r] of [[5, 7, 5], [12, 6, 5.5], [9, 4, 4], [14, 9, 3.5]]) ell(g, x, y, r, r * .85, 'L'); for (const [x, y] of [[6, 5], [12, 3], [15, 8]]) put(g, x, y, 'f'); return g; })());
+const LILY = bake({ P: P.leaf, f: '#ffb0d8', y: '#ffe066' }, (() => { const g = pg(11, 7); ell(g, 5.5, 3.5, 5, 3, 'P'); line(g, 5, 3, 8, 0, '.'); put(g, 6, 2, '.'); put(g, 3, 2, 'f'); put(g, 2, 2, 'f'); put(g, 3, 1, 'f'); put(g, 3, 3, 'y'); return g; })(), '#04120c');
+const REEDS = bake({ r: '#2e5a32', K: '#6a4026' }, (() => { const g = pg(8, 16); for (const [x, h] of [[1, 11], [3, 15], [5, 9], [6, 13]]) { line(g, x, 15, x, 15 - h, 'r'); put(g, x, 15 - h, 'K'); put(g, x, 16 - h, 'K'); put(g, x, 17 - h, 'K'); } return g; })(), null);
+const FLOWERS = ['#ff9ac8', '#a8c8ff', '#ffe066'].map(c => bake({ f: c, y: '#fff4d8', s: '#2e5a32' }, ['.f.', 'fyf', '.f.', '.s.'], null));
+const PADLOCK = bake({ L: P.brass, l: '#6a420e', k: '#1a1208' }, (() => { const g = pg(12, 15); rect(g, 3, 0, 8, 1, 'l'); rect(g, 2, 1, 3, 6, 'l'); rect(g, 8, 1, 9, 6, 'l'); rect(g, 0, 6, 11, 14, 'L'); rect(g, 5, 9, 6, 11, 'k'); put(g, 5, 12, 'k'); put(g, 6, 12, 'k'); return g; })());
+
+// ---------- tiles (16x16), painted pixel by pixel. Clusters wrap across edges so the grid doesn't show. ----------
+const T16 = 16;
+function tile(fn, seed) { reseed(seed); return px(T16, T16, (c, dot, box) => fn(c, dot, box)); }
+const wrap = v => ((v % 16) + 16) % 16;
+// a tuft: a little two- or three-blade "v" of lighter pixels with a dark root
+function tuft(dot, x, y, light, dark) { dot(wrap(x), wrap(y), dark); dot(wrap(x - 1), wrap(y - 1), light); dot(wrap(x + 1), wrap(y - 1), light); if (rnd() < .5) dot(wrap(x), wrap(y - 2), light); }
+const HUB = { grass: ['#0d1715', '#132320', '#1a2f29', '#244034', '#335440'], dirt: ['#15110f', '#211a15', '#2e241c', '#3e3226', '#544434'], water: ['#071420', '#0b2030', '#11304a', '#1b4866', '#3a7090'] };
+function grassTile(seed, flowers, pal = HUB.grass) {
+  return tile((c, dot, box) => {
+    box(0, 0, 16, 16, pal[2]);
+    for (let i = 0; i < 26; i++) dot((rnd() * 16) | 0, (rnd() * 16) | 0, rnd() < .5 ? pal[1] : pal[3]); // speckle
+    for (let i = 0; i < 4; i++) tuft(dot, (rnd() * 16) | 0, (rnd() * 16) | 0, pal[4], pal[1]);
+    if (flowers) for (let i = 0; i < 2; i++) { const x = (rnd() * 14 + 1) | 0, y = (rnd() * 14 + 1) | 0, col = ['#ff9ac8', '#a8c8ff', '#ffe066', '#c8b0ff'][(rnd() * 4) | 0]; dot(x, y, col); dot(wrap(x + 1), y, col); dot(x, wrap(y + 1), pal[1]); }
+  }, seed);
+}
+function dirtTile(seed) { return tile((c, dot, box) => { box(0, 0, 16, 16, HUB.dirt[2]); for (let i = 0; i < 30; i++) dot((rnd() * 16) | 0, (rnd() * 16) | 0, rnd() < .6 ? HUB.dirt[1] : HUB.dirt[3]); for (let i = 0; i < 3; i++) { const x = (rnd() * 15) | 0, y = (rnd() * 15) | 0; dot(x, y, HUB.dirt[4]); dot(x + 1, y, HUB.dirt[3]); dot(x, y + 1, HUB.dirt[0]); dot(x + 1, y + 1, HUB.dirt[1]); } }, seed); }
+// stepping slabs set into dirt: lit top-left edge, shadow bottom-right, mortar in between
+function slabTile(seed) {
+  return tile((c, dot, box) => {
+    box(0, 0, 16, 16, HUB.dirt[1]);
+    for (const [x0, y0, w, h] of [[1, 1, 7, 6], [9, 1, 6, 7], [1, 8, 6, 7], [8, 9, 7, 6]]) {
+      box(x0, y0, w, h, P.stone[2]); box(x0, y0, w, 1, P.stone[3]); box(x0, y0, 1, h, P.stone[3]); box(x0, y0 + h - 1, w, 1, P.stone[1]); box(x0 + w - 1, y0, 1, h, P.stone[1]);
+      if (rnd() < .6) dot(x0 + 2 + ((rnd() * (w - 3)) | 0), y0 + 2 + ((rnd() * (h - 3)) | 0), P.stone[1]);
+      if (rnd() < .5) dot(x0 + 1, y0 + 1, P.stone[4]);
+    }
+    for (let i = 0; i < 4; i++) dot((rnd() * 16) | 0, (rnd() * 16) | 0, '#3a6040');
+  }, seed);
+}
+function waterTile(f) {
+  return tile((c, dot, box) => {
+    box(0, 0, 16, 16, HUB.water[2]);
+    for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) if (((x + y * 3 + f * 2) % 11) === 0 && y % 4 === 1) { dot(x, y, HUB.water[4]); dot(wrap(x + 1), y, HUB.water[3]); dot(x, wrap(y + 2), HUB.water[1]); }
+    for (let i = 0; i < 10; i++) dot((rnd() * 16) | 0, (rnd() * 16) | 0, HUB.water[1]);
+  }, 5);
+}
+// grass meeting water: a lip of grass, a one-pixel dark shadow, then water
+function shoreTile(f) { const w = waterTile(f), gr = grassTile(3); return px(16, 16, (c, dot) => { c.drawImage(w, 0, 0); c.drawImage(gr, 0, 0, 16, 5, 0, 0, 16, 5); for (let x = 0; x < 16; x++) { const lip = 4 + ((x * 5) % 3 === 0 ? 1 : 0); dot(x, lip, HUB.grass[1]); dot(x, lip + 1, HUB.water[0]); if (x % 5 === 2) dot(x, lip + 3, HUB.water[4]); } }); }
+// the root walls around the Hollow: a gnarled top face, then a bark face with a shadow under it
+function rootTop(seed) { return tile((c, dot, box) => { box(0, 0, 16, 16, P.bark[2]); for (let y = 1; y < 16; y += 4) for (let x = 0; x < 16; x++) if ((x + y + ((rnd() * 3) | 0)) % 5) dot(x, wrap(y + ((x >> 2) % 2)), P.bark[3]); for (let i = 0; i < 12; i++) dot((rnd() * 16) | 0, (rnd() * 16) | 0, P.bark[1]); for (let i = 0; i < 5; i++) dot((rnd() * 16) | 0, (rnd() * 16) | 0, '#3a6a3a'); }, seed); }
+function rootFace(seed) { return tile((c, dot, box) => { box(0, 0, 16, 16, P.bark[1]); for (let x = 0; x < 16; x += 3) for (let y = 0; y < 16; y++) if (rnd() < .8) dot(wrap(x + ((y >> 2) % 2)), y, P.bark[2]); box(0, 0, 16, 1, P.bark[3]); box(0, 14, 16, 2, P.bark[0]); for (let i = 0; i < 3; i++) { const x = (rnd() * 14) | 0; dot(x, 1, '#4a7a46'); dot(x + 1, 1, '#4a7a46'); dot(x, 2, '#2e5a32'); } }, seed); }
+function plankTile(seed) { return tile((c, dot, box) => { for (let y = 0; y < 16; y += 4) { box(0, y, 16, 4, P.wood[2]); box(0, y, 16, 1, P.wood[3]); box(0, y + 3, 16, 1, P.wood[1]); const cut = (y * 5 + 3) % 16; box(cut, y, 1, 4, P.wood[0]); } for (let i = 0; i < 6; i++) dot((rnd() * 16) | 0, (rnd() * 16) | 0, P.wood[1]); }, seed); }
+function mossTile(seed) { return tile((c, dot, box) => { box(0, 0, 16, 16, '#1e3a24'); for (let i = 0; i < 60; i++) dot((rnd() * 16) | 0, (rnd() * 16) | 0, ['#2e5a32', '#173020', '#3a6a3a'][(rnd() * 3) | 0]); }, seed); }
+
+const HUB_TILES = {
+  grass: [grassTile(1), grassTile(2), grassTile(3), grassTile(4, true)], dirt: [dirtTile(11), dirtTile(12)], slab: [slabTile(21), slabTile(22)], moss: [mossTile(41)],
+  water: [waterTile(0), waterTile(1)], shore: [shoreTile(0), shoreTile(1)], rootTop: [rootTop(51), rootTop(52)], rootFace: [rootFace(61), rootFace(62)], plank: [plankTile(71)],
+};
+
+// the run's meadow: the same ruin as now, but as 16x16 tiles. Darker and colder than the hub, so the creatures pop.
+const RUN = { grass: ['#0a1112', '#0f1918', '#152220', '#1d2e29', '#2a4036'] };
+function runSlab(seed, cracked) { return tile((c, dot, box) => { box(0, 0, 16, 16, RUN.grass[2]); box(1, 1, 14, 14, '#1c2426'); box(1, 1, 14, 1, '#28322f'); box(1, 1, 1, 14, '#28322f'); box(1, 14, 14, 1, '#111819'); box(14, 1, 1, 14, '#111819'); if (cracked) { let x = 5, y = 1; while (y < 15) { dot(x, y, '#0a0f10'); y++; if (rnd() < .4) x += rnd() < .5 ? -1 : 1; } } for (let i = 0; i < 10; i++) dot(1 + ((rnd() * 14) | 0), 1 + ((rnd() * 14) | 0), rnd() < .5 ? '#2e4a34' : '#161e20'); }, seed); }
+function puddle(f) { return tile((c, dot, box) => { box(0, 0, 16, 16, RUN.grass[2]); for (let y = 3; y < 13; y++) for (let x = 2; x < 14; x++) if (((x - 7.5) / 6) ** 2 + ((y - 7.5) / 4.6) ** 2 < 1) dot(x, y, y < 5 ? '#0b1a24' : '#0e2230'); for (let x = 4; x < 12; x++) dot(x, 4, '#05101a'); dot(6 + f, 7, '#3a6a88'); dot(7 + f, 7, '#2a5070'); dot(9 - f, 10, '#2a5070'); }, 81); }
+function rebarTile(seed) { return tile((c, dot, box) => { c.drawImage(grassTile(seed, false, RUN.grass), 0, 0); let x = 2, y = 13; for (let i = 0; i < 12; i++) { dot(x, y, '#4a2c1e'); dot(x, y - 1, '#8a5232'); x++; if (i % 3 === 0) y--; } }, seed); }
+function sporeTile(seed) { return tile((c, dot) => { c.drawImage(grassTile(seed, false, RUN.grass), 0, 0); for (const [x, y, col] of [[4, 5, '#7fb9b0'], [10, 11, '#a99cc4'], [12, 3, '#c2b48a']]) { dot(x, y, col); dot(x + 1, y + 1, col); dot(x - 1, y + 2, col); } }, seed); }
+const RUN_TILES = { grass: [grassTile(91, false, RUN.grass), grassTile(92, false, RUN.grass), grassTile(93, false, RUN.grass), grassTile(94, false, RUN.grass)], slab: [runSlab(101), runSlab(102, true)], puddle: [puddle(0), puddle(1)], rebar: [rebarTile(111)], spores: [sporeTile(121)] };
+// run props, top-down-ish: a broken pillar stump, a ring of standing stones, a dead lamp post, a mushroom cluster, a root arch
+const STUMP = bake({ S: P.stone, d: '#16181e', m: '#3a6a3a' }, (() => { const g = pg(18, 14); ell(g, 9, 9, 8.5, 5, 'S'); ell(g, 9, 6, 8.5, 5, 'S'); ell(g, 9, 6, 6, 3.4, 'd'); for (let x = 3; x < 15; x += 3) put(g, x, 4 - (x % 2), 'S'); put(g, 4, 9, 'm'); put(g, 13, 10, 'm'); return g; })());
+const STANDING = bake({ S: P.mossStone, m: '#4a7a46' }, (() => { const g = pg(10, 18); polyFill(g, [[2, 17], [1, 5], [4, 0], [8, 3], [9, 17]], 'S'); put(g, 3, 6, 'm'); put(g, 4, 7, 'm'); return g; })());
+const DEAD_LAMP = bake({ t: '#2a2420', L: ['#1a1a1a', '#2a2a2a', '#3a3a3a', '#4a4a4a', '#5a5a5a'], g: '#2a3a4a' }, (() => { const g = pg(9, 24); rect(g, 4, 6, 4, 23, 't'); rect(g, 1, 1, 7, 1, 'L'); rect(g, 2, 2, 6, 5, 'L'); rect(g, 3, 2, 5, 4, 'g'); put(g, 6, 7, 't'); put(g, 7, 8, 't'); return g; })());
+
+// ---------- icons (16x16 unless noted). Each is a little object you could pick up, not a font glyph. ----------
+const I = (w, h, fn, pal, ol) => { const g = pg(w, h); fn(g); return bake(pal, g, ol === undefined ? '#050608' : ol); };
+const heartMask = (g, cx, cy, s, ch) => { for (let y = 0; y < g.length; y++) for (let x = 0; x < g[0].length; x++) { const X = (x + .5 - cx) / s, Y = -(y + .5 - cy) / s; if ((X * X + Y * Y - 1) ** 3 - X * X * Y ** 3 <= 0) g[y][x] = ch; } };
+const starPts = (cx, cy, R, r, n = 5, rot = -Math.PI / 2) => Array.from({ length: n * 2 }, (_, i) => { const a = rot + i * Math.PI / n, d = i % 2 ? r : R; return [cx + Math.cos(a) * d, cy + Math.sin(a) * d]; });
+const bolt = (g, ch) => polyFill(g, [[9, 0], [3, 9], [7, 9], [5, 16], [13, 6], [9, 6], [11, 0]], ch);
+
+// ---- amber, the hub currency: fireflies' old light, set hard ----
+const AMBER = I(10, 12, g => { polyFill(g, [[5, 0], [10, 4], [9, 10], [5, 12], [1, 10], [0, 4]], 'A'); put(g, 3, 3, 'w'); put(g, 4, 4, 'w'); put(g, 5, 7, 'f'); }, { A: P.amber, w: '#fff6d8', f: '#3a1a04' });
+const AMBER_SMALL = I(6, 7, g => { polyFill(g, [[3, 0], [6, 2], [5, 6], [3, 7], [1, 6], [0, 2]], 'A'); put(g, 2, 2, 'w'); }, { A: P.amber, w: '#fff6d8' });
+const AMBER_PILE = I(20, 14, g => { for (const [x, y] of [[4, 9], [10, 8], [15, 9], [7, 4], [12, 3]]) polyFill(g, [[x, y - 4], [x + 4, y - 1], [x + 3, y + 4], [x, y + 5], [x - 3, y + 4], [x - 4, y - 1]], 'A'); for (const [x, y] of [[6, 2], [11, 1], [3, 7], [14, 6]]) put(g, x, y, 'w'); }, { A: P.amber, w: '#fff6d8' });
+
+// ---- permanent upgrades sold by Old Glim ----
+const UPGRADE_ICONS = {
+  shell: I(16, 16, g => { ell(g, 8, 8, 7.5, 7.5, 'S'); line(g, 8, 1, 8, 15, 'd'); heartMask(g, 8, 8.5, 3.2, 'R'); }, { S: P.pink, d: '#4a0f3a', R: P.red }),
+  sting: I(16, 16, g => { polyFill(g, [[0, 2], [7, 0], [12, 5], [15, 15], [9, 9], [3, 8]], 'B'); for (const [a, b] of [[[3, 1], [1, 6]], [[6, 1], [4, 8]], [[9, 3], [7, 9]]]) line(g, a[0], a[1], b[0], b[1], 'd'); }, { B: P.amber, d: '#2a1208' }),
+  wings: I(16, 16, g => { ell(g, 9, 6, 6, 4.5, 'W'); ell(g, 8, 11, 5, 3.2, 'W'); for (const y of [4, 8, 12]) line(g, 0, y, 2, y, 's'); }, { W: P.ice, s: '#e8fbff' }),
+  lure: I(16, 16, g => { ell(g, 8, 10, 6.5, 5.5, 'J'); rect(g, 4, 3, 11, 5, 'J'); rect(g, 3, 3, 12, 3, 'L'); ell(g, 8, 11, 5, 3.6, 'H'); put(g, 5, 7, 'w'); put(g, 5, 8, 'w'); line(g, 11, 0, 9, 6, 'S'); rect(g, 9, 6, 10, 7, 'H'); put(g, 4, 15, 'H'); put(g, 4, 14, 'H'); }, { J: ['#3a2410', '#6a4420', '#a8703a', '#d8a060', '#ffd8a0'], L: '#3a2410', H: P.amber, w: '#fff6d8', S: '#8f5c36' }),
+  lastLight: I(16, 16, g => { rect(g, 4, 2, 11, 2, 'L'); rect(g, 3, 3, 12, 13, 'L'); rect(g, 5, 4, 10, 12, 'g'); heartMask(g, 7.5, 8.5, 2.4, 'r'); rect(g, 6, 14, 9, 15, 'L'); put(g, 7, 0, 'L'); put(g, 8, 1, 'L'); }, { L: P.brass, g: '#fff3a0', r: '#e8604c' }),
+  clover: I(16, 16, g => { for (const [x, y] of [[4, 4], [11, 4], [4, 11], [11, 11]]) { heartMask(g, x + .5, y + .5, 3.1, 'C'); } line(g, 0, 7, 15, 7, '.'); line(g, 7, 0, 7, 15, '.'); line(g, 0, 8, 15, 8, '.'); line(g, 8, 0, 8, 15, '.'); ell(g, 8, 8, 1.6, 1.6, 'C'); line(g, 9, 9, 14, 15, 's'); }, { C: P.green, s: '#22622e' }),
+  headStart: I(16, 16, g => { polyFill(g, [[8, 0], [15, 7], [11, 7], [11, 15], [5, 15], [5, 7], [1, 7]], 'G'); put(g, 7, 3, 'w'); }, { G: P.green, w: '#e8ffe0' }),
+  brightTrail: I(16, 16, g => { for (const [x, y, r] of [[3, 12, 2.4], [8, 8, 2.8], [13, 3, 3.2]]) ell(g, x, y, r, r, 'G'); }, { G: ['#8a6a10', '#d8a820', '#ffe066', '#fff3a0', '#ffffe0'] }),
+  quickDash: I(16, 16, g => { bolt(g, 'Y'); for (const y of [5, 9]) line(g, 0, y, 2, y, 's'); }, { Y: ['#6a4a08', '#b88a18', '#ffd84a', '#fff0a0', '#ffffff'], s: '#fff0a0' }),
+  amberNose: I(16, 16, g => { polyFill(g, [[6, 1], [11, 5], [10, 12], [6, 14], [2, 12], [1, 5]], 'A'); rect(g, 12, 9, 12, 15, 'p'); rect(g, 9, 12, 15, 12, 'p'); }, { A: P.amber, p: '#7fd6c2' }),
+  carapace: I(16, 16, g => { polyFill(g, [[8, 0], [15, 3], [14, 10], [8, 15], [2, 10], [1, 3]], 'S'); line(g, 8, 1, 8, 14, 'd'); for (const [x, y] of [[4, 5], [11, 5], [5, 9], [10, 9]]) put(g, x, y, 'k'); }, { S: P.violet, d: '#1e1040', k: '#c8b0ff' }),
+  dew: I(16, 16, g => { polyFill(g, [[7, 0], [12, 8], [12, 11], [9, 15], [5, 15], [2, 11], [2, 8]], 'W'); put(g, 5, 9, 'w'); put(g, 5, 10, 'w'); rect(g, 12, 2, 12, 6, 'p'); rect(g, 10, 4, 14, 4, 'p'); }, { W: P.glass, w: '#ffffff', p: '#7fd6c2' }),
+};
+const UPGRADES = [
+  ['shell', 'Thick Shell', '+10 max health', 5, [20, 40, 70, 110, 160]], ['sting', 'Sharp Sting', '+5% damage', 5, [25, 50, 90, 140, 200]],
+  ['wings', 'Swift Wings', '+4% move speed', 3, [30, 70, 120]], ['lure', 'Honey Lure', 'Pull sparks from 15% farther', 3, [20, 45, 80]],
+  ['lastLight', 'Last Light', 'Get back up once a run with half health', 1, [400]], ['clover', 'Four-Leaf', '+1 reroll each run', 3, [60, 120, 200]],
+  ['headStart', 'Head Start', 'Begin runs at level 2, then 3', 2, [80, 180]], ['brightTrail', 'Bright Trail', 'Start with 1 more firefly', 3, [40, 90, 150]],
+  ['quickDash', 'Quick Dash', 'Dash recharges 6% faster', 3, [35, 80, 140]], ['amberNose', 'Amber Nose', '+10% amber from runs', 3, [50, 110, 190]],
+  ['carapace', 'Carapace', 'Take 1 less damage from every hit', 2, [90, 200]], ['dew', 'Morning Dew', 'Heal 1 health every 4 seconds', 3, [45, 100, 170]],
+];
+
+// ---- weapons and their evolved forms ----
+const WEAPON_ICONS = {
+  bolt: I(16, 16, g => { polyFill(g, [[1, 12], [10, 5], [9, 3], [15, 1], [13, 7], [11, 6], [3, 14]], 'Y'); }, { Y: ['#6a4a08', '#b88a18', '#ffe066', '#fff3a0', '#ffffff'] }),
+  orbit: I(16, 16, g => { ell(g, 8, 8, 7.5, 7.5, 'M'); ell(g, 10.5, 6.5, 6.2, 6.2, '.'); }, { M: P.ice }),
+  nova: I(16, 16, g => { polyFill(g, starPts(8, 8, 8, 3.4, 8), 'P'); ell(g, 8, 8, 2.4, 2.4, 'w'); }, { P: P.pink, w: '#fff0fa' }),
+  zap: I(16, 16, g => bolt(g, 'V'), { V: P.violet }),
+  fly: I(16, 16, g => { ell(g, 6, 10, 4.5, 3.6, 'G'); ell(g, 11.5, 7.5, 2.8, 2.8, 'B'); ell(g, 7, 4, 3.4, 2.4, 'W'); put(g, 12, 7, 'e'); line(g, 13, 5, 15, 2, 'B'); }, { G: P.green, B: P.violet, W: WINGS, e: '#ffffff' }),
+  frost: I(16, 16, g => { for (const a of [0, 1, 2]) { const an = a * Math.PI / 3; line(g, Math.round(8 - Math.cos(an) * 7), Math.round(8 - Math.sin(an) * 7), Math.round(8 + Math.cos(an) * 7), Math.round(8 + Math.sin(an) * 7), 'I'); } ell(g, 8, 8, 2, 2, 'I'); for (const [x, y] of [[3, 2], [13, 2], [3, 14], [13, 14], [1, 8], [15, 8]]) put(g, x, y, 'w'); }, { I: P.ice, w: '#e8fbff' }),
+  thorn: I(16, 16, g => { for (let t = 0; t < 2.5; t += .05) { const r = 7 - t * 1.8; put(g, Math.round(8 + Math.cos(t * 2.4) * r), Math.round(8 + Math.sin(t * 2.4) * r), 'T'); put(g, Math.round(8 + Math.cos(t * 2.4) * (r - 1)), Math.round(8 + Math.sin(t * 2.4) * (r - 1)), 'T'); } }, { T: P.cloth }),
+  spore: I(16, 16, g => { for (const [x, y, r] of [[5, 10, 4], [11, 10, 4], [8, 6, 4.5]]) ell(g, x, y, r, r * .9, 'S'); for (const [x, y] of [[6, 5], [10, 8], [4, 11]]) put(g, x, y, 'd'); }, { S: ['#3a4a10', '#6a8a1a', '#b8d84a', '#d6ff5c', '#f4ffc0'], d: '#3a4a10' }),
+};
+const EVOLVED_ICONS = {}; for (const k in WEAPON_ICONS) EVOLVED_ICONS[k] = px(20, 20, (c, dot) => { c.drawImage(halo(10, [242, 193, 78]), 0, 0); c.drawImage(WEAPON_ICONS[k], 1, 1); for (const [x, y] of [[1, 1], [18, 1], [1, 18], [18, 18]]) { dot(x, y, '#f2c14e'); } });
+const WEAPON_NAMES = { bolt: ['Spark Shot', 'Starstorm'], orbit: ['Moon Guard', 'Harvest Moon'], nova: ['Pulse', 'Supernova'], zap: ['Chain Zap', 'Thunderhead'], fly: ['Fireflies', 'The Swarm'], frost: ['Chill Aura', 'Deep Freeze'], thorn: ['Boomerang Thorn', 'Razor Wind'], spore: ['Spore Trail', 'Full Bloom'] };
+
+// ---- run boosts (the passives you pick on level up) ----
+const PASSIVE_ICONS = {
+  vigor: I(14, 13, g => heartMask(g, 7, 7.4, 5.4, 'R'), { R: P.red }), swift: UPGRADE_ICONS.wings, magnet: UPGRADE_ICONS.lure,
+  power: I(14, 14, g => { polyFill(g, [[7, 0], [14, 7], [10, 7], [10, 14], [4, 14], [4, 7], [0, 7]], 'O'); }, { O: P.cloth }),
+  haste: I(14, 14, g => { ell(g, 7, 7, 6.6, 6.6, 'C'); ell(g, 7, 7, 5, 5, 'w'); line(g, 7, 7, 7, 3, 'k'); line(g, 7, 7, 10, 7, 'k'); }, { C: P.brass, w: '#fff4d8', k: '#3a2208' }),
+  reach: I(14, 14, g => { polyFill(g, Array.from({ length: 6 }, (_, i) => [7 + Math.cos(i * TAU / 6) * 7, 7 + Math.sin(i * TAU / 6) * 7]), 'V'); polyFill(g, Array.from({ length: 6 }, (_, i) => [7 + Math.cos(i * TAU / 6) * 3.5, 7 + Math.sin(i * TAU / 6) * 3.5]), '.'); }, { V: P.violet }),
+  crit: I(15, 15, g => polyFill(g, starPts(7.5, 8, 7.5, 3), 'Y'), { Y: ['#6a5a10', '#b8a020', '#fff2a8', '#ffffe0', '#ffffff'] }),
+  regen: I(14, 14, g => { line(g, 7, 13, 7, 5, 's'); ell(g, 4, 5, 3.4, 2.2, 'L'); ell(g, 10, 4, 3.4, 2.2, 'L'); }, { s: '#22622e', L: P.green }),
+  wise: I(14, 14, g => { ell(g, 7, 7, 6.6, 4, 'E'); ell(g, 7, 7, 2.6, 2.6, 'p'); put(g, 6, 6, 'w'); }, { E: P.blue, p: '#0e1430', w: '#ffffff' }),
+};
+const PASSIVE_NAMES = { vigor: 'Big Heart', swift: 'Quick Wings', magnet: 'Magnet', power: 'Power', haste: 'Haste', reach: 'Reach', crit: 'Lucky Star', regen: 'Regrowth', wise: 'Bright Mind' };
+
+// ---- pickups dropped in a run: a little glass bead around the icon ----
+const bead = (icon, col) => px(18, 18, (c, dot) => { const g = pg(18, 18); ell(g, 9, 9, 8.6, 8.6, 'B'); c.drawImage(bake({ B: [shade(col, .15), shade(col, .25), shade(col, .32), shade(col, .45), shade(col, .7)] }, g), -1, -1); c.drawImage(icon, Math.round(9 - icon.width / 2), Math.round(9 - icon.height / 2)); dot(4, 4, 'rgba(255,255,255,.6)'); });
+const PICKUPS = {
+  heart: bead(PASSIVE_ICONS.vigor, '#e8604c'), magnet: bead(I(12, 12, g => { rect(g, 1, 1, 4, 10, 'R'); rect(g, 7, 1, 10, 10, 'R'); rect(g, 1, 8, 10, 10, 'R'); rect(g, 1, 1, 4, 2, 'w'); rect(g, 7, 1, 10, 2, 'w'); }, { R: P.red, w: P.stone }), '#6fd3ff'),
+  zap: bead(I(11, 13, g => polyFill(g, [[7, 0], [2, 7], [5, 7], [3, 13], [10, 5], [7, 5], [9, 0]], 'V'), { V: P.violet }), '#b69cff'),
+  blast: bead(I(12, 12, g => polyFill(g, starPts(6, 6, 6, 2.6, 7), 'F'), { F: P.cloth }), '#ff9a4d'),
+  freeze: bead(I(12, 12, g => { line(g, 6, 0, 6, 11, 'I'); line(g, 0, 6, 11, 6, 'I'); line(g, 2, 2, 10, 10, 'I'); line(g, 10, 2, 2, 10, 'I'); }, { I: P.ice }), '#9ff0ff'),
+  frenzy: bead(I(12, 10, g => { polyFill(g, [[0, 0], [5, 5], [0, 10], [2, 10], [7, 5], [2, 0]], 'Y'); polyFill(g, [[5, 0], [10, 5], [5, 10], [7, 10], [12, 5], [7, 0]], 'Y'); }, { Y: ['#6a4a08', '#b88a18', '#ffd84a', '#fff0a0', '#ffffff'] }), '#ffe066'),
+};
+const PICKUP_NAMES = { heart: 'Heart', magnet: 'Magnet', zap: 'Thunderclap', blast: 'Fire ring', freeze: 'Cold snap', frenzy: 'Frenzy' };
+// XP sparks in three sizes
+const SPARKS = [['#6fd3ff', '#d8f4ff', 5], ['#7dff9a', '#e0ffe8', 6], ['#ffd34d', '#fff6c8', 7]].map(([a, b, s]) => I(s, s, g => { const m = Math.floor((s - 1) / 2); for (let i = 0; i < s; i++) { put(g, i, m, 'a'); put(g, m, i, 'a'); } put(g, m, m, 'b'); if (s > 5) { put(g, m - 1, m - 1, 'a'); put(g, m + 1, m + 1, 'a'); put(g, m - 1, m + 1, 'a'); put(g, m + 1, m - 1, 'a'); } }, { a, b }, null));
+
+// ---- HUD and menu icons (11x11) ----
+const S = (fn, pal, w = 11, h = 11) => I(w, h, fn, pal, null);
+const ICO = {
+  health: S(g => heartMask(g, 5.5, 6.4, 4.4, 'R'), { R: '#e8604c' }),
+  squash: S(g => { ell(g, 5.5, 6.5, 5, 3.5, 'k'); for (const [x, y] of [[1, 2], [9, 1], [5, 1], [10, 8], [0, 9]]) put(g, x, y, 'k'); put(g, 4, 6, 'w'); put(g, 7, 6, 'w'); }, { k: '#c8385e', w: '#fff2e0' }),
+  firefly: S(g => { ell(g, 4, 7, 3.4, 2.6, 'g'); ell(g, 8, 5, 2, 2, 'b'); ell(g, 5, 3, 2.6, 1.6, 'w'); }, { g: '#ffe066', b: '#56447a', w: 'rgba(220,240,255,.8)' }),
+  clock: S(g => { ell(g, 5.5, 5.5, 5, 5, 'c'); ell(g, 5.5, 5.5, 3.8, 3.8, 'w'); line(g, 5, 5, 5, 2, 'k'); line(g, 5, 5, 7, 5, 'k'); }, { c: '#8d9491', w: '#e9e4d6', k: '#0a0c0d' }),
+  pause: S(g => { rect(g, 2, 1, 4, 9, 'w'); rect(g, 6, 1, 8, 9, 'w'); }, { w: '#e9e4d6' }),
+  play: S(g => polyFill(g, [[2, 0], [10, 5.5], [2, 11]], 'w'), { w: '#e9e4d6' }),
+  soundOn: S(g => { rect(g, 0, 3, 2, 7, 'w'); polyFill(g, [[2, 3], [6, 0], [6, 11], [2, 7]], 'w'); line(g, 8, 3, 8, 7, 'w'); line(g, 10, 1, 10, 9, 'w'); }, { w: '#e9e4d6' }),
+  soundOff: S(g => { rect(g, 0, 3, 2, 7, 'w'); polyFill(g, [[2, 3], [6, 0], [6, 11], [2, 7]], 'w'); line(g, 7, 3, 10, 7, 'r'); line(g, 10, 3, 7, 7, 'r'); }, { w: '#e9e4d6', r: '#e8604c' }),
+  music: S(g => { rect(g, 4, 0, 10, 1, 'w'); rect(g, 4, 0, 4, 8, 'w'); rect(g, 10, 0, 10, 7, 'w'); ell(g, 3, 9, 2, 1.6, 'w'); ell(g, 9, 8, 2, 1.6, 'w'); }, { w: '#e9e4d6' }),
+  gear: S(g => { polyFill(g, starPts(5.5, 5.5, 5.5, 4, 8, 0), 'w'); ell(g, 5.5, 5.5, 1.8, 1.8, '.'); }, { w: '#e9e4d6' }),
+  lock: S(g => { rect(g, 3, 0, 7, 0, 'l'); rect(g, 2, 1, 2, 4, 'l'); rect(g, 8, 1, 8, 4, 'l'); rect(g, 1, 4, 9, 10, 'L'); put(g, 5, 7, 'k'); put(g, 5, 8, 'k'); }, { l: '#a8701c', L: '#d8a03a', k: '#1a1208' }),
+  unlock: S(g => { rect(g, 6, 0, 10, 0, 'l'); rect(g, 10, 1, 10, 3, 'l'); rect(g, 6, 1, 6, 4, 'l'); rect(g, 1, 4, 9, 10, 'L'); put(g, 5, 7, 'k'); }, { l: '#a8701c', L: '#d8a03a', k: '#1a1208' }),
+  check: S(g => { line(g, 1, 5, 4, 8, 'm'); line(g, 4, 8, 10, 1, 'm'); line(g, 1, 6, 4, 9, 'm'); line(g, 4, 9, 10, 2, 'm'); }, { m: '#7fd6c2' }),
+  cross: S(g => { line(g, 1, 1, 9, 9, 'r'); line(g, 9, 1, 1, 9, 'r'); line(g, 2, 1, 10, 9, 'r'); line(g, 10, 1, 2, 9, 'r'); }, { r: '#e8604c' }),
+  star: S(g => polyFill(g, starPts(5.5, 6, 5.6, 2.3), 'y'), { y: '#f2c14e' }),
+  crown: S(g => { polyFill(g, [[0, 2], [3, 5], [5.5, 0], [8, 5], [11, 2], [10, 9], [1, 9]], 'y'); put(g, 5, 6, 'r'); }, { y: '#f2c14e', r: '#e8604c' }),
+  moon: S(g => { ell(g, 5.5, 5.5, 5, 5, 'm'); ell(g, 7.5, 4, 4, 4, '.'); }, { m: '#7fd6c2' }),
+  nightmare: S(g => { ell(g, 5.5, 4.5, 5, 4.5, 'r'); rect(g, 2, 8, 9, 10, 'r'); put(g, 3, 4, 'k'); put(g, 4, 4, 'k'); put(g, 7, 4, 'k'); put(g, 8, 4, 'k'); for (const x of [3, 5, 7]) put(g, x, 9, 'k'); }, { r: '#e8604c', k: '#0a0c0d' }),
+  back: S(g => { polyFill(g, [[0, 5.5], [5, 1], [5, 4], [11, 4], [11, 7], [5, 7], [5, 10]], 'w'); }, { w: '#e9e4d6' }),
+  close: S(g => { line(g, 1, 1, 9, 9, 'w'); line(g, 9, 1, 1, 9, 'w'); }, { w: '#e9e4d6' }),
+  amber: AMBER_SMALL,
+};
+
+// ---------- projectiles and effects ----------
+// Rule: your shots are warm, bright and pointed in the direction they fly. Enemy shots are round, deep red or magenta,
+// with a dark core and a bright rim, so the two never read alike even in a crowd.
+const F = (rowsOrFn, pal, ol = null) => { if (typeof rowsOrFn === 'function') { const g = rowsOrFn(); return bake(pal, g, ol); } return bake(pal, rowsOrFn, ol); };
+const SPARK_PAL = { a: '#8a5a10', b: '#ffb83a', c: '#ffe066', w: '#ffffff' };
+const PLAYER_SHOTS = {
+  'Spark Shot': [F(['..aab....', '.abbccw..', '..aab....'], SPARK_PAL), F(['...aab...', 'aabbccw..', '...aab...'], SPARK_PAL)],
+  'Starstorm': [F(['.....c...', '...aacw..', 'aabbcwwc.', '...aacw..', '.....c...'], SPARK_PAL)],
+  'Moon scythe': [F(() => { const g = pg(20, 12); ell(g, 10, 12, 10, 11, 'M'); ell(g, 10, 14.5, 9, 11, '.'); return g; }, { M: P.ice }, '#0a1a24')],
+  'Pulse ring': [0, 1, 2].map(f => px(28, 28, (c, dot) => { const r = 5 + f * 4.5; for (let a = 0; a < TAU; a += .02) { const x = Math.round(14 + Math.cos(a) * r), y = Math.round(14 + Math.sin(a) * r); dot(x, y, f === 2 ? '#ff7ad9' : '#ffd0f0'); if (f < 2) dot(Math.round(14 + Math.cos(a) * (r - 1)), Math.round(14 + Math.sin(a) * (r - 1)), '#ff7ad9'); } })),
+  'Chain Zap': [F(['......vv......', '..vvvv..v.....', 'vv.......vvwvv', '..........v...'], { v: '#9070e0', w: '#ffffff' }), F(['.v.v.', 'v.w.v', '.vwv.', 'v.w.v', '.v.v.'], { v: '#c8b0ff', w: '#ffffff' })],
+  'Firefly': [F(['ww.ww', 'bGGGy', '.GGG.'], { G: ['#1e5a20', '#3a9a3a', '#9dff8a', '#d4ffc8', '#ffffff'], w: 'rgba(220,240,255,.6)', b: '#14281a', y: '#ffffff' }, '#06140a'), ...[0, 1, 2].map(f => px(14, 14, (c, dot) => { for (let i = 0; i < 18; i++) { const a = i / 18 * TAU, r = 2 + f * 2.5 + (i % 2); dot(Math.round(7 + Math.cos(a) * r), Math.round(7 + Math.sin(a) * r), f === 2 ? '#3a9a3a' : i % 2 ? '#9dff8a' : '#ffffff'); } }))],
+  'Thorn': [0, 1, 2, 3].map(f => { let cv = F(() => { const g = pg(11, 11); polyFill(g, [[5.5, 0], [7, 4], [11, 5.5], [7, 7], [5.5, 11], [4, 7], [0, 5.5], [4, 4]], 'T'); ell(g, 5.5, 5.5, 1.4, 1.4, 'd'); return g; }, { T: P.cloth, d: '#3a1a10' }, '#140804'); if (f % 2) cv = px(13, 13, c => { c.translate(6.5, 6.5); c.rotate(Math.PI / 4); c.drawImage(cv, -6.5, -6.5); }); return cv; }),
+  'Spore cloud': [0, 1].map(f => F(() => { const g = pg(18, 12); for (const [x, y, r] of f ? [[5, 7, 4], [11, 7, 4.5], [8, 4, 3.6], [14, 5, 2.6]] : [[5, 6, 4], [12, 7, 4], [9, 4, 4], [3, 3, 2]]) ell(g, x, y, r, r * .85, 'S'); return g; }, { S: ['#3a4a10', '#6a8a1a', '#b8d84a', '#d6ff5c', '#f4ffc0'] }, '#141c04')),
+  'Chill': [F(['..w..', 'w.i.w', '.iwi.', 'w.i.w', '..w..'], { i: '#9ad8e8', w: '#e8fbff' })],
+};
+const ENEMY_SHOT = (rim, mid, core, size = 7) => px(size + 2, size + 2, (c, dot) => { const m = (size + 1) / 2; for (let y = 0; y < size + 2; y++) for (let x = 0; x < size + 2; x++) { const d = Math.hypot(x + .5 - m - .5, y + .5 - m - .5); if (d <= size / 2 + .5) dot(x, y, d > size / 2 - .6 ? rim : d > size / 2 - 1.8 ? mid : core); } dot(Math.floor(m) - 1, Math.floor(m) - 1, '#ffffff'); });
+const ENEMY_SHOTS = {
+  'Beetle spit': ENEMY_SHOT('#ff4a8a', '#c0205a', '#3a0418'), 'Maw spit': ENEMY_SHOT('#ff5a4a', '#b01c24', '#2a0408', 9), 'Eclipse ember': ENEMY_SHOT('#ff7a3a', '#c03a10', '#2a0a04'),
+  'Shade orb': ENEMY_SHOT('#c8a0ff', '#4a2080', '#0a0418'), 'Hive sting': ENEMY_SHOT('#ffb03a', '#a04a10', '#2a1004', 5), 'Generic shot': ENEMY_SHOT('#ff4a6a', '#a01838', '#24040e'),
+};
+const SHOCKWAVE = [0, 1].map(f => px(34, 34, (c, dot) => { const r = 10 + f * 5; for (let a = 0; a < TAU; a += .015) { for (const [dr, col] of [[0, '#ffffff'], [-1, '#c8a0ff'], [1, '#9070e0'], [2, '#4a2080']]) dot(Math.round(17 + Math.cos(a) * (r + dr)), Math.round(17 + Math.sin(a) * (r + dr)), col); } }));
+const WEB = px(26, 26, (c, dot) => { const col = 'rgba(220,255,245,.85)'; for (let i = 0; i < 8; i++) { const a = i / 8 * TAU; for (let r = 0; r < 12.5; r += .5) dot(Math.round(13 + Math.cos(a) * r), Math.round(13 + Math.sin(a) * r), col); } for (const R of [4, 8, 12]) for (let i = 0; i < 8; i++) { const a0 = i / 8 * TAU, a1 = (i + 1) / 8 * TAU; for (let t = 0; t <= 1; t += .08) dot(Math.round(13 + (Math.cos(a0) * (1 - t) + Math.cos(a1) * t) * R), Math.round(13 + (Math.sin(a0) * (1 - t) + Math.sin(a1) * t) * R), col); } });
+// hits, deaths and other little bursts
+const HIT = [0, 1, 2].map(f => px(9, 9, (c, dot) => { const m = 4; dot(m, m, '#ffffff'); for (let i = 1; i <= f + 2; i++) { dot(m - i, m, f === 2 && i > 2 ? '#ffb83a' : '#ffffff'); dot(m + i, m, '#ffffff'); dot(m, m - i, '#ffe066'); dot(m, m + i, '#ffe066'); } if (f) { dot(m - 2, m - 2, '#ffe066'); dot(m + 2, m + 2, '#ffe066'); dot(m + 2, m - 2, '#ffe066'); dot(m - 2, m + 2, '#ffe066'); } }));
+const POOF = [0, 1, 2, 3].map(f => px(16, 16, (c, dot) => { reseed(9 + f); const n = [5, 9, 11, 8][f], r = [2, 4, 6, 7][f]; for (let i = 0; i < n; i++) { const a = i / n * TAU + f * .3, d = r * (.7 + rnd() * .3), s = [3, 3, 2, 1][f]; const x = Math.round(8 + Math.cos(a) * d - s / 2), y = Math.round(8 + Math.sin(a) * d - s / 2); c.fillStyle = f < 3 ? ['#e9e4d6', '#b8bcb8', '#8d9491'][Math.min(2, f)] : '#5d6563'; c.fillRect(x, y, s, s); } }));
+const LEVEL_BURST = [0, 1].map(f => px(24, 24, (c, dot) => { for (let i = 0; i < 12; i++) { const a = i / 12 * TAU, r0 = 3 + f * 4, r1 = r0 + 4; for (let r = r0; r <= r1; r++) dot(Math.round(12 + Math.cos(a) * r), Math.round(12 + Math.sin(a) * r), r === r1 ? '#ffffff' : i % 2 ? '#6fd0c0' : '#3d79c9'); } }));
+const HEAL = px(9, 9, (c, dot, box) => { box(3, 0, 3, 9, '#7dff9a'); box(0, 3, 9, 3, '#7dff9a'); box(4, 1, 1, 7, '#e0ffe8'); box(1, 4, 7, 1, '#e0ffe8'); });
+
+// ---------- UI kit: pixel 9-slice pieces, turned into data URIs and used by real HTML controls ----------
+const U = 3; // one art pixel = 3 CSS pixels
+const uri = cv => cv.toDataURL();
+// a framed slab: outline, inner bevel, and optional corner brackets in an accent colour
+function frame(w, h, o) {
+  return px(w, h, (c, dot, box) => {
+    box(0, 0, w, h, o.outline); box(1, 1, w - 2, h - 2, o.fill);
+    if (o.hi) { box(1, 1, w - 2, 1, o.hi); box(1, 1, 1, h - 2, o.hi); } if (o.lo) { box(1, h - 2, w - 2, 1, o.lo); box(w - 2, 1, 1, h - 2, o.lo); }
+    if (o.bevel) box(1, h - 1 - o.bevel, w - 2, o.bevel, o.lo);
+    if (o.corner) for (const [x, y, sx, sy] of [[1, 1, 1, 1], [w - 2, 1, -1, 1], [1, h - 2, 1, -1], [w - 2, h - 2, -1, -1]]) { dot(x, y, o.corner); dot(x + sx, y, o.corner); dot(x + 2 * sx, y, o.corner); dot(x, y + sy, o.corner); dot(x, y + 2 * sy, o.corner); }
+    if (o.notch) { dot(0, 0, 'rgba(0,0,0,0)'); c.clearRect(0, 0, 1, 1); c.clearRect(w - 1, 0, 1, 1); c.clearRect(0, h - 1, 1, 1); c.clearRect(w - 1, h - 1, 1, 1); }
+  });
+}
+const KIT = {
+  panel: frame(12, 12, { outline: '#030405', fill: '#10161a', hi: '#263030', lo: '#070a0b', corner: '#d8d2c2' }),
+  panelGold: frame(12, 12, { outline: '#030405', fill: '#141410', hi: '#3a3220', lo: '#070605', corner: '#f2c14e' }),
+  // buttons: 10x10, 3px slices; the bottom bevel moves to the top when pressed
+  btn: frame(10, 10, { outline: '#1d1404', fill: '#f0b848', hi: '#fff3c8', lo: '#b4741c', bevel: 2, notch: 1 }),
+  btnHover: frame(10, 10, { outline: '#1d1404', fill: '#ffcc60', hi: '#ffffff', lo: '#c8862a', bevel: 2, notch: 1 }),
+  btnDown: frame(10, 10, { outline: '#1d1404', fill: '#d89a30', hi: '#8a5a10', lo: '#d89a30', notch: 1 }),
+  btnOff: frame(10, 10, { outline: '#0a0c0d', fill: '#2a2e30', hi: '#3a4042', lo: '#1a1e20', bevel: 2, notch: 1 }),
+  stone: frame(10, 10, { outline: '#030405', fill: '#1a2122', hi: '#3a4746', lo: '#0c1011', bevel: 2, notch: 1 }),
+  stoneHover: frame(10, 10, { outline: '#030405', fill: '#24302f', hi: '#5a6a68', lo: '#121818', bevel: 2, notch: 1 }),
+  stoneDown: frame(10, 10, { outline: '#030405', fill: '#141a1b', hi: '#0c1011', lo: '#141a1b', notch: 1 }),
+  danger: frame(10, 10, { outline: '#1a0404', fill: '#c8402f', hi: '#ff9a80', lo: '#7a1a14', bevel: 2, notch: 1 }),
+  dangerHover: frame(10, 10, { outline: '#1a0404', fill: '#e05440', hi: '#ffc0a8', lo: '#8a2018', bevel: 2, notch: 1 }),
+  mint: frame(10, 10, { outline: '#05201a', fill: '#5cbaa4', hi: '#d0fff2', lo: '#2e7a68', bevel: 2, notch: 1 }),
+  tab: frame(10, 10, { outline: '#030405', fill: '#10161a', hi: '#3a4746', lo: '#10161a', notch: 1 }),
+  tabOff: frame(10, 10, { outline: '#030405', fill: '#0a0e10', hi: '#1a2122', lo: '#0a0e10', notch: 1 }),
+  inset: frame(8, 8, { outline: '#030405', fill: '#06090a', hi: '#020303', lo: '#1e2626' }), // grooves for sliders, bars and inputs
+  key: frame(9, 10, { outline: '#030405', fill: '#d8d2c2', hi: '#ffffff', lo: '#8d9491', bevel: 2, notch: 1 }),
+  bossBar: frame(10, 8, { outline: '#030405', fill: '#06090a', hi: '#020303', lo: '#1e2626', corner: '#d8d2c2' }),
+  tip: frame(8, 8, { outline: '#030405', fill: '#1a1a14', hi: '#3a3220', lo: '#0a0a08' }),
+  toast: frame(12, 10, { outline: '#030405', fill: '#141410', hi: '#3a3220', lo: '#070605', corner: '#f2c14e' }),
+};
+// small single images
+const IMG = {
+  knob: bake({ L: P.brass, g: '#fff3a0', k: '#3a2208' }, ['.LLL.', 'LLLLL', 'LgggL', 'LgggL', 'LgggL', 'LLLLL', '.k.k.']),
+  toggleOff: px(22, 12, (c, dot, box) => { c.drawImage(frame(22, 12, { outline: '#030405', fill: '#06090a', hi: '#020303', lo: '#1e2626' }), 0, 0); box(2, 2, 8, 8, '#465150'); box(2, 2, 8, 1, '#8d9491'); box(2, 9, 8, 1, '#283030'); box(14, 5, 4, 2, '#283030'); }),
+  toggleOn: px(22, 12, (c, dot, box) => { c.drawImage(frame(22, 12, { outline: '#030405', fill: '#1e4a40', hi: '#123028', lo: '#2e7a68' }), 0, 0); box(12, 2, 8, 8, '#f0b848'); box(12, 2, 8, 1, '#fff3c8'); box(12, 9, 8, 1, '#b4741c'); box(15, 5, 2, 2, '#fff3c8'); box(4, 5, 4, 2, '#7fd6c2'); }),
+  boxOff: frame(11, 11, { outline: '#030405', fill: '#06090a', hi: '#020303', lo: '#2a3434' }),
+  boxOn: px(11, 11, c => { c.drawImage(frame(11, 11, { outline: '#030405', fill: '#06090a', hi: '#020303', lo: '#2a3434' }), 0, 0); c.drawImage(ICO.check, 1, 1, 9, 9); }),
+  radioOff: bake({ o: '#2a3434', i: '#06090a' }, ['..ooooo..', '.oiiiiio.', 'oiiiiiiio', 'oiiiiiiio', 'oiiiiiiio', 'oiiiiiiio', 'oiiiiiiio', '.oiiiiio.', '..ooooo..']),
+  radioOn: bake({ o: '#2a3434', i: '#06090a', g: '#f0b848', w: '#fff3c8' }, ['..ooooo..', '.oiiiiio.', 'oiigggiio', 'oiggwggio', 'oigggggio', 'oigggggio', 'oiigggiio', '.oiiiiio.', '..ooooo..']),
+  pipOn: bake({ A: P.amber }, ['..A..', '.AAA.', 'AAAAA', '.AAA.', '..A..']),
+  pipOff: bake({ o: '#465150', i: '#06090a' }, ['..o..', '.oio.', 'oiiio', '.oio.', '..o..'], '#030405'),
+  arrowDown: bake({ w: '#e9e4d6' }, ['wwwww', '.www.', '..w..'], null),
+  tipPoint: bake({ f: '#1a1a14' }, ['fffff', '.fff.', '..f..'], '#030405'),
+  scrollThumb: frame(6, 10, { outline: '#030405', fill: '#465150', hi: '#8d9491', lo: '#283030' }),
+  cursor: bake({ w: '#e9e4d6', g: '#ffe066' }, ['w.......', 'ww......', 'wgw.....', 'wggw....', 'wgggw...', 'wggggw..', 'wgggggw.', 'wggwwww.', 'ww.w....', 'w...w...', '....w...'], '#030405'),
+};
+// the CSS that turns those images into a working kit
+function kitCSS() {
+  const b = (img, slice) => 'border-style:solid;border-image:url(' + uri(img) + ') ' + slice + ' fill / ' + (slice * U) + 'px stretch;image-rendering:pixelated;';
+  return `
+  .k-btn{font:inherit;font-size:16px;letter-spacing:.06em;text-transform:uppercase;color:#1d1404;padding:6px 18px 9px;${b(KIT.btn, 3)}background:none;cursor:pointer;min-height:42px}
+  .k-btn:hover,.k-btn.is-hover{${b(KIT.btnHover, 3)}} .k-btn:active,.k-btn.is-down{${b(KIT.btnDown, 3)}padding:9px 18px 6px}
+  .k-btn:disabled,.k-btn.is-off{${b(KIT.btnOff, 3)}color:#5d6563;cursor:not-allowed}
+  .k-btn.stone{color:#e9e4d6;${b(KIT.stone, 3)}} .k-btn.stone:hover,.k-btn.stone.is-hover{${b(KIT.stoneHover, 3)}} .k-btn.stone:active,.k-btn.stone.is-down{${b(KIT.stoneDown, 3)}}
+  .k-btn.danger{color:#fff0e8;${b(KIT.danger, 3)}} .k-btn.danger:hover,.k-btn.danger.is-hover{${b(KIT.dangerHover, 3)}}
+  .k-btn.mint{color:#05201a;${b(KIT.mint, 3)}}
+  .k-btn:focus-visible{outline:3px solid #e9e4d6;outline-offset:3px}
+  .k-btn.icon{padding:6px 9px 9px;min-width:42px;display:inline-grid;place-items:center}
+  .k-panel{${b(KIT.panel, 4)}padding:6px 8px} .k-panel.gold{${b(KIT.panelGold, 4)}}
+  .k-inset{${b(KIT.inset, 3)}}
+  .k-tabs{display:flex;gap:4px;margin-bottom:-3px;position:relative;z-index:1}
+  .k-tab{font:inherit;color:#8d9491;padding:6px 14px 4px;${b(KIT.tabOff, 3)}border-bottom-width:0;background:none;cursor:pointer}
+  .k-tab[aria-selected="true"]{color:#e9e4d6;${b(KIT.tab, 3)}border-bottom-width:0}
+  .k-key{display:inline-grid;place-items:center;min-width:30px;height:30px;padding:0 6px 3px;font-size:14px;color:#1a1e20;${b(KIT.key, 3)}}
+  .k-toggle{appearance:none;width:${22 * U}px;height:${12 * U}px;background:url(${uri(IMG.toggleOff)}) 0 0/100% 100%;image-rendering:pixelated;cursor:pointer;margin:0}
+  .k-toggle:checked{background-image:url(${uri(IMG.toggleOn)})} .k-toggle:focus-visible,.k-check:focus-visible,.k-radio:focus-visible{outline:3px solid #e9e4d6;outline-offset:3px}
+  .k-check{appearance:none;width:${11 * U}px;height:${11 * U}px;background:url(${uri(IMG.boxOff)}) 0 0/100% 100%;image-rendering:pixelated;cursor:pointer;margin:0}
+  .k-check:checked{background-image:url(${uri(IMG.boxOn)})}
+  .k-radio{appearance:none;width:${11 * U}px;height:${11 * U}px;background:url(${uri(IMG.radioOff)}) 0 0/100% 100%;image-rendering:pixelated;cursor:pointer;margin:0}
+  .k-radio:checked{background-image:url(${uri(IMG.radioOn)})}
+  .k-slider{position:relative;height:${13 * U}px;min-width:160px}
+  .k-slider .tr{position:absolute;left:0;right:0;top:${4 * U}px;height:${5 * U}px;${b(KIT.inset, 2)}border-width:${2 * U}px}
+  .k-slider .fi{position:absolute;left:${U}px;top:${5 * U}px;height:${3 * U}px;background:repeating-linear-gradient(90deg,#f0b848 0 ${3 * U}px,#e09a30 ${3 * U}px ${4 * U}px)}
+  .k-slider .kn{position:absolute;top:${2 * U}px;width:${7 * U}px;height:${9 * U}px;margin-left:${-3.5 * U}px;background:url(${uri(IMG.knob)}) 0 0/100% 100%;image-rendering:pixelated;pointer-events:none}
+  .k-slider input{position:absolute;inset:0;width:100%;opacity:0;cursor:pointer;margin:0}
+  .k-slider:has(input:focus-visible){outline:3px solid #e9e4d6;outline-offset:3px}
+  .k-select{appearance:none;font:inherit;color:#e9e4d6;padding:6px 40px 7px 12px;${b(KIT.inset, 3)}background:none;cursor:pointer;width:100%}
+  .k-selwrap{position:relative;display:block}.k-selwrap::after{content:"";position:absolute;right:14px;top:50%;width:${5 * U}px;height:${3 * U}px;margin-top:${-1.5 * U}px;background:url(${uri(IMG.arrowDown)}) 0 0/100% 100%;image-rendering:pixelated;pointer-events:none}
+  .k-bar.boss{${b(KIT.bossBar, 3)}border-width:${3 * U}px}
+  .k-bar{position:relative;height:${8 * U}px;${b(KIT.inset, 3)}border-width:${3 * U}px} .k-bar i{position:absolute;inset:0 auto 0 0;display:block}
+  .k-tip{position:relative;display:inline-block;padding:6px 10px 7px;font-size:13px;${b(KIT.tip, 3)}}
+  .k-tip::after{content:"";position:absolute;left:50%;bottom:${-6 * U}px;width:${7 * U}px;height:${5 * U}px;margin-left:${-3.5 * U}px;background:url(${uri(IMG.tipPoint)}) 0 0/100% 100%;image-rendering:pixelated}
+  .k-toast{display:inline-flex;gap:10px;align-items:center;padding:6px 14px 8px;${b(KIT.toast, 4)}}
+  .k-pips{display:inline-flex;gap:3px} .k-pips i{width:${7 * U}px;height:${7 * U}px;background:url(${uri(IMG.pipOff)}) 0 0/100% 100%;image-rendering:pixelated}
+  .k-pips i.on{background-image:url(${uri(IMG.pipOn)});background-size:${5 * U}px ${5 * U}px;background-position:${U}px ${U}px;background-repeat:no-repeat}
+  .k-scroll{max-height:180px;overflow-y:auto;scrollbar-width:auto}
+  .k-scroll::-webkit-scrollbar{width:${6 * U}px} .k-scroll::-webkit-scrollbar-track{background:#06090a}
+  .k-scroll::-webkit-scrollbar-thumb{border-style:solid;border-image:url(${uri(IMG.scrollThumb)}) 3 fill / ${3 * U}px stretch;image-rendering:pixelated}
+  .k-cursor{cursor:url(${(() => { const c = document.createElement('canvas'); c.width = IMG.cursor.width * 2; c.height = IMG.cursor.height * 2; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(IMG.cursor, 0, 0, c.width, c.height); return c.toDataURL(); })()}) 2 2,auto}
+  `;
+}
+
+// the game's own enemy sprites, for the run mock
+const pgRows = rows, pgEll = ell, pgLine = line, pgMirror = mirror;
+function weaverRows(pose) {
+  const g = pg(31, 28), legs = [[[12, 7], [7, 3], [4, 0]], [[11, 9], [5, 7], [1, 10]], [[11, 11], [5, 13], [1, 18]], [[12, 13], [7, 18], [4, 26]]];
+  legs.forEach(([h, k, f], i) => {
+    if (pose === 1) { const d = i % 2 ? -2 : 2; k = [k[0], k[1] + d]; f = [f[0], f[1] + d]; }
+    if (pose === 2) { k = [Math.round(h[0] + (k[0] - h[0]) * .75), Math.round(h[1] + (k[1] - h[1]) * .75)]; f = [Math.round(h[0] + (f[0] - h[0]) * .55), Math.round(h[1] + (f[1] - h[1]) * .6)]; }
+    pgLine(g, h[0], h[1], k[0], k[1], 'L'); pgLine(g, k[0], k[1], f[0], f[1], 'L'); pgLine(g, k[0] + 1, k[1], f[0] + 1, f[1], 'L');
+  });
+  pgMirror(g);
+  pgEll(g, 15.5, 19.5, 7.5, 7.5, 'B'); pgEll(g, 15.5, 9.5, 4.6, 4.6, 'H');
+  for (const [x, y] of [[15, 16], [14, 17], [16, 17], [13, 18], [17, 18], [15, 20], [15, 21], [14, 22], [16, 22]]) g[y][x] = 'k'; // the hourglass on its back
+  for (const [x, y] of [[14, 7], [16, 7], [13, 8], [17, 8], [15, 8]]) g[y][x] = 'e';
+  g[4][14] = g[4][16] = 'f'; g[5][14] = g[5][16] = 'f';
+  return pgRows(g);
+}
+// the Eclipse: a black sun with a spiked corona and one eye that shuts when the corona breaks
+function eclipseRows(f) {
+  const S = 31, g = pg(S, S), c = 15.5, k = 12;
+  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
+    const dx = x + .5 - c, dy = y + .5 - c, d = Math.hypot(dx, dy), a = Math.atan2(dy, dx);
+    if (d <= 9.6) g[y][x] = 'B';
+    else if (d <= 11) g[y][x] = f === 2 ? 'q' : 'o';
+    else if (d <= 12.3) g[y][x] = f === 2 ? 'q' : 'c';
+    else if (f !== 2 && d <= 15.4) { const off = f ? Math.PI / k : 0; let da = (((a - off) % (TAU / k)) + TAU / k) % (TAU / k); da = Math.min(da, TAU / k - da); if (da < .19 - (d - 12.3) * .055) g[y][x] = d < 13.8 ? 'c' : 'o'; }
+  }
+  if (f === 2) { for (let x = 11; x <= 19; x++) g[15][x] = 'p'; }
+  else { pgEll(g, c, c, 5.2, 3.1, 'e'); pgEll(g, c, c, 1.7, 3.1, 'p'); g[14][13] = 'w'; }
+  return pgRows(g);
+}
+// the Hive: a papery wasp nest with a dark doorway
+function hiveRows(f) {
+  const g = pg(27, 31), c = 13.5;
+  pgEll(g, c, 17, 12.6, 13.6, 'B');
+  for (let y = 7; y < 30; y += 4) for (let x = 0; x < 27; x++) if (g[y][x] === 'B' && (x + (y >> 2) * 3) % 9 !== 0) g[y][x] = 'D';
+  pgLine(g, 13, 0, 13, 3, 's'); pgLine(g, 11, 0, 16, 0, 's'); pgEll(g, c, 4.5, 4, 1.8, 'D');
+  pgEll(g, c, 23, 3.4, 2.8, 'h'); g[23][13] = g[23][14] = f ? 'g' : 'h'; if (f) g[22][13] = 'g';
+  return pgRows(g);
+}
+
+// every regular creature shares one pixel size and every boss another, so pixels of different sizes never sit side by side
+const PX = 1.85, PX_BOSS = 3.6;
+const SPRITES = {
+  // wisp: a blood tick. Round, soft, slow.
+  tick: { r0: 10, px: PX, fps: 7, ol: '#14050f',
+    pal: { B: ['#3b0f2e', '#7a1f48', '#c8385e', '#f2647a', '#ffb59a'], d: '#5c1838', e: '#fff2e0', p: '#150510', f: '#f6e6cf', l: '#3a0f26' },
+    frames: [0, 1].map(f => ['...BBBBBB....', '.BBBBBBBBBB..', 'BBBdBBBBBBBB.', 'BBBBBBBeeBeeB', 'BBdBBBBepBepB', 'BBBBBdBBBBBBB', '.BBBBBBBBBfBf', '..BBBBBBBB...',
+      ...(f ? ['.l..l..l..l..', '..l..l..l..l.'] : ['..l..l..l..l.', '.l..l..l..l..'])]) },
+  // dart: a gnat. Thin, striped, needle-nosed, all wing.
+  gnat: { r0: 8, px: PX, fps: 14, ol: '#1a0f05',
+    pal: { B: ['#4a2a12', '#94601c', '#e0a42c', '#ffd45c', '#fff2b0'], d: '#3a2208', w: 'rgba(214,236,255,.62)', e: '#ff5a3c', n: '#3b2b14', l: '#5a4010' },
+    frames: [[
+      '....ww.ww......', '...wwwwwww.....', '....wwwww......', '......BBBBe....', 'BBdBdBBBBBeennn', '.BdBdBBBBB.....', '......l.l.l....', '.....l..l..l...'
+    ], [
+      '...............', '...............', '...wwww.www....', '..wwwwBBBBe....', 'BBdBdBBBBBeennn', '.BdBdBBBBBwww..', '.....l.l.l.....', '....l..l...l...'
+    ]] },
+  // brute: a toad. Wide, squat, warty; its throat puffs.
+  toad: { r0: 19, px: PX, fps: 2.5, ol: '#0c0518',
+    pal: { B: ['#1e0f3a', '#3f1f6b', '#6a34a3', '#9a5fd6', '#cfa0f5'], S: ['#4a3a6a', '#7a68a0', '#a896c8', '#cbbce0', '#ece4f6'], d: '#3f1f6b', e: '#ffd45a', p: '#1b0b28', m: '#1b0b28' },
+    frames: [[
+      '............BBBB....', '......BBBBBBBeepB...', '...BBBBdBBBBBeeBBB..', '..BBBBBBBBdBBBBBBBB.', '.BBBdBBBBBBBBBBBBBBB', '.BBBBBBBBBBBBBBmmmmB', 'BBBBBBBBBBBBSSSSSSB.', 'BBBBBBBBBBSSSSSSSS..', 'BBBBBBBBBSSSSSSSS...', '.BBBBBBBBSSSSSSS....', '..BBBBBBBBBBBBB.....', '.BBBB.......BB.B....', 'BBBBB......BBBBB....'
+    ], [
+      '............BBBB....', '......BBBBBBBeepB...', '...BBBBdBBBBBeeBBB..', '..BBBBBBBBdBBBBBBBB.', '.BBBdBBBBBBBBBBBBBBB', '.BBBBBBBBBBBBBBmmmmB', 'BBBBBBBBBBBBSSSSSSSB', 'BBBBBBBBBBSSSSSSSSS.', 'BBBBBBBBBSSSSSSSSS..', '.BBBBBBBBSSSSSSS....', '..BBBBBBBBBBBBB.....', '.BBBB.......BB.B....', 'BBBBB......BBBBB....'
+    ]] },
+  // spit: a bombardier beetle. Banded shell, glowing nozzle at the tail where its shots come from.
+  beetle: { r0: 12, px: PX, fps: 8, ol: '#0c0504',
+    pal: { B: ['#4a1408', '#8c2e0c', '#e0601c', '#ff9a3c', '#ffd27a'], H: ['#120a10', '#24161c', '#3a2428', '#563a38', '#7a5a50'], d: '#2a1208', e: '#ffd9a0', g: '#ffe07a', l: '#2a1510' },
+    frames: [[
+      '...BBBBBB......', '.BBBBBBBBBB....', 'BBdddBBBBBBHH..', 'BBBBBBdddBBHHHl', 'BBBBBBBBBBBHeHH', 'gBBBBBBBBBBHHHH', '.BBBBBBBBBBHHl.', '..BBBBBBBBB....', '..l.l..l.l.....', '.l..l.l..l.....'
+    ], [
+      '...BBBBBB......', '.BBBBBBBBBB....', 'BBdddBBBBBBHH..', 'BBBBBBdddBBHHHl', 'BBBBBBBBBBBHeHH', 'gBBBBBBBBBBHHHH', '.BBBBBBBBBBHHl.', '..BBBBBBBBB....', '...l.l..l.l....', '..l..l.l..l....'
+    ]] },
+  // split: a brood jelly. You can see the grubs it will burst into.
+  brood: { r0: 15, px: PX, fps: 4, ol: '#04150c',
+    pal: { B: ['#0f3a2a', '#1f6a44', '#3fae66', '#6fe08a', '#c4ffc8'], g: '#1c4a2a', k: '#c8ffd0', e: '#f4fff0', p: '#0a2414' },
+    frames: [[
+      '.....BBBBBB.....', '...BBBBBBBBBB...', '..BBBBBBBBBBBB..', '.BBBBBBBBBeeBBB.', '.BBBggBBBBepBBB.', 'BBBgkgBBBBBBBBBB', 'BBBBgBBBggBBBBBB', 'BBBBBBBgkgBBggBB', 'BBBggBBBgBBgkgBB', 'BBgkgBBBBBBBgBBB', '.BBgBBBBBBBBBBB.', '..BBBBBBBBBBBB..', '...BB.BBBB.BB...'
+    ], [
+      '................', '.....BBBBBB.....', '..BBBBBBBBBBBB..', '.BBBBBBBBBeeBBB.', '.BBBBBBBBBepBBB.', 'BBBBgBBBBBBBBBBB', 'BBBgkgBBBgBBBBBB', 'BBBBgBBBgkgBBgBB', 'BBBBBBBBBgBBgkgB', 'BBBgBBBBBBBBBgBB', '.BBgkgBBBBBBBBB.', '..BBBBBBBBBBBB..', '..BB..BBB..BB...'
+    ]] },
+  // mini: a grub that came out of a brood jelly
+  grub: { r0: 7, px: PX, fps: 8, hop: 1, ol: '#071a0a',
+    pal: { B: ['#24502a', '#3f8a46', '#6cc070', '#a2e69a', '#e0ffd0'], d: '#2c6a34', e: '#f4fff0', p: '#0a2414', l: '#24502a' },
+    frames: [['..BBBB...', '.BBBBBep.', 'BBBBBBBBB', 'BdBdBdBBB', '.BBBBBBB.', '.l.l.l.l.'], ['...BBBB..', '.BBBBBep.', 'BBBBBBBBB', 'BdBdBdBBB', '.BBBBBBB.', 'l.l.l.l..']] },
+  // boom: a puffcap mushroom. When its fuse is lit the cap swells and the cracks glow white.
+  puff: { r0: 11, px: PX, fps: 7, ol: '#140504',
+    pal: { C: ['#4a120c', '#8a2414', '#d84a22', '#ff7f3e', '#ffc07a'], S: ['#5a4a46', '#8a7a70', '#bcae9e', '#e0d6c4', '#fff6e6'], c: '#ffb040', w: '#fff2b0', e: '#fff6e6', p: '#1a0806', m: '#3a1008' },
+    frames: [[
+      '...CCCCCC...', '.CCCCcCCCCC.', 'CCCCCccCCCCC', 'CCcCCCCCCcCC', 'CCCCCCCCCCCC', '.CCCCCCCCCC.', '..SSSSSSSS..', '..SepSSepS..', '..SSSmmSSS..', '...SSSSSS...', '...S.SS.S...'
+    ], [
+      '...CCCCCC...', '.CCCCcCCCCC.', 'CCCCCccCCCCC', 'CCcCCCCCCcCC', 'CCCCCCCCCCCC', '.CCCCCCCCCC.', '..SSSSSSSS..', '..SepSSepS..', '..SSSmmSSS..', '...SSSSSS...', '....S..S.S..'
+    ], [
+      '..CCCCCCCC..', '.CCCcwcCCCC.', 'CCcCcwwcCCcC', 'CcwcCCCCcwcC', 'CCcCCCCCCcCC', 'CCCCCCCCCCCC', '.SSSSSSSSSS.', '..SepSSepS..', '..SSmmmmSS..', '...SSSSSS...', '...S.SS.S...'
+    ]] },
+  // ghost: a wraith moth. Wide pale wings with eyespots; it lunges.
+  moth: { r0: 12, px: PX, fps: 6, ol: '#080a1a',
+    pal: { W: ['#2a3466', '#4a5a9a', '#7f96d6', '#b4c6f2', '#e8f0ff'], V: ['#1a2050', '#2e3a78', '#4a5aa0', '#6a7ec4', '#9ab0e8'], B: ['#1a1e40', '#2e3466', '#4a5490', '#6e7ab8', '#a0aadc'], H: ['#1a1e40', '#2e3466', '#4a5490', '#6e7ab8', '#a0aadc'],
+      o: '#1a2050', k: '#ffffff', e: '#f4fbff', p: '#141a40', a: '#8a9ad0', l: '#2e3466' },
+    frames: [[
+      '..WWWW............', '.WWWWWWW..........', 'WWWWoWWWWW........', 'WWWokoWWWWW......a', '.WWWoWWWWWWW....a.', '..WWWWWWWWWWW..a..', '....WWWWWWWWWHHa..',
+      '......BBBBBBBHHHH.', '....BBBBBBBBBHHeH.', '...BBBBBBBBBBHHpH.', '....BBBBBBBBBHHH..', '......VVVVVV......', '.....VVVVV........', '......l..l..l.....'
+    ], [
+      '..................', '..................', '..................', '.................a', '................a.', '...............a..', '.............HHa..',
+      '......BBBBBBBHHHH.', '....BBBBBBBBBHHeH.', '...BBBBBBBBBBHHpH.', '...WWWWWWWWWWHHH..', '.WWWWoWWWWWW......', 'WWWokoWWWWW.......', '.WWWoWWWW.........'
+    ]] },
+  // gloomling: a one-eyed drip of the Gloom
+  gloomling: { r0: 9, px: PX, fps: 8, ol: '#07020f',
+    pal: { B: ['#14062a', '#2c1050', '#4e1f84', '#7a3fc0', '#b48aeb'], e: '#efe2ff', p: '#12061e' },
+    frames: [['...BBBB...', '.BBBBBBB..', 'BBBBBeeeB.', 'BBBBBeepB.', 'BBBBBBBBBB', '.BBBBBBBBB', '..BBBBBBB.', '...BB.BB..', '..B....B..'], ['...BBBB...', '.BBBBBBB..', 'BBBBBeeeB.', 'BBBBBeepB.', 'BBBBBBBBBB', '.BBBBBBBBB', '..BBBBBBB.', '..BB..BB..', '...B..B...']] },
+  // jar: a nightjar, mottled and quiet, that snatches the last firefly in your line
+  jar: { r0: 13, px: PX, fps: 8, ol: '#05040c',
+    pal: { B: ['#120e24', '#241c44', '#3c3068', '#5a4a8e', '#8a7ab8'], H: ['#1a1430', '#2e2652', '#4a3e7a', '#6a5ca0', '#9a8cc8'], W: ['#0d0a1c', '#1a1436', '#2c2456', '#443a7a', '#6a5ea4'], T: ['#0d0a1c', '#1a1436', '#2c2456', '#443a7a', '#6a5ea4'],
+      e: '#ff5a5a', k: '#c9a46a', m: '#7a6aae' },
+    frames: [[
+      '.......WW...........', '......WWWW..........', '.....WWWWWW.........', '....WWWWWWWW........', '...WWWWWWWWWW.......', '..WWmWWmWWWWWW......', '.......BBBBBBBBB....',
+      'TTT..BBBBBBmBBBBHH..', '.TTTBBBBmBBBBBBBHeHk', '..TTBBBBBBBBBBBBHHH.', '......BBBBBBBBBBB...', '........BBBBBBB.....', '....................', '....................'
+    ], [
+      '....................', '....................', '....................', '....................', '....................', '....................', '.......BBBBBBBBB....',
+      'TTT..BBBBBBmBBBBHH..', '.TTTBBBBmBBBBBBBHeHk', '..TTBBWWWWWWBBBBHHH.', '....WWWWmWWWWBBB....', '...WWWWWWWWWW.......', '..WWmWWWWWW.........', '.WWWWWWW............'
+    ]] },
+  // drone: one of the Hive's wasps
+  drone: { r0: 10, px: PX, fps: 16, ol: '#1a1002',
+    pal: { B: ['#5a3a08', '#a06a10', '#f0b41e', '#ffd84a', '#fff2a0'], d: '#2a1c00', w: 'rgba(230,240,255,.55)', e: '#1a1000', s: '#2a1c00', l: '#3a2a08' },
+    frames: [[
+      '...ww.ww....', '..wwwwwww...', '...wwwww....', '..BBBdBBBB..', '.BBdBBdBBBe.', 'sBBdBBdBBBBB', '.BBdBBdBBBB.', '..BBBBBBB...', '...l.l.l....'
+    ], [
+      '............', '....w..w....', '...wwwwww...', '..BBBdBBBB..', '.BBdBBdBBBe.', 'sBBdBBdBBBBB', '.BBdBBdBBBB.', '..BBBBBBB...', '....l.l.l...'
+    ]] },
+
+  // ---- bosses ----
+  gloom: { r0: 50, px: PX_BOSS, fps: 3, ol: '#06020c',
+    pal: { B: ['#12051f', '#2a0d4a', '#4d1a80', '#7a38bf', '#b07ae8'], e: '#efe2ff', p: '#1a0b2e', m: '#0b0316', t: '#e9d5ff' },
+    frames: [0, 1].map(f => [
+      '...........BBBBBBBBB............', '........BBBBBBBBBBBBBBB.........', '......BBBBBBBBBBBBBBBBBBB.......', '.....BBBeBBBBBBBBBBBBBBBBB......',
+      '....BBBBBBeeBBBBBBBBeeBBBBB.....', '...BBBBBBeeepBBBBBBeeepBBBBB....', '...BBBBBBeeppBBBBBBeeppBBBBB....', '..BBBBBBBBeeBBBBBBBBeeBBBBBBB...',
+      '..BBBBBBBBBBBBBBBBBBBBBBBBBeB...', '.BBBBBBBBBBBBBBBBBBBBBBBBBBBBB..', '.BBBBBBBmmmmmmmmmmmmmmmBBBBBBB..', 'BBBBBBBmtmtmtmtmtmtmtmmmBBBBBBB.',
+      'BBBBBBBmmmmmmmmmmmmmmmmmBBBBBBB.', 'BBBBBBBBmtmtmtmtmtmtmtmBBBBBBBB.', 'BBBBBBBBBmmmmmmmmmmmmmBBBBBBBBB.', 'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.',
+      '.BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.', '.BBBBBBBBBBBBBBBBBBBBBBBBBBBBB..', '..BBBBBBBBBBBBBBBBBBBBBBBBBBBB..',
+      ...(f ? ['..BBBBBBB.BBBBBBBBBB.BBBBBB.....', '...BB..BBBB..BBBBB...BBBB.......', '....B...BB....BBB....BB.........', '..............B.......B.........']
+            : ['..BBB.BBBBBBB.BBBBBBBB.BBBBB....', '...B...BBBBB...BBBBB....BBB.....', '........BBB.....BBB......B......', '.........B.......B..............'])
+    ]) },
+  maw: { r0: 46, px: PX_BOSS, fps: 4, ol: '#12020a',
+    pal: { B: ['#3a0614', '#7a1024', '#c8283c', '#f05a5a', '#ff9e88'], S: ['#12020a', '#2a0612', '#4a0c1c', '#6a1428', '#8a2034'], d: '#7a1024', t: '#fff2e6', e: '#ffe27a', p: '#200008', m: '#1a0208' },
+    frames: (() => {
+      const top = ['.......t...t...t............', '........BBBBBBBB............', '.....BBBBBBBBBBBBBB.........', '...BBBBBBBBBBBBBBBBBB.......', '..BBBBBdBBBBBBBBBBeeBB......', '.BBBBBBBBBBBdBBBBeepBBB.....', '.BBBBBBBBBBBBBBBBBeeBBBB....', 'BBBBBdBBBBBBBBBBBBBBBBBBB...'];
+      const shut = ['BBBBBBBBBBBBBBBBBBBBBBBBBB..', 'BBBBBBBBBBBBBBtBtBtBtBtBtBB.', 'BBBBBBBBBBBBBmmmmmmmmmmmmmmm', 'BBBBBBBBBBBBBBBtBtBtBtBtBtB.', 'BBBBBBBBBBBBBBBBBBBBBBBBBB..', '.BBBBBBBBBBBBBBBBBBBBBBBBB..', '.BBBBBBBBBBBBBBBBBBBBBBBB...'];
+      const open = ['BBBBBBBBBBBBBBBBBBBBBBB.....', 'BBBBBBBBBBBBtBtBtBtBtBt.....', 'BBBBBBBBBBSSSSSSSSSSSSSS....', 'BBBBBBBBBSSSSSSSSSSSSSSSSS..', 'BBBBBBBBBSSSSSSSSSSSSSSSSSS.', 'BBBBBBBBBSSSSSSSSSSSSSSSSSS.', 'BBBBBBBBBSSSSSSSSSSSSSSSSS..', 'BBBBBBBBBBSSSSSSSSSSSSSS....', '.BBBBBBBBBBBtBtBtBtBtBtB....'];
+      const body = ['..BBBBBBBBBBBBBBBBBBBBBB....', '...BBBBBBBBBBBBBBBBBBBB.....'];
+      const legsA = ['....BBBB..BBBBBBB..BBBB.....', '....BBB....BBBBB....BBB.....', '...BBBB...BBBBBB...BBBB.....'];
+      const legsB = ['....BBB...BBBBBBB...BBB.....', '...BBB....BBBBBB....BBB.....', '...BBB.....BBBBB...BBBB.....'];
+      return [[...top, ...shut, ...body, ...legsA], [...top, ...shut, ...body, ...legsB], [...top, ...open, ...body, ...legsA]];
+    })() },
+  eclipse: { r0: 54, px: PX_BOSS, fps: 2, ol: '#000000',
+    pal: { B: ['#020306', '#06080e', '#0c0f18', '#161a26', '#242a3a'], o: '#ff9a3c', c: '#ffd76a', q: '#6a5230', e: '#fff3c4', p: '#3a1a00', w: '#ffffff' },
+    frames: [eclipseRows(0), eclipseRows(1), eclipseRows(2)] },
+  weaver: { r0: 44, px: PX_BOSS, fps: 5, ol: '#04100c',
+    pal: { B: ['#0e2a24', '#1c4a40', '#2e7a68', '#5abaa0', '#a6f0d8'], H: ['#0a201c', '#163a32', '#245e52', '#3e8c78', '#7ac8b0'], L: ['#06140f', '#0e2a24', '#1c4a40', '#2e6a5a', '#4a9a84'], k: '#e8fff4', e: '#ff4a6a', f: '#a6f0d8' },
+    frames: [weaverRows(0), weaverRows(1), weaverRows(2)] },
+  shade: { r0: 34, px: PX_BOSS, fps: 6, ol: '#000006',
+    pal: { B: ['#05051a', '#0c0c2a', '#16163e', '#242458', '#36367a'], H: ['#06061e', '#101032', '#1c1c4a', '#2c2c66', '#40408a'], e: '#eeeeff', w: 'rgba(110,110,200,.38)', a: '#2a2a5a', l: '#2a2a5a' },
+    frames: [[
+      '......www.............', '....wwwwww............', '...wwwwwwwww.www......', '....wwwwwwwwwwwww.....', '......wwwwwwwwww......', '..BBBBBBB..HHHH...a...', '.BBBBBBBBBHHHHHHHa....',
+      'BBBBBBBBBBHHHHHeeH....', 'BBBBBBBBBBHHHHHHHH....', 'BBBBBBBBBBHHHHeeHH....', '.BBBBBBBBBHHHHHHH.....', '..BBBBBBB.HHHHH.a.....', '....l..l...l..l.......', '...l..l...l..l........'
+    ], [
+      '......................', '......................', '......................', '...wwwwwwww...........', '..wwwwwwwwwwww........', '..BBBBBBB..HHHH...a...', '.BBBBBBBBBHHHHHHHa....',
+      'BBBBBBBBBBHHHHHeeH....', 'BBBBBBBBBBHHHHHHHH....', 'BBBBBBBBBBHHHHeeHH....', '.BBBBBBBBBHHHHHHH.....', '..BBBBBBB.HHHHH.a.....', '...l..l...l..l........', '....l..l...l..l.......'
+    ]] },
+  hive: { r0: 52, px: PX_BOSS, fps: 2, ol: '#140c02',
+    pal: { B: ['#4a3008', '#8a5a14', '#d0952a', '#f0c050', '#fff0a0'], D: ['#2a1a04', '#4a3008', '#7a5210', '#a06e1c', '#c89030'], s: '#3a2606', h: '#140a00', g: '#ffd84a' },
+    frames: [hiveRows(0), hiveRows(1)] },
+};
+
+// ---------- page assembly ----------
+document.getElementById('kit').textContent = kitCSS();
+const $ = id => document.getElementById(id);
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; };
+// a crisp, integer-scaled view of a canvas (or a cycling set of frames)
+function view(frames, scale, ms = 420) {
+  frames = Array.isArray(frames) ? frames : [frames]; const f0 = frames[0], cv = document.createElement('canvas');
+  cv.width = f0.width * scale; cv.height = f0.height * scale; cv.className = 'px'; const c = cv.getContext('2d'); c.imageSmoothingEnabled = false;
+  let i = 0; const draw = () => { c.clearRect(0, 0, cv.width, cv.height); const f = frames[i % frames.length]; c.drawImage(f, 0, 0, f.width * scale, f.height * scale); };
+  draw(); if (frames.length > 1 && !matchMedia('(prefers-reduced-motion: reduce)').matches) setInterval(() => { i++; draw(); }, ms);
+  return cv;
+}
+function card(parent, frames, scale, name, note, opt = {}) {
+  const f = el('figure', 'card' + (opt.wide ? ' wide' : '')); const stage = el('div', 'stage' + (opt.light ? ' light' : '')); stage.appendChild(view(frames, scale, opt.ms)); f.appendChild(stage);
+  const cap = el('figcaption'); cap.appendChild(el('b', '', name)); if (note) cap.appendChild(el('span', '', note)); f.appendChild(cap); parent.appendChild(f); return f;
+}
+const grid = id => { const g = el('div', 'grid'); $(id).appendChild(g); return g; };
+
+// ---- 1. the Hollow, laid out ----
+function hubMap() {
+  const W = 34, H = 22, M = px(W * 16, H * 16, () => {}), c = M.getContext('2d'); reseed(77);
+  const pick = a => a[(rnd() * a.length) | 0];
+  const T = Array.from({ length: H }, () => Array(W).fill('g'));
+  const fill = (x0, y0, x1, y1, t) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) T[y][x] = t; };
+  fill(13, 9, 20, 13, 'd'); fill(13, 3, 19, 6, 'd'); fill(3, 8, 10, 13, 'p'); fill(2, 15, 13, 19, 'd');
+  fill(11, 11, 13, 11, 's'); fill(14, 12, 19, 12, 's'); fill(14, 9, 14, 12, 's'); fill(19, 9, 19, 12, 's'); fill(5, 11, 11, 11, 'p'); fill(16, 7, 17, 8, 's'); fill(16, 14, 17, 15, 's'); fill(10, 14, 16, 14, 's'); fill(9, 14, 9, 15, 's'); fill(21, 11, 24, 11, 's'); fill(21, 6, 26, 6, 's');
+  fill(25, 12, 31, 19, 'w'); fill(25, 11, 31, 11, 'S'); fill(17, 17, 23, 20, 'd'); fill(25, 2, 31, 8, 'd');
+  fill(0, 0, W - 1, 1, 'R'); fill(0, 2, W - 1, 2, 'F'); fill(0, 0, 1, H - 1, 'R'); fill(W - 2, 0, W - 1, H - 1, 'R'); fill(0, H - 1, W - 1, H - 1, 'R');
+  const tiles = { g: HUB_TILES.grass, d: HUB_TILES.dirt, p: HUB_TILES.plank, s: HUB_TILES.slab, w: HUB_TILES.water, S: HUB_TILES.shore, R: HUB_TILES.rootTop, F: HUB_TILES.rootFace };
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) c.drawImage(pick(tiles[T[y][x]]), x * 16, y * 16);
+  // props sorted by their feet, with a soft pixel shadow under each
+  const props = [];
+  const at = (img, tx, ty, shadow = true) => props.push({ img, x: tx * 16, y: ty * 16, shadow });
+  at(LANTERN_GATE[0], 15.2, 9); at(SHRINE[0], 20.6, 8); at(TABLET, 14.6, 4.3); at(CART[0], 3.2, 8.4); at(flipX(GLIM[0]), 8.6, 10.2);
+  at(CRATE, 2.3, 11.8); at(JAR[0], 3.4, 12.3); at(BENCH, 18.5, 12.6); at(SIGNPOST, 11.8, 13.4); at(REED_GATE, 22.6, 9.6); at(SOON_BOARD, 27.4, 9.9); at(LOG, 16.4, 15.7); at(SOON_BOARD, 21.2, 16.2);
+  at(RUBBLE, 24.8, 7.2); at(PILLAR, 27, 4.5); at(TELESCOPE, 28.5, 4); at(SOON_BOARD, 25, 2.4);
+  for (const [i, x] of [[0, 2.6], [1, 4.6], [2, 6.6], [3, 8.6], [4, 10.6]]) { at(PERCH[i], x, 16.2); props.push({ img: i > 2 ? px(18, 14, cc => { cc.drawImage(bake({ B: '#1a2020' }, bugRows[Object.keys(BUGS)[i]][0].map(r => r.replace(/[^.]/g, 'B'))), 0, 0); }) : BUGS[Object.keys(BUGS)[i]][0], x: x * 16 - 1, y: 16.2 * 16 - 9, shadow: false, z: 1 }); }
+  for (const [x, y] of [[12.2, 8.6], [21.4, 12.2], [12.2, 2.8], [2.4, 14], [20.5, 3]]) at(LAMP_POST[0], x, y);
+  for (const [i, x, y] of [[0, 5.6, 6.8], [1, 30.6, 9.8], [2, 13.6, 19.6], [0, 22.6, 4.4], [1, 2.4, 19.4], [2, 31.4, 2.6]]) at(GLOW_SHROOMS[i], x, y, false);
+  for (const [x, y] of [[6.6, 2.6], [23.4, 13.6], [12, 20.2], [31, 20.1], [2, 5.4]]) at(BUSH, x, y);
+  for (const [x, y] of [[26, 13], [28.4, 15.4], [30, 17.6], [26.6, 18]]) at(LILY, x, y, false);
+  for (const [x, y] of [[24.6, 12.4], [31.2, 12.6], [24.7, 17.6]]) at(REEDS, x, y, false);
+  for (const [i, x, y] of [[0, 6.3, 5], [1, 21.3, 14.3], [2, 9.4, 20.3], [0, 18.5, 2.9], [1, 3.2, 3.4]]) at(FLOWERS[i], x, y, false);
+  at(SHELLBY[0], 19, 18.2);
+  props.sort((a, b) => (a.y + a.img.height + (a.z || 0)) - (b.y + b.img.height + (b.z || 0)));
+  for (const p of props) { if (p.shadow) { c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(Math.round(p.x + p.img.width / 2), Math.round(p.y + p.img.height - 1), Math.round(p.img.width * .42), 3, 0, 0, TAU); c.fill(); } c.drawImage(p.img, Math.round(p.x), Math.round(p.y)); }
+  // lighting: a dusky wash with warm holes where the lanterns are, then the locked corners sink into fog
+  const dark = px(M.width, M.height, (dc) => { dc.fillStyle = 'rgba(6,10,14,.32)'; dc.fillRect(0, 0, M.width, M.height); dc.globalCompositeOperation = 'destination-out'; for (const [x, y, r] of [[16.5, 11, 70], [4 * 16 + 40, 9 * 16 + 30, 64], [21.5, 9.5, 34], [12.6, 9.4, 30], [21.8, 13, 30], [12.6, 3.6, 30], [2.8, 14.8, 30], [20.9, 3.8, 30], [7, 17.5, 50], [15.5, 5.5, 34]]) { const X = x > 40 ? x : x * 16, Y = y > 40 ? y : y * 16; dc.drawImage(halo(r, [255, 255, 255], 5), X - r, Y - r); } });
+  c.drawImage(dark, 0, 0);
+  c.globalCompositeOperation = 'lighter'; for (const [x, y, r] of [[16.5, 11, 46], [5.5, 10, 40], [21.5, 9.5, 20], [12.6, 9.3, 18], [21.8, 12.9, 18], [12.6, 3.5, 18], [2.8, 14.7, 18], [20.9, 3.7, 18]]) c.drawImage(halo(r, [255, 200, 110], 4), x * 16 - r, y * 16 - r); c.globalCompositeOperation = 'source-over';
+  const fog = (x0, y0, x1, y1) => { c.fillStyle = 'rgba(8,12,18,.55)'; c.fillRect(x0 * 16, y0 * 16, (x1 - x0 + 1) * 16, (y1 - y0 + 1) * 16); for (let y = y0 * 16; y < (y1 + 1) * 16; y += 2) for (let x = x0 * 16 + (y % 4 ? 1 : 0); x < (x1 + 1) * 16; x += 4) { c.fillStyle = 'rgba(30,40,50,.25)'; c.fillRect(x, y, 1, 1); } };
+  fog(24, 9, 31, 20); fog(17, 16, 23, 20); fog(24, 2, 31, 8);
+  for (const [x, y] of [[27.6, 14.5], [19.9, 18.3], [28, 5]]) c.drawImage(PADLOCK, Math.round(x * 16), Math.round(y * 16));
+  // ambient fireflies
+  reseed(5); for (let i = 0; i < 26; i++) { const x = 40 + rnd() * (M.width - 80), y = 50 + rnd() * (M.height - 90); c.globalCompositeOperation = 'lighter'; c.drawImage(halo(6, [255, 230, 140], 3), x - 6, y - 6); c.globalCompositeOperation = 'source-over'; c.fillStyle = '#fff3a0'; c.fillRect(Math.round(x), Math.round(y), 1, 1); }
+  // you, standing in the plaza
+  c.drawImage(BUGS.firefly[0], 16 * 16, 12 * 16 + 2); for (let i = 0; i < 3; i++) c.drawImage(FIREFLY[0], 16 * 16 - 10 - i * 8, 12 * 16 + 8 + (i % 2) * 3);
+  return M;
+}
+(() => {
+  const wrap = $('map'), M = hubMap(), cv = view(M, 2); window.__hubMap = M; cv.classList.add('map'); wrap.appendChild(cv);
+  const pins = [[1, 16.6, 8.4, 'The Lantern Gate', 'Walk into the light to fly out on a run. Your amber is counted when you come back.', 'open'], [2, 5.6, 8, "Old Glim's Wares", 'The permanent upgrades merchant. Talk to him to open the shop.', 'open'], [3, 21.5, 7.4, 'The Daily Moonstone', "Today's challenge, the same run for everyone.", 'open'], [4, 16.2, 3.8, 'The Wall of Glows', 'Your stats, run history and achievements.', 'open'], [5, 7, 15.6, 'The Roost', 'Your bugs rest on these mushrooms. Walk up to one to fly as it. Locked bugs are shadows.', 'open'], [6, 28, 12, 'The Moonlit Pond', 'Locked. New game modes will open here.', 'locked'], [7, 20.5, 16.6, 'The Mushroom Market', 'Locked. Shellby will sell weapons and looks here.', 'locked'], [8, 28.5, 3, 'The Old Observatory', 'Locked. Future challenges and trials.', 'locked']];
+  const legend = $('legend');
+  for (const [n, x, y, name, note, st] of pins) {
+    const p = el('span', 'pin ' + st, n); p.style.left = (x / 34 * 100) + '%'; p.style.top = (y / 22 * 100) + '%'; p.title = name; wrap.appendChild(p);
+    const li = el('li', st); li.innerHTML = '<span class="pin ' + st + '">' + n + '</span><div><b>' + name + '</b><span>' + note + '</span></div>'; legend.appendChild(li);
+  }
+})();
+
+// ---- 2. characters ----
+(() => {
+  const g = grid('chars');
+  for (const k in BUGS) card(g, BUGS[k], 5, BUG_NAMES[k], 'Two-frame flight. Flips to face where you fly.');
+  card(g, [GLIM[0], GLIM[1], GLIM[0], GLIM[2]], 5, 'Old Glim', 'Moth peddler. Idle, lantern flicker, talking.', { ms: 380 });
+  card(g, [GLIM_PORTRAIT], 6, 'Glim, portrait', 'Used in his dialogue box.');
+  card(g, SHELLBY, 4, 'Shellby', 'Snail who runs a shop from her shell. Mushroom Market, locked for now.', { ms: 600 });
+  card(g, FIREFLY, 8, 'Trail firefly', 'Follows you in a line.', { ms: 260 });
+  card(g, STRAY, 7, 'Lost firefly', 'Waiting to be rescued, blinking.', { ms: 400 });
+})();
+// ---- 3. hub props and tiles ----
+(() => {
+  const g = grid('props');
+  card(g, LANTERN_GATE, 4, 'The Lantern Gate', 'Starts a run. Its light flickers.', { ms: 300 });
+  card(g, CART, 3, "Glim's cart", 'Striped canopy, hanging jars, his wares.', { ms: 500 });
+  card(g, SHRINE, 4, 'Daily Moonstone', 'The moon glows brighter when today is unplayed.', { ms: 700 });
+  card(g, [TABLET], 3, 'Wall of Glows', 'Stats and achievements, carved in stone.');
+  card(g, PERCH, 4, 'Roost perches', 'One per bug, in its colour.', { ms: 700 });
+  card(g, [REED_GATE], 3, 'Pond gate', 'Locked: reeds, a chained gate and a padlock.');
+  card(g, [LOG], 3, 'Fallen log', 'Blocks the Mushroom Market for now.');
+  card(g, [RUBBLE], 4, 'Rubble', 'Blocks the Observatory path.');
+  card(g, [PILLAR], 4, 'Broken pillar', '');
+  card(g, [TELESCOPE], 3, 'Old telescope', 'Waiting in the Observatory.');
+  card(g, [SOON_BOARD], 4, 'Coming-soon board', 'Stands at every locked area.');
+  card(g, [SIGNPOST], 4, 'Signpost', '');
+  card(g, LAMP_POST, 4, 'Lamp post', '', { ms: 300 });
+  card(g, JAR, 5, 'Firefly jar', '', { ms: 400 });
+  card(g, [CRATE], 5, 'Crate', ''); card(g, [BENCH], 4, 'Bench', '');
+  card(g, GLOW_SHROOMS, 5, 'Glow mushrooms', 'Three colours.', { ms: 700 });
+  card(g, [BUSH], 4, 'Bush', ''); card(g, [LILY], 5, 'Lily pad', ''); card(g, [REEDS], 5, 'Reeds', ''); card(g, FLOWERS, 7, 'Flowers', '', { ms: 600 }); card(g, [PADLOCK], 5, 'Padlock', '');
+  const t = grid('tiles');
+  const patch = arr => [0, 1].map(f => px(48, 48, pc => { reseed(13 + f); for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) pc.drawImage(arr.length > 1 && arr === HUB_TILES.water || arr === HUB_TILES.shore ? arr[f] : arr[(rnd() * arr.length) | 0], x * 16, y * 16); }));
+  const tileCard = (name, arr, note) => card(t, patch(arr), 3, name, note, { ms: 700 });
+  tileCard('Grass', HUB_TILES.grass, 'Four variants, one with flowers.'); tileCard('Dirt', HUB_TILES.dirt, ''); tileCard('Stepping slabs', HUB_TILES.slab, ''); tileCard('Moss', HUB_TILES.moss, '');
+  tileCard('Water', HUB_TILES.water, 'Two-frame ripple.'); tileCard('Shore', HUB_TILES.shore, 'Grass lip, shadow, water.'); tileCard('Root wall, top', HUB_TILES.rootTop, ''); tileCard('Root wall, face', HUB_TILES.rootFace, ''); tileCard('Deck planks', HUB_TILES.plank, '');
+})();
+// ---- 4. upgrades shop data and icons ----
+(() => {
+  const g = grid('upgrades');
+  for (const [k, name, eff, max, costs] of UPGRADES) card(g, [UPGRADE_ICONS[k]], 5, name, eff + ' · ' + max + (max > 1 ? ' levels' : ' level') + ' · ' + costs.join(' / ') + ' amber');
+  const c = grid('currency');
+  card(c, [AMBER], 6, 'Amber', 'Earned every run. Spent at Old Glim.'); card(c, [AMBER_SMALL], 8, 'Amber, small', 'For prices and the counter.'); card(c, [AMBER_PILE], 5, 'Amber pile', 'Run summary reward.');
+  const w = grid('weapons');
+  for (const k in WEAPON_ICONS) { card(w, [WEAPON_ICONS[k]], 5, WEAPON_NAMES[k][0], ''); card(w, [EVOLVED_ICONS[k]], 4, WEAPON_NAMES[k][1], 'Evolved'); }
+  const p = grid('passives'); for (const k in PASSIVE_ICONS) card(p, [PASSIVE_ICONS[k]], 5, PASSIVE_NAMES[k], '');
+  const pk = grid('pickups'); for (const k in PICKUPS) card(pk, [PICKUPS[k]], 5, PICKUP_NAMES[k], ''); SPARKS.forEach((s, i) => card(pk, [s], 8, ['Spark', 'Bright spark', 'Gold spark'][i], ['1 XP', '4 XP', '15 XP'][i]));
+  const ic = grid('hudicons'); const names = { health: 'Health', squash: 'Squashed', firefly: 'Fireflies', clock: 'Time', pause: 'Pause', play: 'Resume', soundOn: 'Sound on', soundOff: 'Sound off', music: 'Music', gear: 'Settings', lock: 'Locked', unlock: 'Unlocked', check: 'Done', cross: 'Close or no', star: 'Achievement', crown: 'Best', moon: 'Daily', nightmare: 'Nightmare', back: 'Back', close: 'Close', amber: 'Amber' };
+  for (const k in ICO) card(ic, [ICO[k]], 5, names[k], '');
+})();
+// ---- 5. projectiles and effects ----
+(() => {
+  const g = grid('shots'); for (const k in PLAYER_SHOTS) card(g, PLAYER_SHOTS[k], 6, k, 'Yours', { ms: 160 });
+  const e = grid('eshots'); for (const k in ENEMY_SHOTS) card(e, [ENEMY_SHOTS[k]], 7, k, 'Enemy'); card(e, SHOCKWAVE, 4, 'Gloom shockwave', 'Enemy', { ms: 300 }); card(e, [WEB], 4, 'Weaver web', 'Enemy');
+  const f = grid('effects'); card(f, HIT, 7, 'Hit spark', '', { ms: 120 }); card(f, POOF, 5, 'Death puff', '', { ms: 140 }); card(f, LEVEL_BURST, 4, 'Level-up burst', '', { ms: 220 }); card(f, [HEAL], 7, 'Heal', '');
+})();
+// ---- 6. the run's level ----
+function enemyFrames(name) { const d = SPRITES[name]; return d.frames.map(fr => bake(d.pal, fr, d.ol)); }
+(() => {
+  const W = 30, H = 17, M = px(W * 16, H * 16, () => {}), c = M.getContext('2d'); reseed(303);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const r = rnd(); const set = r < .07 ? RUN_TILES.slab : r < .1 ? RUN_TILES.spores : r < .12 ? RUN_TILES.rebar : RUN_TILES.grass; c.drawImage(set[(rnd() * set.length) | 0], x * 16, y * 16); }
+  for (const [x, y] of [[6, 4], [7, 4], [6, 5], [22, 11], [23, 11]]) c.drawImage(RUN_TILES.slab[0], x * 16, y * 16); for (const [x, y] of [[12, 12], [25, 3]]) c.drawImage(RUN_TILES.puddle[0], x * 16, y * 16);
+  for (const [img, x, y] of [[STUMP, 4, 9], [STANDING, 20, 2], [STANDING, 22, 2.6], [DEAD_LAMP, 26, 9], [STUMP, 15, 1.5], [STANDING, 2, 13]]) { c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(x * 16 + img.width / 2, y * 16 + img.height - 1, img.width * .42, 3, 0, 0, TAU); c.fill(); c.drawImage(img, x * 16, y * 16); }
+  const put2 = (img, x, y, flip) => c.drawImage(flip ? flipX(img) : img, Math.round(x - img.width / 2), Math.round(y - img.height / 2));
+  const P0 = [15 * 16, 9 * 16];
+  c.globalCompositeOperation = 'lighter'; c.drawImage(halo(80, [255, 210, 120], 5), P0[0] - 80, P0[1] - 80); c.globalCompositeOperation = 'source-over';
+  for (const [n, x, y] of [['tick', 9, 5], ['tick', 10.5, 6.5], ['gnat', 20, 6], ['toad', 23, 13.5], ['beetle', 7, 12], ['brood', 21, 9], ['puff', 11, 12.5], ['moth', 18, 3.5], ['jar', 12, 3], ['tick', 24, 7], ['grub', 19.2, 10.5]]) put2(enemyFrames(n)[0], x * 16, y * 16, x * 16 > P0[0]);
+  put2(BUGS.firefly[0], P0[0], P0[1]); for (let i = 0; i < 5; i++) put2(FIREFLY[0], P0[0] - 14 - i * 9, P0[1] + 4 + Math.sin(i) * 4);
+  put2(PLAYER_SHOTS['Spark Shot'][0], P0[0] + 40, P0[1] - 14); put2(PLAYER_SHOTS['Spark Shot'][1], P0[0] + 72, P0[1] - 30); put2(PLAYER_SHOTS['Thorn'][1], P0[0] - 50, P0[1] + 36);
+  put2(PLAYER_SHOTS['Moon scythe'][0], P0[0] + 2, P0[1] - 30); put2(PLAYER_SHOTS['Spore cloud'][0], P0[0] - 60, P0[1] + 10);
+  for (const [k, x, y] of [['Beetle spit', 8.6, 11.2], ['Beetle spit', 10.2, 10.6], ['Eclipse ember', 19.6, 8.4], ['Generic shot', 17.8, 11.6], ['Hive sting', 13.2, 5]]) put2(ENEMY_SHOTS[k], x * 16, y * 16);
+  put2(SPARKS[0], 13 * 16, 8 * 16); put2(SPARKS[1], 17 * 16, 12 * 16); put2(SPARKS[2], 14 * 16, 13 * 16); put2(PICKUPS.heart, 6 * 16, 7 * 16); put2(HIT[2], 20 * 16 - 8, 6 * 16 - 2); put2(POOF[1], 11 * 16, 9.4 * 16);
+  const v = view(M, 2); v.classList.add('map'); $('level').appendChild(v);
+  const t = grid('runtiles'); const tc = (n, a, note) => card(t, [0, 1].map(f => px(48, 48, pc => { reseed(17 + f); for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) pc.drawImage(a === RUN_TILES.puddle ? a[f] : a[(rnd() * a.length) | 0], x * 16, y * 16); })), 3, n, note, { ms: 700 });
+  tc('Meadow grass', RUN_TILES.grass, 'Colder and darker than the hub.'); tc('Buried slabs', RUN_TILES.slab, 'Whole and cracked.'); tc('Puddle', RUN_TILES.puddle, ''); tc('Rebar', RUN_TILES.rebar, ''); tc('Spore caps', RUN_TILES.spores, '');
+  card(t, [STUMP], 4, 'Pillar stump', ''); card(t, [STANDING], 4, 'Standing stone', ''); card(t, [DEAD_LAMP], 4, 'Dead lamp post', 'The run is past the Hollow’s light.');
+})();
+// ---- 7. UI kit, live ----
+(() => {
+  const amberImg = '<img class="pxi" alt="" width="18" height="21" src="' + uri(AMBER_SMALL) + '">';
+  const icon = (cv, s = 2) => '<img class="pxi" alt="" width="' + cv.width * s + '" height="' + cv.height * s + '" src="' + uri(cv) + '">';
+  $('k-buttons').innerHTML = `
+    <div class="row"><button class="k-btn">Fly out</button><button class="k-btn is-hover" tabindex="-1">Hover</button><button class="k-btn is-down" tabindex="-1">Pressed</button><button class="k-btn" disabled>Disabled</button></div>
+    <div class="row"><button class="k-btn stone">Back</button><button class="k-btn stone is-hover" tabindex="-1">Hover</button><button class="k-btn stone is-down" tabindex="-1">Pressed</button><button class="k-btn mint">Daily #17</button><button class="k-btn danger">Reset progress</button></div>
+    <div class="row"><button class="k-btn stone icon" aria-label="Pause">${icon(ICO.pause)}</button><button class="k-btn stone icon" aria-label="Sound">${icon(ICO.soundOn)}</button><button class="k-btn stone icon" aria-label="Music">${icon(ICO.music)}</button><button class="k-btn stone icon" aria-label="Settings">${icon(ICO.gear)}</button><button class="k-btn stone icon" aria-label="Close">${icon(ICO.close)}</button></div>`;
+  $('k-inputs').innerHTML = `
+    <label class="field"><span>Music</span><div class="k-slider" data-v="70"><div class="tr"></div><div class="fi"></div><div class="kn"></div><input id="s1" type="range" min="0" max="100" value="70" aria-label="Music volume"></div><output>70</output></label>
+    <label class="field"><span>Sound effects</span><div class="k-slider" data-v="45"><div class="tr"></div><div class="fi"></div><div class="kn"></div><input id="s2" type="range" min="0" max="100" value="45" aria-label="Sound effects volume"></div><output>45</output></label>
+    <div class="row"><label class="opt"><input id="t1" class="k-toggle" type="checkbox" checked> Screen shake</label><label class="opt"><input id="t2" class="k-toggle" type="checkbox"> Reduce motion</label></div>
+    <div class="row"><label class="opt"><input id="c1" class="k-check" type="checkbox" checked> Damage numbers</label><label class="opt"><input id="c2" class="k-check" type="checkbox"> Show FPS</label></div>
+    <div class="row"><label class="opt"><input class="k-radio" type="radio" name="sz" id="r1"> Small text</label><label class="opt"><input class="k-radio" type="radio" name="sz" id="r2" checked> Normal</label><label class="opt"><input class="k-radio" type="radio" name="sz" id="r3"> Large</label></div>
+    <label class="field"><span>Dash key</span><span class="k-selwrap"><select id="d1" class="k-select"><option>Space</option><option>Shift</option><option>Right click</option></select></span></label>`;
+  $('k-misc').innerHTML = `
+    <div class="row"><div class="k-tabs" role="tablist"><button class="k-tab" role="tab" aria-selected="true">Upgrades</button><button class="k-tab" role="tab" aria-selected="false">Looks</button><button class="k-tab" role="tab" aria-selected="false" disabled>${icon(ICO.lock)} Soon</button></div></div>
+    <div class="k-panel" style="margin-top:0">Tab panel. The active tab joins the slab.</div>
+    <div class="bars"><div><small>XP</small><div class="k-bar"><i style="width:62%;background:repeating-linear-gradient(90deg,#4f8fe0 0 9px,#3d79c9 9px 12px)"></i></div></div>
+    <div><small>Health</small><div class="k-bar"><i style="width:74%;background:repeating-linear-gradient(90deg,#d9574a 0 9px,#b8443a 9px 12px)"></i></div></div>
+    <div><small>Boss</small><div class="k-bar boss"><i style="width:48%;background:repeating-linear-gradient(90deg,#c23b3b 0 9px,#9a2a2a 9px 12px)"></i></div></div></div>
+    <div class="row"><span class="k-pips" aria-label="Level 3 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span><span class="price">${amberImg} 140</span><span class="price poor">${amberImg} 400</span></div>
+    <div class="row" style="align-items:flex-end;min-height:84px"><span class="k-tip">+10 max health per level</span></div>
+    <div class="row"><span class="k-toast">${icon(ICO.star)} Achievement: Dawnbringer</span></div>
+    <div class="row"><span class="prompt"><span class="k-key">E</span> Talk to Old Glim</span><span class="prompt"><span class="k-key">Space</span> Dash</span><span class="prompt"><span class="k-key">Esc</span> Pause</span></div>
+    <div class="k-panel k-scroll" tabindex="0" aria-label="Scrolling list">${Array.from({ length: 12 }, (_, i) => '<p style="margin:6px 0">Run ' + (12 - i) + ' · ' + ['Firefly', 'Moth', 'Wasp'][i % 3] + ' · ' + (3 + i) + ':' + String((i * 17) % 60).padStart(2, '0') + '</p>').join('')}</div>
+    <div class="row"><span class="k-cursor curs">Hover here for the pixel cursor ${icon(IMG.cursor, 3)}</span></div>`;
+  document.querySelectorAll('.k-slider').forEach(s => { const inp = s.querySelector('input'), out = s.parentElement.querySelector('output'); const set = () => { const v = +inp.value; s.querySelector('.fi').style.width = 'calc(' + v + '% - ' + (v / 100 * 6) + 'px)'; s.querySelector('.kn').style.left = 'calc(' + (v) + '% + ' + (3.5 - v / 100 * 7) * 3 + 'px)'; if (out) out.textContent = v; }; inp.addEventListener('input', set); set(); });
+  document.querySelectorAll('.k-tab').forEach(t => t.addEventListener('click', () => { if (t.disabled) return; t.parentElement.querySelectorAll('.k-tab').forEach(o => o.setAttribute('aria-selected', o === t)); }));
+
+  // ---- 8. screens ----
+  const shop = $('shop');
+  shop.innerHTML = `<div class="k-panel gold screen-shop">
+    <div class="shop-head"><img class="pxi" alt="" width="${13 * 5}" height="${GLIM_PORTRAIT.height * 5}" src="${uri(GLIM_PORTRAIT)}"><div><h3>Old Glim's Wares</h3><p class="say">"Light doesn't keep, little one. Amber does. What'll it be?"</p></div><span class="balance">${amberImg} 312</span></div>
+    <div class="k-tabs" role="tablist"><button class="k-tab" role="tab" aria-selected="true">Upgrades</button><button class="k-tab" role="tab" aria-selected="false" disabled>${icon(ICO.lock)} Looks</button></div>
+    <div class="k-panel shop-list">${UPGRADES.map(([k, name, eff, max, costs], i) => { const have = [2, 1, 0, 3, 0, 1, 0, 2, 3, 0, 0, 1][i], maxed = have >= max, cost = maxed ? 0 : costs[have], poor = cost > 312; return `<div class="shop-row"><img class="pxi" alt="" width="48" height="48" src="${uri(UPGRADE_ICONS[k])}"><div class="sr-t"><b>${name}</b><span>${eff}</span><span class="k-pips">${Array.from({ length: max }, (_, j) => '<i' + (j < have ? ' class="on"' : '') + '></i>').join('')}</span></div>${maxed ? '<span class="maxed">' + icon(ICO.check) + ' Maxed</span>' : '<button class="k-btn' + (poor ? '" disabled' : '"') + '>' + amberImg + ' ' + cost + '</button>'}</div>`; }).join('')}</div></div>`;
+  $('settings').innerHTML = `<div class="k-panel screen-set"><h3>${icon(ICO.gear)} Settings</h3>
+    <div class="set-grid"><div><h4>Sound</h4>${$('k-inputs').querySelectorAll('.field')[0].outerHTML.replace('id="s1"', 'id="s3"')}${$('k-inputs').querySelectorAll('.field')[1].outerHTML.replace('id="s2"', 'id="s4"')}</div>
+    <div><h4>Screen</h4><label class="opt"><input id="t3" class="k-toggle" type="checkbox" checked> Screen shake</label><label class="opt"><input id="t4" class="k-toggle" type="checkbox"> Reduce motion</label><label class="opt"><input id="c3" class="k-check" type="checkbox" checked> Damage numbers</label></div>
+    <div><h4>Controls</h4><label class="field"><span>Dash key</span><span class="k-selwrap"><select id="d2" class="k-select"><option>Space</option><option>Shift</option></select></span></label><p class="note">Move with WASD or the arrow keys, or drag on a phone.</p></div>
+    <div><h4>Save</h4><p class="note">Progress, amber and upgrades are saved in this browser.</p><button class="k-btn danger">Reset progress</button></div></div>
+    <div class="row end"><button class="k-btn stone">${icon(ICO.back)} Back</button><button class="k-btn">Done</button></div></div>`;
+  document.querySelectorAll('#settings .k-slider').forEach(s => { const inp = s.querySelector('input'), out = s.parentElement.querySelector('output'); const set = () => { const v = +inp.value; s.querySelector('.fi').style.width = 'calc(' + v + '% - ' + (v / 100 * 6) + 'px)'; s.querySelector('.kn').style.left = 'calc(' + v + '% + ' + (3.5 - v / 100 * 7) * 3 + 'px)'; if (out) out.textContent = v; }; inp.addEventListener('input', set); set(); });
+  $('locked').innerHTML = `<div class="k-panel screen-lock"><img class="pxi" alt="" width="60" height="75" src="${uri(PADLOCK)}"><div><h3>The Moonlit Pond</h3><p>New ways to play will open here. The gate stays chained for now.</p><button class="k-btn stone">${icon(ICO.back)} Back to the Hollow</button></div></div>`;
+  $('dialog').innerHTML = `<div class="k-panel screen-dialog"><div class="portrait"><img class="pxi" alt="" width="${13 * 6}" height="${GLIM_PORTRAIT.height * 6}" src="${uri(GLIM_PORTRAIT)}"></div><div><span class="nameplate">Old Glim</span><p>"Back again? Every run you fly, you bring a little amber home. Bring me enough and I'll make you tougher for the next one."</p><div class="row"><button class="k-btn">Show me your wares</button><button class="k-btn stone">Maybe later</button></div></div></div>`;
+  const crop = px(240, 75, cc => cc.drawImage(window.__hubMap, 150, 120, 240, 75, 0, 0, 240, 75));
+  $('hubhud').innerHTML = `<div class="hudmock" style="background:url(${uri(crop)}) center/cover;image-rendering:pixelated"><span class="amt">${amberImg} 312</span><span class="right"><button class="k-btn stone icon" aria-label="Settings">${icon(ICO.gear)}</button></span><span class="hint"><span class="k-key">E</span> Fly out</span></div>`;
+  $('summary').innerHTML = `<div class="k-panel gold screen-sum"><h3>Back in the Hollow</h3><div class="sum-amber"><img class="pxi" alt="" width="100" height="70" src="${uri(AMBER_PILE)}"><div><b>+ 84 amber</b><span>62 from your score · 12 for the Maw · 10 for 5 fireflies home</span></div></div><div class="row end"><button class="k-btn">Back to the Hollow</button></div></div>`;
+})();
+
+})();
+</script>
