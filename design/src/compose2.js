@@ -99,6 +99,7 @@ function TreeView(host) {
 
 // ---- 2. stations ----
 (() => {
+  { const m = el('div', 'mapwrap'), inner = el('div', 'mapin'); const v = view(hollowOverview(), 2); v.classList.add('map'); inner.appendChild(v); m.appendChild(inner); $('stations').appendChild(m); $('stations').appendChild(el('h3', '', 'Each station')); }
   const g = grid('stations', 'wide');
   card(g, BIG_GATE, 4, 'Lantern Gate', 'Fly out.', { ms: 140, big: 1 });
   card(g, ELDER, 3, 'Elder Root', 'The Root Tree.', { ms: 900, big: 1 });

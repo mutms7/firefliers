@@ -1,44 +1,44 @@
 // ---------- the walkable Hollow ----------
+// A tight hub: every station sits a few steps off the plaza, on its own clearing, with its own light.
+const WARM = [255, 200, 110], AMBERL = [255, 170, 60], MINT = [127, 214, 194], ROSE = [255, 150, 170];
 function makeHollow() {
-  const TW = 52, TH = 34, W = TW * 16, H = TH * 16;
+  const TW = 40, TH = 29, W = TW * 16, H = TH * 16;
   reseed(4242);
   const T = Array.from({ length: TH }, () => Array(TW).fill('g'));
   const fill = (x0, y0, x1, y1, t) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (T[y] && T[y][x] !== undefined) T[y][x] = t; };
   const disc = (cx, cy, r, t) => { for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) if ((x + .5 - cx) ** 2 + ((y + .5 - cy) * 1.15) ** 2 < r * r) T[y][x] = t; };
-  // paths are dirt with a stepping stone every other tile; the plaza is dirt ringed with stones
-  const path = (x0, y0, x1, y1) => { fill(x0, y0, x1, y1, 'd'); for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if ((x + y) % 2 === 0 && (x0 === x1 || y0 === y1 || (x - x0 + y - y0) % 3 === 0)) T[y][x] = 's'; };
-  path(12, 18, 20, 19); path(31, 18, 39, 19); path(25, 24, 26, 26); path(9, 26, 26, 27); path(9, 20, 10, 26); path(32, 22, 35, 23); path(38, 13, 39, 18); path(38, 24, 39, 29);
-  disc(26, 19, 6.2, 'd'); for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) { const d = Math.hypot(x + .5 - 26, (y + .5 - 19) * 1.15); if (d > 4.2 && d < 5.2) T[y][x] = 's'; }
-  disc(9, 16.5, 5, 'd'); disc(10, 28.5, 6.4, 'd'); disc(40, 15.5, 3.6, 'd'); disc(41, 28, 5, 'd');
-  fill(36, 3, 49, 9, 'w'); fill(36, 10, 49, 10, 'S');
+  // clearings first, then stepping-stone paths that join them to the plaza
+  disc(9.5, 13.2, 4.8, 'd'); disc(12.5, 21.4, 5, 'd'); disc(29.5, 13.2, 3.4, 'd'); disc(27.5, 19.6, 3, 'd'); disc(31.5, 24.6, 4.2, 'd');
+  const path = (x0, y0, x1, y1) => { fill(x0, y0, x1, y1, 'd'); for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if ((x + y) % 2 === 0) T[y][x] = 's'; };
+  path(13, 14, 16, 15); path(15, 18, 16, 19); path(24, 14, 27, 15); path(24, 17, 26, 18); path(27, 21, 29, 22);
+  disc(20, 15.6, 5.4, 'd'); for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) { const d = Math.hypot(x + .5 - 20, (y + .5 - 15.6) * 1.15); if (d > 3.7 && d < 4.7) T[y][x] = 's'; }
+  fill(26, 3, 37, 7, 'w'); fill(26, 8, 37, 8, 'S');
   fill(0, 0, TW - 1, 1, 'R'); fill(0, 2, TW - 1, 2, 'F'); fill(0, 0, 1, TH - 1, 'R'); fill(TW - 2, 0, TW - 1, TH - 1, 'R'); fill(0, TH - 2, TW - 1, TH - 1, 'R');
   const tiles = { g: HUB_TILES.grass, d: HUB_TILES.dirt, s: HUB_TILES.slab, w: HUB_TILES.water, S: HUB_TILES.shore, R: HUB_TILES.rootTop, F: HUB_TILES.rootFace };
   const ground = px(W, H, c => { for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) { const set = tiles[T[y][x]], v = T[y][x] === 'w' || T[y][x] === 'S' ? set[0] : set[(rnd() * set.length) | 0]; c.drawImage(v, x * 16, y * 16); } });
-  // flat ground details: flowers, glow mushrooms, lily pads
   const gc = ground.getContext('2d');
-  for (let i = 0; i < 70; i++) { const x = 40 + rnd() * (W - 80), y = 56 + rnd() * (H - 100), t = T[(y / 16) | 0][(x / 16) | 0]; if (t === 'g') gc.drawImage(rnd() < .75 ? FLOWERS[(rnd() * 3) | 0] : GLOW_SHROOMS[(rnd() * 3) | 0], x | 0, y | 0); }
-  for (const [x, y] of [[38, 5], [41, 7], [45, 4], [47, 8], [43, 9]]) gc.drawImage(LILY, x * 16, y * 16);
-  // things that stand up: each has a picture, a position (its feet), an optional solid footprint and an optional station
+  for (let i = 0; i < 60; i++) { const x = 40 + rnd() * (W - 80), y = 56 + rnd() * (H - 100), t = T[(y / 16) | 0][(x / 16) | 0]; if (t === 'g') gc.drawImage(rnd() < .7 ? FLOWERS[(rnd() * 3) | 0] : GLOW_SHROOMS[(rnd() * 3) | 0], x | 0, y | 0); }
+  for (const [x, y] of [[27, 4], [30, 6], [34, 3.6], [36, 6], [32, 7]]) gc.drawImage(LILY, x * 16, y * 16);
   const props = [];
   const add = (frames, fx, fy, o = {}) => { frames = Array.isArray(frames) ? frames : [frames]; const w = frames[0].width, h = frames[0].height; const p = { frames, x: Math.round(fx * 16 - w / 2), y: Math.round(fy * 16 - h), w, h, foot: fy * 16, ms: o.ms || 400, ...o }; if (o.solid !== false) p.box = o.box || [p.x + w * .2, p.foot - 7, w * .6, 7]; props.push(p); return p; };
-  add(BIG_GATE, 26, 15.4, { ms: 140, station: 'gate', label: 'Fly out', light: [26 * 16, 12.2 * 16, 70] });
-  add(ELDER, 9, 16, { ms: 900, station: 'tree', label: 'The Root Tree', box: [9 * 16 - 40, 16 * 16 - 10, 80, 10], light: [9 * 16, 13 * 16, 60] });
-  add(GLIM, 13.3, 16.4, { ms: 500, station: 'tree', label: 'The Root Tree', anim: [0, 1, 0, 0] });
-  for (const [i, x] of [[0, 6.5], [1, 10.5], [2, 14.5]]) add(BIG_SHROOMS[i], x, 29.6, { station: 'roost', label: 'Choose your bug', light: i === 1 ? [10.5 * 16, 28 * 16, 56] : null });
-  add(MOONSTONE, 40, 16.6, { ms: 900, station: 'daily', label: 'Daily challenge', light: [40 * 16, 14 * 16, 40] });
-  add(RECORDS, 34, 23.8, { station: 'records', label: 'Records' });
-  add(POND_GATE, 42.5, 13.6, { station: 'locked', label: 'Locked', box: [36 * 16, 12.6 * 16, 14 * 16, 16] });
-  add(MARKET, 41, 31.6, { station: 'locked', label: 'Locked' });
-  for (const [x, y] of [[21, 21.8], [31, 21.8], [21, 15.6], [31, 15.6], [16, 25.6], [36, 26.6], [12.5, 21.2]]) add(BIG_LAMP, x, y, { ms: 300, light: [x * 16, y * 16 - 34, 34], box: [x * 16 - 3, y * 16 - 4, 6, 4] });
-  for (const [i, x, y] of [[0, 4.6, 8.4], [1, 17, 7.6], [2, 31.5, 8], [0, 48.8, 15.6], [1, 48.6, 24], [2, 3.8, 22.6], [0, 23.4, 32.4], [1, 31.8, 32.6], [2, 48.6, 32]]) add(TREES[i], x, y, { box: [x * 16 - 9, y * 16 - 8, 18, 8] });
-  for (const [x, y] of [[19.2, 9.4], [34, 9.6], [3.6, 12.4], [30.2, 28.6], [21.8, 30.4], [46.6, 20.4], [15, 22.5], [44, 22]]) add(FERN, x, y, { solid: false });
-  for (const [x, y] of [[18, 29], [35.5, 17.2], [6, 20.6]]) add(SHROOM_PATCH, x, y, { solid: false });
-  for (const [x, y] of [[29.5, 24.4]]) add(BENCH, x, y);
-  // where you can't walk: walls, water, prop footprints
+  // the five stations and two locked spots, each with a light of its own colour
+  add(BIG_GATE, 20, 11.6, { ms: 140, station: 'gate', label: 'Fly out', light: [20 * 16, 8.4 * 16, 86, WARM] });
+  add(ELDER, 9.5, 13.6, { ms: 900, station: 'tree', label: 'The Root Tree', box: [9.5 * 16 - 40, 13.6 * 16 - 10, 80, 10], light: [9.5 * 16, 10.4 * 16, 84, AMBERL] });
+  add(GLIM, 13.3, 14.2, { ms: 500, station: 'tree', label: 'The Root Tree', anim: [0, 1, 0, 0] });
+  for (const [i, x] of [[0, 9.6], [1, 12.6], [2, 15.6]]) add(BIG_SHROOMS[i], x, 22.4, { station: 'roost', label: 'Choose your bug', light: i === 1 ? [12.6 * 16, 20.4 * 16, 70, ROSE] : null });
+  add(MOONSTONE, 29.5, 13.4, { ms: 900, station: 'daily', label: 'Daily challenge', light: [29.5 * 16, 10.6 * 16, 64, MINT] });
+  add(RECORDS, 27.5, 20.6, { station: 'records', label: 'Records', light: [27.5 * 16, 18.6 * 16, 48, WARM] });
+  add(POND_GATE, 34, 10.6, { station: 'locked', label: 'Locked', box: [26 * 16, 9.6 * 16, 12 * 16, 16] });
+  add(MARKET, 31.5, 25.6, { station: 'locked', label: 'Locked' });
+  for (const [x, y] of [[16.4, 10.8], [23.6, 10.8], [14.6, 18.4], [25.4, 17.2], [26.6, 13.2], [18.6, 22.8], [5.6, 16.4]]) add(BIG_LAMP, x, y, { ms: 300, light: [x * 16, y * 16 - 34, 40, WARM], box: [x * 16 - 3, y * 16 - 4, 6, 4] });
+  for (const [i, x, y] of [[0, 3.8, 7.4], [1, 24.8, 7], [2, 3.6, 21.6], [0, 4, 27.4], [1, 22, 27.6], [2, 37.6, 17], [0, 37.4, 27.8], [1, 15.4, 7.2]]) add(TREES[i], x, y, { box: [x * 16 - 9, y * 16 - 8, 18, 8] });
+  for (const [x, y] of [[6.2, 15.8], [13.8, 9.6], [7.4, 23.4], [17.6, 23.6], [32.6, 15.4], [24.2, 22.6], [35.6, 21.4]]) add(FERN, x, y, { solid: false });
+  for (const [x, y] of [[11.4, 16.2], [26.2, 11.2], [16.8, 20.6], [33.2, 13.8]]) add(SHROOM_PATCH, x, y, { solid: false });
+  add(BENCH, 20, 21.2); add(JAR[0], 14.6, 15.8, { solid: false }); add(CRATE, 15.6, 13.6);
   const solidTile = (tx, ty) => { const t = T[ty] && T[ty][tx]; return t === undefined || t === 'R' || t === 'F' || t === 'w'; };
   const blocked = (x, y) => { if (solidTile(Math.floor(x / 16), Math.floor(y / 16))) return true; for (const p of props) if (p.box) { const [bx, by, bw, bh] = p.box; if (x >= bx && x <= bx + bw && y >= by && y <= by + bh) return true; } return false; };
-  const fog = [[35, 3, 50, 13], [34, 25, 50, 33]].map(([x0, y0, x1, y1]) => [x0 * 16, y0 * 16, (x1 - x0) * 16, (y1 - y0) * 16]);
-  return { W, H, ground, props, blocked, fog, spawn: [26 * 16, 18.4 * 16] };
+  const fog = [[26, 2, 38, 10], [28, 21, 38, 27]].map(([x0, y0, x1, y1]) => [x0 * 16, y0 * 16, (x1 - x0) * 16, (y1 - y0) * 16]);
+  return { W, H, ground, props, blocked, fog, spawn: [20 * 16, 15.2 * 16] };
 }
 
 const FLIPPED = {}; for (const k in BUGS) FLIPPED[k] = BUGS[k].map(flipX);
@@ -99,11 +99,11 @@ function mountHollow(root, ui) {
     for (const [x, y, w, h] of world.fog) { bc.fillStyle = 'rgba(10,14,20,.5)'; bc.fillRect(x - cx, y - cy, w, h); }
     // dusk, with warm holes around the lights and you
     if (darkness.width !== VW || darkness.height !== VH) { darkness.width = VW; darkness.height = VH; }
-    const dc = darkness.getContext('2d'); dc.globalCompositeOperation = 'source-over'; dc.clearRect(0, 0, VW, VH); dc.fillStyle = 'rgba(4,8,14,.42)'; dc.fillRect(0, 0, VW, VH); dc.globalCompositeOperation = 'destination-out';
-    for (const [lx, ly, r] of [...lights, [me.x, me.y - 8, 46]]) dc.drawImage(haloOf(r), Math.round(lx - r - cx), Math.round(ly - r - cy));
+    const dc = darkness.getContext('2d'); dc.globalCompositeOperation = 'source-over'; dc.clearRect(0, 0, VW, VH); dc.fillStyle = 'rgba(4,8,14,.5)'; // darker between features, so the lit stations stand out dc.fillRect(0, 0, VW, VH); dc.globalCompositeOperation = 'destination-out';
+    for (const [lx, ly, r] of [...lights, [me.x, me.y - 8, 50]]) dc.drawImage(haloOf(r), Math.round(lx - r - cx), Math.round(ly - r - cy));
     bc.drawImage(darkness, 0, 0);
     bc.globalCompositeOperation = 'lighter';
-    for (const [lx, ly, r] of lights) { const k = .75 + Math.sin(T * 6 + lx) * .08; bc.globalAlpha = k; bc.drawImage(warmOf(r >> 1), Math.round(lx - (r >> 1) - cx), Math.round(ly - (r >> 1) - cy)); }
+    for (const [lx, ly, r, col] of lights) { const k = .9 + Math.sin(T * 5 + lx) * .08, rr = Math.round(r * .62); bc.globalAlpha = k; bc.drawImage(warmOf(rr, col), Math.round(lx - rr - cx), Math.round(ly - rr - cy)); }
     bc.globalAlpha = 1;
     for (const mo of motes) { const x = Math.round((mo.x + Math.sin(T * mo.s + mo.p) * 12) - cx), y = Math.round((mo.y + Math.cos(T * mo.s * .8 + mo.p) * 8) - cy); if (x < -4 || y < -4 || x > VW + 4 || y > VH + 4) continue; const b = .5 + .5 * Math.sin(T * 2 + mo.p); if (b > .25) { bc.globalAlpha = b; bc.drawImage(warmOf(3), x - 3, y - 3); bc.fillStyle = '#fff3a0'; bc.fillRect(x, y, 1, 1); } }
     bc.globalAlpha = 1; bc.globalCompositeOperation = 'source-over';
@@ -112,7 +112,23 @@ function mountHollow(root, ui) {
   }
   const hc = {}, wc = {}; const haloOf = r => hc[r] || (hc[r] = px(r * 2, r * 2, (c, dot) => { for (let y = 0; y < r * 2; y++) for (let x = 0; x < r * 2; x++) { const d = Math.hypot(x + .5 - r, y + .5 - r) / r; if (d < 1) dot(x, y, 'rgba(0,0,0,' + (Math.ceil((1 - d) * 5) / 5).toFixed(2) + ')'); } }));
   // (stepped holes in the dusk, above)
-  const warmOf = r => wc[r] || (wc[r] = halo(r, [255, 200, 110], 4));
+  const warmOf = (r, col = WARM) => wc[r + '' + col] || (wc[r + '' + col] = halo(r, col, 4));
   requestAnimationFrame(frame);
   return { goto: (tx, ty) => { me.x = tx * 16; me.y = ty * 16; }, setBug: b => { me.bug = b; }, pause: v => { paused = v; for (const k in keys) keys[k] = false; }, get near() { return near; } };
+}
+
+// the whole Hollow in one still picture, lit the same way as the walkable version
+function hollowOverview() {
+  const w = makeHollow(), M = px(w.W, w.H, () => {}), c = M.getContext('2d');
+  c.drawImage(w.ground, 0, 0);
+  for (const p of [...w.props].sort((a, b) => a.foot - b.foot)) { if (p.solid !== false) { c.fillStyle = 'rgba(0,0,0,.3)'; c.beginPath(); c.ellipse(Math.round(p.x + p.w / 2), Math.round(p.foot - 2), Math.round(p.w * .4), 4, 0, 0, TAU); c.fill(); } c.drawImage(p.frames[0], p.x, p.y); }
+  const me = BUGS.firefly[0]; c.drawImage(me, w.spawn[0] - 8, w.spawn[1] - 16); for (let i = 0; i < 3; i++) c.drawImage(FIREFLY[0], w.spawn[0] - 18 - i * 8, w.spawn[1] - 12 + (i % 2) * 3);
+  for (const [x, y, ww, hh] of w.fog) { c.fillStyle = 'rgba(10,14,20,.5)'; c.fillRect(x, y, ww, hh); }
+  const lights = w.props.filter(p => p.light).map(p => p.light);
+  const dark = px(w.W, w.H, dc => { dc.fillStyle = 'rgba(4,8,14,.5)'; dc.fillRect(0, 0, w.W, w.H); dc.globalCompositeOperation = 'destination-out'; for (const [lx, ly, r] of [...lights, [w.spawn[0], w.spawn[1] - 8, 50]]) dc.drawImage(px(r * 2, r * 2, (hc, dot) => { for (let y = 0; y < r * 2; y++) for (let x = 0; x < r * 2; x++) { const d = Math.hypot(x + .5 - r, y + .5 - r) / r; if (d < 1) dot(x, y, 'rgba(0,0,0,' + (Math.ceil((1 - d) * 5) / 5).toFixed(2) + ')'); } }), lx - r, ly - r); });
+  c.drawImage(dark, 0, 0); c.globalCompositeOperation = 'lighter';
+  for (const [lx, ly, r, col] of lights) { const rr = Math.round(r * .62); c.globalAlpha = .9; c.drawImage(halo(rr, col || WARM, 4), lx - rr, ly - rr); }
+  c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
+  for (const [x, y, sx, sy] of w.fog.map(([x, y, ww, hh]) => [x + ww / 2, y + hh / 2])) c.drawImage(PADLOCK, Math.round(x - 6), Math.round(y - 7));
+  return M;
 }
