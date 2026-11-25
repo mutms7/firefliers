@@ -972,7 +972,10 @@ function mountHaven(root, ui, opt = {}) {
   const mists = world.mist.map(([x, y, w, h]) => ({ x, y, w, h, img: mistPatch(w, h), wisps: Array.from({ length: 5 }, () => ({ x: x + rnd() * w, y: y + rnd() * h, p: rnd() * TAU, r: 20 + (rnd() * 14 | 0) })) }));
   const darkness = px(1, 1, () => {});
   let last = performance.now();
-  function frame(now) {
+  // if one frame ever throws, log it once and keep drawing, instead of leaving the Haven black for good
+  let warned = false;
+  function frame(now) { try { frameInner(now); } catch (e) { if (!warned) { warned = true; console.error(e); } if (on) raf = requestAnimationFrame(frame); } }
+  function frameInner(now) {
     if (!on) { raf = 0; return; }
     // measure every frame rather than waiting for a resize event, which never comes if the Haven was hidden when it mounted
     if (root.clientWidth !== RW || root.clientHeight !== RH) resize();
@@ -1043,8 +1046,9 @@ function mountHaven(root, ui, opt = {}) {
     // coming in: a circle of light opens out from your bug
     if (iris < 1) {
       // timed by the clock, so a slow frame rate can't leave it half shut
-      iris = Math.min(1, (now - irisAt) / (still ? 250 : 750)); const e = 1 - Math.pow(1 - iris, 3), R = e * Math.hypot(VW, VH);
-      bc.fillStyle = '#030405'; bc.beginPath(); bc.rect(0, 0, VW, VH); bc.arc(Math.round(me.x - cx), Math.round(me.y - 10 - cy), R, 0, TAU, true); bc.fill('evenodd');
+      // the frame's timestamp can be a hair older than irisAt, so never let the circle go negative
+      iris = Math.max(0, Math.min(1, (now - irisAt) / (still ? 250 : 750))); const e = 1 - Math.pow(1 - iris, 3), R = e * Math.hypot(VW, VH);
+      bc.fillStyle = '#030405'; bc.beginPath(); bc.rect(0, 0, VW, VH); bc.arc(Math.round(me.x - cx), Math.round(me.y - 10 - cy), Math.max(0, R), 0, TAU, true); bc.fill('evenodd');
       if (iris < .35) { bc.globalAlpha = 1 - iris / .35; bc.fillRect(0, 0, VW, VH); bc.globalAlpha = 1; }
     }
     ctx.imageSmoothingEnabled = false; ctx.drawImage(buf, 0, 0, VW * S, VH * S);
