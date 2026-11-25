@@ -88,7 +88,7 @@ function TreeView(host) {
       if (p.station === 'gate') { say('Off into the night! (Starts a run.)'); return; }
       if (p.station === 'locked') { say(img(ICO.lock) + ' Soon'); return; }
       if (p.station === 'tree') { panel('The Root Tree', '<div class="ov-tree"></div>'); TreeView(overlay.querySelector('.ov-tree')); return; }
-      if (p.station === 'roost') { panel('Choose your bug', '<div class="pick">' + ['firefly', 'moth', 'beetle'].map(b => { const ok = b === 'firefly' || ST.owned.has(b); return '<button class="pick-b' + (ST.bug === b ? ' on' : '') + '"' + (ok ? '' : ' disabled') + ' data-b="' + b + '">' + img(ok ? BUGS[b][0] : SILHOUETTE[b], 4) + '<b>' + (ok ? BUG_NAMES[b] : 'Locked') + '</b><span>' + (ok ? BUG_ROLE[b] : 'Grow it in the Root Tree') + '</span></button>'; }).join('') + '</div>'); overlay.querySelectorAll('.pick-b').forEach(b => b.onclick = () => { ST.bug = b.dataset.b; game.setBug(ST.bug); close(); }); return; }
+      if (p.station === 'roost') { panel('Choose your bug', '<div class="pick">' + ['firefly', 'moth', 'beetle'].map(b => { const ok = b === 'firefly' || ST.owned.has(b); return '<button class="pick-b' + (ST.bug === b ? ' on' : '') + '"' + (ok ? '' : ' disabled') + ' data-b="' + b + '">' + img(ok ? BUGS[b][0] : SILHOUETTE[b][0], 4) + '<b>' + (ok ? BUG_NAMES[b] : 'Locked') + '</b><span>' + (ok ? BUG_ROLE[b] : 'Grow it in the Root Tree') + '</span></button>'; }).join('') + '</div>'); overlay.querySelectorAll('.pick-b').forEach(b => b.onclick = () => { ST.bug = b.dataset.b; game.setBug(ST.bug); close(); }); return; }
       if (p.station === 'daily') { panel('Daily #17', '<div class="daily">' + img(BUGS.moth[0], 4) + '<div><b>Today: Moth</b><span>Same run for everyone.</span><span>Your best: 2,140</span></div></div><div class="row end"><button class="k-btn mint">Play today</button></div>'); return; }
       if (p.station === 'records') { panel('Records', '<div class="stats rec"><div><b>4,094</b>best</div><div><b>9:12</b>longest</div><div><b>31</b>runs</div><div><b>7/18</b>badges</div></div>'); return; }
     },
@@ -119,7 +119,6 @@ TreeView($('tree'));
 
 // ---- 4. characters ----
 const BUG_ROLE = { firefly: 'Steady all-rounder', moth: 'Fast, fragile', beetle: 'Slow, tough' };
-const SILHOUETTE = {}; for (const b of ['moth', 'beetle']) SILHOUETTE[b] = px(BUGS[b][0].width, BUGS[b][0].height, c => { c.drawImage(BUGS[b][0], 0, 0); c.globalCompositeOperation = 'source-in'; c.fillStyle = '#1e2626'; c.fillRect(0, 0, 99, 99); });
 (() => { const g = grid('chars'); for (const k of ['firefly', 'moth', 'beetle']) card(g, BUGS[k], 6, BUG_NAMES[k], BUG_ROLE[k], { ms: 160 }); card(g, FIREFLY, 8, 'Trail firefly', '', { ms: 260 }); card(g, STRAY, 7, 'Lost firefly', '', { ms: 400 }); })();
 
 // ---- 5. icons ----

@@ -53,6 +53,32 @@ function shellbyRows(f) {
 const SHELLBY_PAL = { S: ['#3a2410', '#6a4420', '#a8703a', '#d8a060', '#ffd8a0'], d: '#4a2c12', W: P.wood, w: '#2a160c', k: '#ffd27a', y: '#ffd86a', B: ['#2a3a24', '#4a6a3a', '#7a9a5a', '#a8c47a', '#d8eaa8'], b: '#4a6a3a', e: '#1a1208', m: '#2a3a24', A: ['#3a1a10', '#8a3a1a', '#c86a30', '#f0a050', '#ffd090'] };
 const SHELLBY = [0, 1].map(f => bake(SHELLBY_PAL, shellbyRows(f)));
 
+// Wick: a young firefly with big round glasses who keeps the Records. Frame 1 flaps and glows brighter.
+function wickRows(f) {
+  const g = pg(18, 22);
+  line(g, 7, 4, 5, 0, 'a'); line(g, 10, 4, 12, 0, 'a');
+  ell(g, 2.6, 11, 2.4, f ? 2.6 : 4, 'W'); ell(g, 15.4, 11, 2.4, f ? 2.6 : 4, 'W');
+  ell(g, 9, 13.5, 4.6, 4, 'B'); ell(g, 9, 18.6, 4, 3.2, 'G');
+  ell(g, 9, 7, 5, 4.4, 'H');
+  for (const cx of [6.6, 11.4]) { ell(g, cx, 7, 2.2, 2.2, 'o'); ell(g, cx, 7, 1.3, 1.3, 'l'); }
+  put(g, 9, 7, 'o'); put(g, 7, 7, 'e'); put(g, 12, 7, 'e'); put(g, 8, 10, 'm'); put(g, 9, 10, 'm');
+  rect(g, 12, 12, 16, 16, 'P'); line(g, 12, 12, 16, 12, 'p'); line(g, 12, 16, 16, 16, 'p'); for (const y of [13, 14, 15]) line(g, 13, y, 15, y, y === 14 ? 'q' : 'P');
+  return g;
+}
+const WICK = [0, 1].map(f => bake({ a: '#4a3a6a', W: WINGS, B: ['#1a1028', '#2b2140', '#3d2f5a', '#56447a', '#7a68a0'], H: ['#120a1e', '#20163a', '#2b2140', '#3d2f5a', '#56447a'],
+  G: f ? ['#d8a820', '#ffe066', '#fff3a0', '#ffffe0', '#ffffff'] : ['#8a6a10', '#d8a820', '#ffe066', '#fff3a0', '#ffffe0'], o: '#d8a03a', l: '#cfe8ff', e: '#120a1e', m: '#7a68a0', P: P.cream, p: '#8a7050', q: '#4a3a2a' }, wickRows(f)));
+// Pell: a sleepy frog who sits by the pond and fishes for the stars reflected in it. The line sways between frames.
+function pellRows(f) {
+  const g = pg(30, 22);
+  ell(g, 6, 17, 4.6, 3.4, 'F'); ell(g, 11, 14, 8.6, 6.4, 'F'); ell(g, 15, 9, 7, 5, 'F');
+  for (const cx of [12, 18]) { ell(g, cx, 5, 2.6, 2.5, 'F'); put(g, cx, 5, 'e'); put(g, cx - 1, 5, 'e'); line(g, cx - 2, 4, cx + 1, 4, 'K'); } // heavy lids
+  ell(g, 13.5, 16, 5, 4, 'b'); line(g, 15, 11, 21, 10, 'm'); put(g, 20, 8, 'c'); put(g, 21, 9, 'c');
+  ell(g, 18.5, 18.5, 2.6, 2, 'F'); ell(g, 7, 20, 4, 1.6, 'F');
+  line(g, 19, 15, 28, 1, 'r'); line(g, 28, 1, f ? 29 : 28, 21, 's');
+  return g;
+}
+const PELL = [0, 1].map(f => bake({ F: ['#12301e', '#245a2e', '#3c8a3e', '#6ab85a', '#b0e890'], e: '#1a1208', K: '#245a2e', b: '#d8d0a0', m: '#12301e', c: '#e8a0a0', r: '#8f5c36', s: '#9ab0c4' }, pellRows(f)));
+
 // the fireflies that trail behind you, and a lost one waiting to be rescued
 const FIREFLY = [0, 1].map(f => bake({ G: ['#8a6a10', '#d8a820', '#ffe066', '#fff3a0', '#ffffe0'], w: WING, b: '#3d2f5a' }, f ? ['.w.w.', 'bGGG.', '.GGG.'] : ['ww.ww', 'bGGG.', '.GGG.'], '#1a1208'));
 const STRAY = [0, 1].map(f => px(9, 9, (c, dot) => { const pts = f ? [[4, 0], [0, 4], [8, 4], [4, 8]] : [[1, 1], [7, 1], [1, 7], [7, 7]]; for (const [x, y] of pts) dot(x, y, 'rgba(255,233,160,.7)'); c.drawImage(FIREFLY[f], 2, 2); }));

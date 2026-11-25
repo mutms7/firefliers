@@ -40,16 +40,19 @@ function elderRoot(f) {
 const ELDER = [0, 1].map(f => bake({ B: P.bark, d: '#0c0706', h: '#07090a', y: '#c88a2a', k: '#2a1a10', A: P.amber, w: '#fff6d8', G: '#ffffff', m: '#3a6a3a', n: '#264a2a', c: '#7fd6c2', C: '#d8d0bc' }, elderRoot(f)));
 
 // the Roost: three big mushrooms, one per bug
-function bigShroom(cap, spots) {
-  const g = pg(40, 44);
-  ell(g, 20, 12, 19.5, 11, 'C'); rect(g, 1, 12, 38, 16, 'C'); ell(g, 20, 16, 19, 3.6, 'G');
-  for (let x = 4; x < 37; x += 3) line(g, x, 17, 20 + (x - 20) * .6, 19, 'g');
-  rect(g, 14, 18, 25, 39, 'T'); ell(g, 19.5, 26, 8, 2, 'T'); for (const [x, y] of [[16, 22], [22, 30], [17, 34], [23, 37]]) put(g, x, y, 't');
-  ell(g, 20, 41, 15, 3, 'm');
-  if (spots) for (const [x, y, r] of [[9, 8, 2.2], [19, 4, 2.6], [30, 9, 2.4], [14, 13, 1.6], [26, 13, 1.8], [35, 13, 1.2], [5, 13, 1.2]]) ell(g, x, y, r, r, 'w');
-  return bake({ C: cap, G: '#1a1208', g: '#3a2418', T: P.cream, t: '#8a7050', m: P.leaf, w: '#f4ecd8' }, g);
+// the Roost: one domed mushroom per bug, low enough that its bug can perch on top of the cap
+function bigShroom(cap, spot) {
+  const g = pg(38, 34);
+  ell(g, 19, 13, 18, 12, 'C', (x, y) => y <= 14); // a dome, not a box
+  ell(g, 19, 14, 17.4, 3, 'C');
+  ell(g, 19, 15.4, 15, 2.4, 'G'); for (let x = 6; x < 33; x += 3) line(g, x, 15, 19 + (x - 19) * .7, 17, 'g'); // the gills underneath
+  ell(g, 19, 24, 5.4, 9, 'T', (x, y) => y >= 16); ell(g, 19, 31, 7, 2.4, 'T'); for (const [x, y] of [[17, 20], [21, 25], [18, 29]]) put(g, x, y, 't');
+  ell(g, 19, 32.6, 12, 1.8, 'm');
+  for (const [x, y, r] of [[9, 9, 2.2], [19, 4.4, 2.8], [29, 9, 2.2], [14, 12.6, 1.4], [25, 12.4, 1.6]]) ell(g, x, y, r, r * .85, 'w');
+  return bake({ C: cap, G: '#1a1208', g: '#3a2418', T: P.cream, t: '#8a7050', m: P.leaf, w: spot }, g);
 }
-const BIG_SHROOMS = [bigShroom(P.red, 1), bigShroom(P.teal, 1), bigShroom(P.violet, 1)];
+// gold for the Firefly, sky blue for the Moth, pink for the Beetle (the colours of the bugs themselves)
+const BIG_SHROOMS = [bigShroom(P.brass, '#fff3c8'), bigShroom(P.blue, '#e8f4ff'), bigShroom(P.pink, '#ffe8f6')];
 
 // the Moonstone: today's run, the same for everyone
 function moonstone(f) {
