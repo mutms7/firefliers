@@ -3476,7 +3476,7 @@ function openRecords() {
   ov.querySelector('[data-go]').onclick = () => { hubClose(); showStats(); };
 }
 function openTree() {
-  const ov = hubPanel('tree', 'The Root Tree', '<div class="hp-tree"></div><div class="tree-foot"><span id="treeBal"></span><p class="tree-help">Drag to look around, tap a node. Anything you grow can be switched off.</p><button class="btn ghost small" id="treeAll"></button></div>', 'big');
+  const ov = hubPanel('tree', 'The Root Tree', '<div class="hp-tree"></div><div class="tree-foot"><span id="treeBal"></span><p class="tree-help">Drag or use WASD to look around, and tap a node. Anything you grow can be switched off.</p><button class="btn ghost small" id="treeAll"></button></div>', 'big');
   const v = treeView(ov.querySelector('.hp-tree'));
   const all = ov.querySelector('#treeAll'), boosts = () => save.tree.filter(id => !UNLOCKS.has(id));
   const label = () => { all.textContent = boosts().length && boosts().every(id => save.off.includes(id)) ? 'Switch all on' : 'Switch all off'; all.disabled = !boosts().length; };
@@ -3528,16 +3528,38 @@ function treeView(host) {
     }
   }
   const refresh = () => { pic = ART.treeArt(state); buildList(); draw(); showCard(); };
-  function fit() { const r = wrap.getBoundingClientRect(); if (!r.width) return; cv.width = Math.round(r.width); cv.height = Math.round(r.height); if (!placed) { centre(ART.NODE.first); pan[1] = cv.height - at(ART.NODE.first)[1] * S2 - 70; placed = true; } clampPan(); draw(); }
+  // sized to the inside of the border, which is what the canvas actually covers
+  function fit() { const w = wrap.clientWidth, h = wrap.clientHeight; if (!w) return; cv.width = Math.round(w); cv.height = Math.round(h); if (!placed) { centre(ART.NODE.first); pan[1] = cv.height - at(ART.NODE.first)[1] * S2 - 70; placed = true; } clampPan(); draw(); }
   cv.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, px: pan[0], py: pan[1], moved: 0 }; cv.setPointerCapture(e.pointerId); });
   cv.addEventListener('pointermove', e => { if (!drag) return; drag.moved = Math.max(drag.moved, Math.hypot(e.clientX - drag.x, e.clientY - drag.y)); pan = [drag.px + e.clientX - drag.x, drag.py + e.clientY - drag.y]; clampPan(); draw(); });
+  // which node a point lands on: the badge or its name underneath both count, and the closest one wins,
+  // so a click that's slightly off (or on the label) still picks the node you meant
+  const nodeAt = (mx, my) => { let best = null, bd = 1e9; for (const n of nodes) { const [x, y] = at(n), sx = pan[0] + x * S2, sy = pan[1] + y * S2; const onBadge = Math.hypot(sx - mx, sy - my), onLabel = Math.abs(mx - sx) < 64 && my > sy + 28 && my < sy + 62 ? 0 : 1e9, d = Math.min(onBadge, onLabel); if (d < 44 && d < bd) { bd = d; best = n; } } return best; };
+  const local = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  wrap.nodeOnScreen = id => { const [x, y] = at(ART.NODE[id]); return [pan[0] + x * S2, pan[1] + y * S2]; }; // for automated checks
+  cv.addEventListener('pointermove', e => { if (drag) return; const [mx, my] = local(e); cv.style.cursor = nodeAt(mx, my) ? 'pointer' : 'grab'; });
   cv.addEventListener('pointerup', e => {
-    if (drag && drag.moved < 6) { const r = cv.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top; let hitN = null; for (const n of nodes) { const [x, y] = at(n); if (Math.hypot(pan[0] + x * S2 - mx, pan[1] + y * S2 - my) < 36) hitN = n; } if (hitN) { sel = hitN; sfx('select'); } showCard(); draw(); }
+    // a tap with a little wobble is still a tap; only a real drag (over 10px) skips selecting
+    if (drag && drag.moved < 10) { const [mx, my] = local(e), hitN = nodeAt(mx, my); if (hitN) { sel = hitN; sfx('select'); } showCard(); draw(); }
     drag = null;
   });
-  wrap.tabIndex = 0; wrap.setAttribute('aria-label', 'Root Tree. Arrow keys look around, Tab picks a node.');
-  wrap.addEventListener('keydown', e => { const d = { ArrowLeft: [40, 0], ArrowRight: [-40, 0], ArrowUp: [0, 40], ArrowDown: [0, -40] }[e.key]; if (d) { e.preventDefault(); e.stopPropagation(); pan[0] += d[0]; pan[1] += d[1]; clampPan(); draw(); } });
-  const anim = setInterval(() => { if (!wrap.isConnected) { clearInterval(anim); return; } if (sel && !reduceMotion) draw(); }, 60);
+  cv.addEventListener('pointercancel', () => { drag = null; });
+  wrap.tabIndex = 0; wrap.setAttribute('aria-label', 'Root Tree. WASD or the arrow keys look around, Tab picks a node.');
+  // WASD and the arrow keys glide the view while held
+  const held = {}, PAN_KEYS = { KeyA: [1, 0], ArrowLeft: [1, 0], KeyD: [-1, 0], ArrowRight: [-1, 0], KeyW: [0, 1], ArrowUp: [0, 1], KeyS: [0, -1], ArrowDown: [0, -1] };
+  const typing = () => /^(INPUT|TEXTAREA)$/.test((document.activeElement || {}).tagName || '');
+  const onDown = e => { if (!wrap.isConnected || !PAN_KEYS[e.code] || typing()) return; e.preventDefault(); held[e.code] = true; };
+  const onUp = e => { held[e.code] = false; };
+  addEventListener('keydown', onDown); addEventListener('keyup', onUp); addEventListener('blur', onUp);
+  let lastT = performance.now();
+  const anim = setInterval(() => {
+    if (!wrap.isConnected) { clearInterval(anim); removeEventListener('keydown', onDown); removeEventListener('keyup', onUp); removeEventListener('blur', onUp); return; }
+    // keep the canvas's pixels matched to its size on screen, or clicks land in the wrong place
+    if (cv.width !== Math.round(wrap.clientWidth) || cv.height !== Math.round(wrap.clientHeight)) fit();
+    const now = performance.now(), dt = Math.min(.05, (now - lastT) / 1000); lastT = now; let mx = 0, my = 0;
+    for (const k in held) if (held[k]) { mx += PAN_KEYS[k][0]; my += PAN_KEYS[k][1]; }
+    if (mx || my) { pan[0] += mx * 520 * dt; pan[1] += my * 520 * dt; clampPan(); draw(); } else if (sel && !reduceMotion) draw();
+  }, 16);
   pic = ART.treeArt(state); buildList(); showCard();
   new ResizeObserver(fit).observe(wrap);
   return { refresh };
