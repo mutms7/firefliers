@@ -42,6 +42,8 @@
   /* the Haven: a walkable place you visit from the menu */
   #haven{position:fixed;inset:0;z-index:5;background:#06090a;overflow:hidden;outline:none;touch-action:none}
   #haven>canvas{position:absolute;inset:auto;left:50%;top:50%;transform:translate(-50%,-50%);image-rendering:pixelated}
+  #hubHud,#hubHint{transition:opacity .8s}
+  #haven.resting #hubHud,#haven.resting #hubHint,#haven.resting #hubTitle{opacity:0!important;transition:opacity 2.5s;pointer-events:none}
   .hud-r{display:flex;gap:8px;align-items:center}#haven.intro .hud-r>.btn{display:none}.hud-r .btn{padding:8px 14px!important}
   #hubTitle b{color:var(--gold)}
   /* dialogue */
@@ -57,6 +59,7 @@
   @keyframes nextBob{50%{transform:translateY(3px)}}
   @media (prefers-reduced-motion:reduce){.dlg-next{animation:none}}
   #dlgOpts{display:flex;flex-direction:column;gap:6px;margin-top:10px}#dlgOpts:empty{display:none}
+  #dlgOpts.pending{visibility:hidden}#dlgText .unsaid{visibility:hidden}
   .opt-btn{display:flex;gap:10px;align-items:center;text-align:left;font-size:20px;padding:7px 10px;background:#0c1011;border:1px solid var(--line);border-left:3px solid var(--line2);color:var(--ink)}
   .opt-btn:hover,.opt-btn:focus-visible{border-color:var(--gold);border-left-color:var(--gold);background:#1a1a12;outline:none}
   .opt-btn .k{font-size:15px;color:var(--mute);border:1px solid var(--line2);min-width:22px;height:22px;display:grid;place-items:center}
@@ -1519,7 +1522,7 @@ function update(dt) {
 /* ---------- run history, stats, achievements ---------- */
 let run = { rescued: 0, maxFlight: flight.length, bosses: [], bossHurt: false, wind: false, amber: 0, bossPts: 0 };
 const ACH = [
-  ['first', 'First Light', 'Finish the tutorial'],
+  ['first', 'First Flight', 'Finish the tutorial'],
   ['dawn', 'Dawnbringer', 'See the dawn'],
   ['nm', 'Darkest Hour', 'See the dawn on Nightmare'],
   ['mini', 'Travel Light', 'See the dawn with 3 weapons or fewer'],
@@ -1533,10 +1536,10 @@ const ACH = [
   ['freed', 'Jailbreak', 'Free a firefly from a nightjar'],
   ['evo1', 'Metamorphosis', 'Evolve a weapon'],
   ['evo3', 'Apex', 'Evolve 3 weapons in one run'],
-  ['k1000', 'Swatter', 'Squash 1,000 enemies in one run'],
-  ['k25k', 'Exterminator', 'Squash 25,000 enemies in total'],
+  ['k1000', 'Crowd Control', 'Squash 1,000 enemies in one run'],
+  ['k25k', 'Lantern Keeper', 'Squash 25,000 enemies in total'],
   ['streak3', 'Regular', 'Play the daily 3 days in a row'],
-  ['bugs', 'Entomologist', 'Unlock every bug'],
+  ['bugs', 'Full Roost', 'Unlock every bug'],
 ];
 let toastT = 0;
 function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.remove('hidden'); t.style.opacity = 1; clearTimeout(toastT); toastT = setTimeout(() => { t.style.opacity = 0; }, 3400); }
@@ -1626,7 +1629,7 @@ function saveBest() {
   return nb;
 }
 function bestLine() { return best.time > 0 ? 'Best: ' + (best.score ? num(best.score) + ' pts · ' : '') + fmt(best.time) + ' · ' + num(best.kills) + ' squashed' + (best.won ? ' ★ saw the dawn' : '') : ''; }
-const DMG_SRC = { flare: ['Dash flare', '#ffe9a0'], dash: ['Dash', '#ffd76a'], flight: ['Firefly flash', '#fff3b0'], power: ['Pickups', '#ff9a4d'], ember: ['Ember Dash', '#ff8a3a'], swarm: ['Trail fireflies', '#fff3b0'] };
+const DMG_SRC = { flare: ['Dash flare', '#ffe9a0'], dash: ['Dash', '#ffd76a'], flight: ['Firefly flash', '#fff3b0'], power: ['Pickups', '#ff9a4d'], ember: ['Ember Dash', '#ff8a3a'], swarm: ['Trail Shots', '#fff3b0'] };
 // bars for every source of damage this run, biggest first
 function dmgHTML() {
   const rows = Object.entries(dmgDone).filter(r => r[1] >= 1).sort((a, b) => b[1] - a[1]), top = rows.length ? rows[0][1] : 1, tot = rows.reduce((a, r) => a + r[1], 0) || 1;
@@ -2447,7 +2450,7 @@ const TREE = [
   ['trail', 'wing', 'trail', 'Long Trail', 'Start with 2 more fireflies', 85, .7, -2.5, ['wings']],
   ['moth', 'wing', 'moth', 'Moth', 'Joins the Roost', 120, .1, -3.6, ['ember', 'trail']],
   ['double', 'wing', 'double', 'Double Dash', 'Two dash charges', 240, -.8, -4.6, ['moth']],
-  ['swarm', 'wing', 'swarm', 'Swarm', 'Your fireflies shoot', 380, .8, -4.8, ['moth']],
+  ['swarm', 'wing', 'swarm', 'Trail Shots', 'Your fireflies shoot', 380, .8, -4.8, ['moth']],
   ['shell', 'root', 'shell', 'Thick Shell', '+15 max health', 50, 2, -1, ['first']],
   ['amber', 'root', 'amber', 'Amber Sense', '+15% amber', 70, 3.2, -2, ['shell']],
   ['beetle', 'root', 'beetle', 'Beetle', 'Joins the Roost', 120, 1.9, -2.3, ['shell']],
@@ -2529,32 +2532,32 @@ function makeHaven() {
   const add = (frames, fx, fy, o = {}) => { frames = Array.isArray(frames) ? frames : [frames]; const w = frames[0].width, h = frames[0].height; const p = { frames, x: Math.round(fx * 16 - w / 2), y: Math.round(fy * 16 - h), w, h, foot: fy * 16, ms: o.ms || 400, ...o }; if (o.solid !== false) p.box = o.box || [p.x + w * .2, p.foot - 7, w * .6, 7]; props.push(p); return p; };
   // the plaza: everything to do with playing
   add(BIG_GATE, 26, 15.4, { ms: 140, station: 'gate', label: 'Fly out', light: [26 * 16, 12.2 * 16, 80, WARM], beacon: true });
-  add(MOONSTONE, 31.6, 16.4, { ms: 900, station: 'daily', label: 'Daily run', light: [31.6 * 16, 13.6 * 16, 46, MINT] });
+  add(MOONSTONE, 33.6, 17.6, { ms: 900, station: 'daily', label: 'Daily run', light: [33.6 * 16, 14.8 * 16, 46, MINT] });
   add(SIGNPOST, 22.4, 22.6, { station: 'gate', label: 'Fly out' });
   // the Root Tree and its keeper
   add(ELDER, 9, 16, { ms: 900, station: 'tree', label: 'The Root Tree', box: [9 * 16 - 40, 16 * 16 - 10, 80, 10], light: [9 * 16, 13 * 16, 72, AMBERL] });
-  add(GLIM, 14, 17, { ms: 500, station: 'npc', npc: 'glim', label: 'Talk to Glim', anim: [0, 1, 0, 0] });
+  add(GLIM, 14, 17, { ms: 500, station: 'npc', npc: 'glim', label: 'Talk to Glim', anim: [0, 1, 0, 0], light: [14 * 16, 17 * 16 - 13, 28, AMBERL] });
   // the Roost: one mushroom per bug, each with its bug perched on top
   for (const [i, x, bug] of [[0, 6.4, 'firefly'], [1, 10.4, 'moth'], [2, 14.4, 'beetle']]) add(BIG_SHROOMS[i], x, 29.4, { station: 'roost', label: 'Choose your bug', perch: bug, light: [x * 16, 28.2 * 16, 30, ROSE] });
   // the Records board and Wick
   add(RECORDS, 34, 23.8, { station: 'records', label: 'Records', light: [34 * 16, 21.8 * 16, 50, WARM] });
-  add(WICK, 37, 24.6, { ms: 260, station: 'npc', npc: 'wick', label: 'Talk to Wick' });
+  add(WICK, 37, 24.6, { ms: 260, station: 'npc', npc: 'wick', label: 'Talk to Wick', light: [37 * 16, 24.6 * 16 - 12, 26, [255, 225, 130]] });
   // the places that aren't built yet, with their neighbours waiting outside
   add(POND_GATE, 42.5, 13.6, { station: 'locked', label: 'The Pond', box: [38 * 16, 12.6 * 16, 12 * 16, 16] });
-  add(PELL, 35.2, 11.2, { ms: 700, station: 'npc', npc: 'pell', label: 'Talk to Pell', light: [35.6 * 16, 9.6 * 16, 30, MINT] });
+  add(PELL, 35.2, 11.2, { ms: 700, station: 'npc', npc: 'pell', label: 'Talk to Pell', light: [35.2 * 16, 11.2 * 16 - 12, 28, MINT] });
   add(MARKET, 42, 31.6, { station: 'locked', label: 'The Market' });
-  add(SHELLBY, 36.4, 30.4, { ms: 600, station: 'npc', npc: 'shellby', label: 'Talk to Shellby', light: [36.4 * 16, 28.6 * 16, 34, WARM] });
+  add(SHELLBY, 36.4, 30.4, { ms: 600, station: 'npc', npc: 'shellby', label: 'Talk to Shellby', light: [36.4 * 16, 30.4 * 16 - 12, 28, WARM] });
   add(SOON_BOARD, 25.5, 31.8, { station: 'locked', label: 'The Old Road', box: [24 * 16, 32 * 16, 4 * 16, 32] });
   for (const [x, y] of [[21, 21.8], [31, 21.8], [21, 15.6], [31, 15.6], [16, 25.6], [30, 26.6], [12.5, 21.2]]) add(BIG_LAMP, x, y, { ms: 300, light: [x * 16, y * 16 - 34, 38, WARM], box: [x * 16 - 3, y * 16 - 4, 6, 4] });
   for (const [i, x, y] of [[0, 4.6, 8.4], [1, 17, 7.6], [2, 31.5, 8], [0, 48.8, 15.6], [1, 48.6, 24], [2, 3.8, 22.6], [0, 20.6, 32.4], [1, 31.8, 32.6], [2, 48.6, 32]]) add(TREES[i], x, y, { box: [x * 16 - 9, y * 16 - 8, 18, 8] });
   for (const [x, y] of [[19.2, 9.4], [34, 9.6], [3.6, 12.4], [21.8, 30.4], [46.6, 20.4], [15, 22.5], [44, 22]]) add(FERN, x, y, { solid: false });
-  for (const [x, y] of [[18, 29], [35.5, 17.2], [6, 20.6]]) add(SHROOM_PATCH, x, y, { solid: false });
+  for (const [x, y] of [[18, 29], [36.8, 16.2], [6, 20.6]]) add(SHROOM_PATCH, x, y, { solid: false });
   add(BENCH, 29.5, 24.4);
   const solidTile = (tx, ty) => { const t = T[ty] && T[ty][tx]; return t === undefined || t === 'R' || t === 'F' || t === 'w'; };
   const blocked = (x, y) => { if (y > (TH - 2.4) * 16 || solidTile(Math.floor(x / 16), Math.floor(y / 16))) return true; for (const p of props) if (p.box) { const [bx, by, bw, bh] = p.box; if (x >= bx && x <= bx + bw && y >= by && y <= by + bh) return true; } return false; };
   // mist over the unbuilt places: [x, y, w, h] in tiles
   const mist = [[39, 2, 13, 11], [38, 26, 14, 8], [22, 31, 8, 3]].map(([x, y, w, h]) => [x * 16, y * 16, w * 16, h * 16]);
-  return { W, H, ground, props, blocked, mist, spawn: [26 * 16, 19.6 * 16] };
+  return { W, H, ground, props, blocked, mist, spawn: [26 * 16, 19.6 * 16], seat: [33.5 * 16, 11.4 * 16], pondPlay: [37.6 * 16, 6.6 * 16] };
 }
 
 // soft mist: a feathered patch whose edge fades out over a couple of tiles, in a few pixel steps
@@ -2582,7 +2585,8 @@ function mountHaven(root, ui, opt = {}) {
   const resize = () => { const r = root.getBoundingClientRect(); RW = root.clientWidth; RH = root.clientHeight; S = r.width < 600 ? 2 : 3; VW = Math.ceil(r.width / S); VH = Math.ceil(r.height / S); cv.width = VW * S; cv.height = VH * S; cv.style.width = VW * S + 'px'; cv.style.height = VH * S + 'px'; buf = px(Math.max(1, VW), Math.max(1, VH), () => {}); bc = buf.getContext('2d'); };
   new ResizeObserver(resize).observe(root); resize();
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const me = { x: world.spawn[0], y: world.spawn[1], face: 1, moving: false, trail: [], bug: 'firefly', dash: 0, dvx: 0, dvy: 0, cd: 0, ghosts: [] };
+  const me = { x: world.spawn[0], y: world.spawn[1], face: 1, moving: false, trail: [], bug: 'firefly', dash: 0, dvx: 0, dvy: 0, cd: 0, ghosts: [], sitting: 0 };
+  let flies = []; // fireflies playing over the pond while you sit with Pell
   const keys = {}; let joy = null, near = null, paused = false, t0 = performance.now(), iris = 1, irisAt = 0, focus = null, cam = null;
   root.tabIndex = 0; const kt = opt.keys || root; let on = true, raf = 0;
   const dash = () => {
@@ -2620,15 +2624,18 @@ function mountHaven(root, ui, opt = {}) {
     // move (dashing is quick and does no harm here)
     let ix = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0), iy = (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0);
     if (joy) { const dx = joy.x - joy.x0, dy = joy.y - joy.y0, d = Math.hypot(dx, dy); if (d > 8) { ix = dx / d; iy = dy / d; } }
-    const m = Math.hypot(ix, iy); me.moving = (m > 0 || me.dash > 0) && !paused; me.cd -= dt;
+    const m = Math.hypot(ix, iy);
+    if (me.sitting && !paused && (m > 0 || me.dash > 0)) { me.sitting = 0; focus = null; for (const f of flies) { const a = Math.atan2(f.y - world.pondPlay[1], f.x - world.pondPlay[0]) - .6; f.vx = Math.cos(a) * (110 + Math.random() * 90); f.vy = Math.sin(a) * 90 - 70; f.gone = 1.4; } if (ui.rest) ui.rest(false); }
+    if (me.sitting) me.sitting += dt;
+    me.moving = (m > 0 || me.dash > 0) && !paused && !me.sitting; me.cd -= dt;
     const step = (vx, vy) => { const nx = me.x + vx, ny = me.y + vy; if (!world.blocked(nx, me.y)) me.x = nx; if (!world.blocked(me.x, ny)) me.y = ny; };
     if (me.dash > 0 && !paused) { me.dash -= dt; for (let k = 0; k < 3; k++) step(me.dvx * 300 * dt / 3, me.dvy * 300 * dt / 3); if (me.dvx) me.face = me.dvx > 0 ? 1 : -1; me.ghosts.push({ x: me.x, y: me.y, f: me.face, t: .22 }); me.trail.unshift([me.x, me.y]); }
-    else if (m > 0 && !paused) { ix /= m; iy /= m; step(ix * 78 * dt, iy * 78 * dt); if (ix) me.face = ix > 0 ? 1 : -1; me.trail.unshift([me.x, me.y]); }
+    else if (m > 0 && !paused && !me.sitting) { ix /= m; iy /= m; step(ix * 78 * dt, iy * 78 * dt); if (ix) me.face = ix > 0 ? 1 : -1; me.trail.unshift([me.x, me.y]); }
     if (me.trail.length > 60) me.trail.length = 60;
     for (const g of me.ghosts) g.t -= dt; me.ghosts = me.ghosts.filter(g => g.t > 0);
     // what's close
     near = null; let bd = 34;
-    for (const p of world.props) if (p.station) { const cx = p.x + p.w / 2, d = Math.hypot(me.x - cx, me.y - p.foot); if (d < bd + p.w * .35) { bd = d - p.w * .35; near = p; } }
+    if (!me.sitting) for (const p of world.props) if (p.station) { const cx = p.x + p.w / 2, d = Math.hypot(me.x - cx, me.y - p.foot); if (d < bd + p.w * .35) { bd = d - p.w * .35; near = p; } }
     ui.prompt(near && !paused ? near : null);
     // camera: follows you, or glides to whatever Glim is pointing at
     const tx = Math.max(0, Math.min(world.W - VW, (focus ? focus[0] : me.x) - VW / 2)), ty = Math.max(0, Math.min(world.H - VH, (focus ? focus[1] : me.y - 10) - VH / 2));
@@ -2643,7 +2650,8 @@ function mountHaven(root, ui, opt = {}) {
     for (const it of list) {
       if (it.me) {
         bc.fillStyle = 'rgba(0,0,0,.35)'; bc.fillRect(Math.round(me.x - 6 - cx), Math.round(me.y - 1 - cy), 12, 2);
-        const fi = me.moving ? Math.floor(T * 10) % 2 : Math.floor(T * 2) % 2, img = me.face < 0 ? FLIPPED[me.bug][fi] : BUGS[me.bug][fi], bob = me.moving ? 0 : Math.round(Math.sin(T * 3));
+        const fi = me.sitting ? 1 : me.moving ? Math.floor(T * 10) % 2 : Math.floor(T * 2) % 2, img = me.face < 0 ? FLIPPED[me.bug][fi] : BUGS[me.bug][fi];
+        const bob = me.sitting ? Math.round(Math.min(1, me.sitting / .4) * 3) + (still ? 0 : Math.round(Math.sin(T * 1.2) * .5)) : me.moving ? 0 : Math.round(Math.sin(T * 3));
         bc.drawImage(img, Math.round(me.x - img.width / 2 - cx), Math.round(me.y - img.height - 4 + bob - cy));
         continue;
       }
@@ -2658,7 +2666,22 @@ function mountHaven(root, ui, opt = {}) {
       if (arrow) { bc.fillStyle = p.beacon ? '#ffe066' : '#f2c14e'; bc.fillRect(ax - 3, ay, 7, 1); bc.fillRect(ax - 2, ay + 1, 5, 1); bc.fillRect(ax - 1, ay + 2, 3, 1); bc.fillRect(ax, ay + 3, 1, 1); }
     }
     // your fireflies, trailing behind
-    for (let i = 0; i < 3; i++) { const q = me.trail[(i + 1) * 9] || [me.x - me.face * (8 + i * 7), me.y + 2]; bc.drawImage(FIREFLY[Math.floor(T * 8 + i) % 2], Math.round(q[0] - 2 - cx), Math.round(q[1] - 12 - cy + Math.sin(T * 4 + i) * 2)); }
+    // (while you sit with Pell, your own fireflies are off playing over the pond with the others)
+    if (!me.sitting) for (let i = 0; i < 3; i++) { const q = me.trail[(i + 1) * 9] || [me.x - me.face * (8 + i * 7), me.y + 2]; bc.drawImage(FIREFLY[Math.floor(T * 8 + i) % 2], Math.round(q[0] - 2 - cx), Math.round(q[1] - 12 - cy + Math.sin(T * 4 + i) * 2)); }
+    if (flies.length) {
+      bc.globalCompositeOperation = 'lighter';
+      for (const f of flies) {
+        if (f.gone) { f.gone -= dt; f.x += f.vx * dt; f.y += f.vy * dt; f.vy -= 30 * dt; }
+        else { const k = still ? .3 : 1, cxp = world.pondPlay[0] + Math.sin(T * .35 * k + f.p) * 30, cyp = world.pondPlay[1] + Math.sin(T * .5 * k + f.p * 1.7) * 14, a = T * f.s * k + f.o; f.x = cxp + Math.cos(a) * f.r; f.y = cyp + Math.sin(a * 1.3) * f.r * .7; }
+        const al = f.gone ? Math.max(0, f.gone / 1.4) : Math.min(1, me.sitting / 1.5), tw = .7 + .3 * Math.sin(T * 6 + f.o), x = Math.round(f.x - cx), y = Math.round(f.y - cy);
+        bc.globalAlpha = al * tw; bc.drawImage(warmOf(12), x - 12, y - 12); bc.drawImage(warmOf(5), x - 5, y - 5);
+        // its reflection in the pond
+        bc.globalAlpha = al * tw * .45; bc.drawImage(warmOf(7), x - 7, y + 18 + Math.round(Math.sin(T * 3 + f.o)) - 7);
+      }
+      bc.globalCompositeOperation = 'source-over'; bc.globalAlpha = 1;
+      for (const f of flies) { const al = f.gone ? Math.max(0, f.gone / 1.4) : Math.min(1, me.sitting / 1.5); if (al <= 0) continue; bc.globalAlpha = al; bc.drawImage(FIREFLY[Math.floor(T * 8 + f.o) % 2], Math.round(f.x - 2 - cx), Math.round(f.y - 2 - cy)); }
+      bc.globalAlpha = 1; flies = flies.filter(f => !f.gone || f.gone > 0);
+    }
     // the unbuilt places sit in slow, soft mist
     for (const mi of mists) {
       if (mi.x - cx > VW || mi.x + mi.w - cx < 0 || mi.y - cy > VH || mi.y + mi.h - cy < 0) continue;
@@ -2697,8 +2720,12 @@ function mountHaven(root, ui, opt = {}) {
   const stationAt = s => world.props.find(p => p.npc === s) || world.props.find(p => p.station === s);
   return {
     active: v => { on = v; if (!v) { for (const k in keys) keys[k] = false; joy = null; } else { resize(); } if (v && !raf) { last = performance.now(); raf = requestAnimationFrame(frame); } },
-    enter: at => { iris = 0; irisAt = performance.now(); focus = null; cam = null; me.ghosts = []; me.trail = []; const p = at && stationAt(at); if (p) { me.x = p.x + p.w / 2 - 14; me.y = p.foot + 16; } else { me.x = world.spawn[0]; me.y = world.spawn[1]; } },
+    enter: at => { iris = 0; irisAt = performance.now(); focus = null; cam = null; me.ghosts = []; me.trail = []; me.sitting = 0; flies = []; if (ui.rest) ui.rest(false); const p = at && stationAt(at); if (p) { me.x = p.x + p.w / 2 - 14; me.y = p.foot + 16; } else { me.x = world.spawn[0]; me.y = world.spawn[1]; } },
     focusOn: s => { if (!s) { focus = null; return; } const p = stationAt(s); focus = p ? [p.x + p.w / 2, p.y + p.h / 2] : null; },
+    // sit beside Pell: the UI fades out, the camera settles on the pond, and fireflies come out to play until you move
+    sit: () => { me.x = world.seat[0]; me.y = world.seat[1]; me.face = 1; me.sitting = .001; me.trail = []; focus = [world.pondPlay[0] - 20, world.pondPlay[1] + 30]; flies = Array.from({ length: 7 }, (_, i) => ({ p: (i >> 1) * 2.1, o: i * 1.3, s: 1.6 + (i % 3) * .5, r: 6 + (i % 2) * 6 + (i % 3) * 2, x: world.pondPlay[0], y: world.pondPlay[1], gone: 0 })); if (ui.rest) ui.rest(true); },
+    get sitting() { return !!me.sitting; },
+    step: ms => { const r = raf; frameInner(performance.now() + (ms || 0)); cancelAnimationFrame(raf); raf = r; }, get flyCount() { return flies.length; }, get focus() { return focus; }, // for automated checks
     goto: (tx, ty) => { me.x = tx * 16; me.y = ty * 16; }, setBug: b => { me.bug = b; },
     pause: v => { paused = v; for (const k in keys) keys[k] = false; joy = null; }, get near() { return near; }, get me() { return me; }, get irisDone() { return iris >= 1; },
   };
@@ -3448,6 +3475,8 @@ const hubUI = {
     ({ gate: openGate, daily: openGate, tree: openTree, roost: openRoost, records: openRecords })[p.station]();
   },
   dash() { sfx('dash'); },
+  // sitting with Pell: the HUD slowly fades out, and comes back when you get up
+  rest(on) { $('haven').classList.toggle('resting', on); if (!on) $('hubHint').dataset.k = ''; },
 };
 // the Lantern Gate: every way to play, side by side
 function openGate() {
@@ -3581,11 +3610,18 @@ function endTalk(quiet) {
   $('dlg').classList.add('hidden'); $('dlgOpts').innerHTML = ''; if (hollow) { hollow.pause(false); hollow.focusOn(null); }
   if (!quiet && d.onEnd) d.onEnd();
 }
-function dlgSay(text, then) {
-  const t = $('dlgText'), full = fillName(text); clearInterval(dlg.typing); $('dlgOpts').innerHTML = ''; dlg.wait = false; $('dlg').classList.remove('choosing');
-  if (reduceMotion) { t.textContent = full; dlg.typing = 0; if (then) then(); return; }
-  let n = 0; t.textContent = ''; dlg.full = full; dlg.then = then;
-  dlg.typing = setInterval(() => { n += 2; t.textContent = full.slice(0, n); if (n >= full.length) { clearInterval(dlg.typing); dlg.typing = 0; if (then) then(); } }, 16);
+// Every line is laid out at its finished size before it starts typing: the words still to come sit there invisibly,
+// and any answers or boxes underneath are already in place, just hidden. So the box never grows while you read.
+function dlgSay(text, then, pre) {
+  const t = $('dlgText'), o = $('dlgOpts'), full = fillName(text); clearInterval(dlg.typing); dlg.wait = false;
+  o.innerHTML = ''; o.classList.remove('pending'); $('dlg').classList.remove('choosing');
+  if (pre) { pre(); o.classList.add('pending'); }
+  t.innerHTML = '<span class="said"></span><span class="unsaid" aria-hidden="true"></span>'; const said = t.firstChild, unsaid = t.lastChild;
+  const done = () => { said.textContent = full; unsaid.textContent = ''; dlg.typing = 0; o.classList.remove('pending'); if (then) then(); };
+  dlg.full = full; dlg.then = then; dlg.done = done;
+  if (reduceMotion) { done(); return; }
+  let n = 0; said.textContent = ''; unsaid.textContent = full;
+  dlg.typing = setInterval(() => { n += 2; if (n >= full.length) { clearInterval(dlg.typing); done(); return; } said.textContent = full.slice(0, n); unsaid.textContent = full.slice(n); }, 16);
 }
 function dlgNext() {
   if (!dlg) return; dlg.i++;
@@ -3594,39 +3630,40 @@ function dlgNext() {
   if (typeof s === 'function') { s(); dlgNext(); return; }
   if (typeof s === 'string') { dlgSay(s); return; }
   if (s.focus !== undefined) { hollow.focusOn(s.focus); if (s.reveal) for (const r of s.reveal) revealed.add(r); }
-  if (s.choices) { dlgSay(s.say || $('dlgText').textContent, () => dlgChoices(s.choices)); return; }
-  if (s.ask) { dlgSay(s.say, () => dlgAsk(s)); return; }
-  if (s.feedback) { dlgSay(s.say, dlgFeedback); return; }
+  if (s.choices) { dlgSay(s.say || $('dlgText').textContent, () => dlgFocus('.opt-btn'), () => dlgChoices(s.choices)); return; }
+  if (s.ask) { dlgSay(s.say, () => dlgFocus('input'), () => dlgAsk(s)); return; }
+  if (s.feedback) { dlgSay(s.say, () => dlgFocus('textarea'), dlgFeedback); return; }
   dlgSay(s.say);
 }
+// once the line has finished typing, the answers underneath take input
+function dlgFocus(sel) { if (!dlg) return; dlg.wait = true; const e = $('dlgOpts').querySelector(sel); if (e) e.focus(); }
 function dlgAdvance() {
   if (!dlg || dlg.wait) return;
-  if (dlg.typing) { clearInterval(dlg.typing); dlg.typing = 0; $('dlgText').textContent = dlg.full; if (dlg.then) dlg.then(); return; }
+  if (dlg.typing) { clearInterval(dlg.typing); dlg.done(); return; }
   dlgNext();
 }
 function dlgChoices(list) {
-  dlg.wait = true; $('dlg').classList.add('choosing'); const box = $('dlgOpts'); box.innerHTML = '';
-  list.forEach(([label, fn], i) => { const b = document.createElement('button'); b.className = 'opt-btn'; b.innerHTML = '<span class="k">' + (i + 1) + '</span>' + esc(fillName(label)); b.onclick = () => { sfx('select'); dlg.wait = false; fn(); }; box.appendChild(b); });
-  box.firstChild.focus();
+  $('dlg').classList.add('choosing'); const box = $('dlgOpts');
+  list.forEach(([label, fn], i) => { const b = document.createElement('button'); b.className = 'opt-btn'; b.innerHTML = '<span class="k">' + (i + 1) + '</span>' + esc(fillName(label)); b.onclick = () => { if (!dlg || !dlg.wait) return; sfx('select'); dlg.wait = false; fn(); }; box.appendChild(b); });
 }
 // swap what's left of the conversation for a new branch
 function dlgGo(steps) { dlg.steps = steps; dlg.i = -1; dlgNext(); }
 function dlgAsk(s) {
-  dlg.wait = true; const box = $('dlgOpts');
+  $('dlg').classList.add('choosing'); const box = $('dlgOpts');
   box.innerHTML = '<form class="ask"><input id="nameIn" maxlength="16" autocomplete="nickname" placeholder="Your name" aria-label="Your name" value="' + esc(save.name || '') + '"><button class="btn small">That\'s me</button></form>';
-  const f = box.querySelector('form'), inp = box.querySelector('input'); inp.focus();
-  f.onsubmit = e => { e.preventDefault(); const v = inp.value.replace(/[^\p{L}\p{N} _.'-]/gu, '').trim().slice(0, 16); if (v.length < 2) { inp.focus(); toast('A name needs at least two letters'); return; } save.name = v; persist(); dlg.wait = false; dlgNext(); };
+  const f = box.querySelector('form'), inp = box.querySelector('input');
+  f.onsubmit = e => { e.preventDefault(); if (!dlg || !dlg.wait) return; const v = inp.value.replace(/[^\p{L}\p{N} _.'-]/gu, '').trim().slice(0, 16); if (v.length < 2) { inp.focus(); toast('A name needs at least two letters'); return; } save.name = v; persist(); dlg.wait = false; dlgNext(); };
 }
 function dlgFeedback() {
-  dlg.wait = true; const box = $('dlgOpts');
-  box.innerHTML = '<form class="ask fb"><textarea id="fbIn" maxlength="1000" rows="3" placeholder="Anything you liked, hated or would change" aria-label="Your feedback" aria-describedby="fbNote"></textarea><p class="fb-note" id="fbNote">Sent with your name, your bug, how many runs you&#39;ve played and your best score, so the maker knows where you&#39;re coming from.</p><div class="fb-row"><button type="button" class="btn ghost small" data-x>Never mind</button><button class="btn small">Send it</button></div></form>';
-  const f = box.querySelector('form'), inp = box.querySelector('textarea'); inp.focus();
+  $('dlg').classList.add('choosing'); const box = $('dlgOpts');
+  box.innerHTML = '<form class="ask fb"><textarea id="fbIn" maxlength="1000" rows="3" placeholder="Anything you liked, hated or would change" aria-label="Your feedback" aria-describedby="fbNote"></textarea><p class="fb-note" id="fbNote">Sent with your name, your bug, how many runs you&#39;ve played and your best score, so the game&#39;s maker knows where you&#39;re coming from.</p><div class="fb-row"><button type="button" class="btn ghost small" data-x>Never mind</button><button class="btn small">Send it</button></div></form>';
+  const f = box.querySelector('form'), inp = box.querySelector('textarea');
   box.querySelector('[data-x]').onclick = () => { dlg.wait = false; dlgGo(["No harm done. If something comes to you later, you know where I'll be standing."]); };
   f.onsubmit = async e => {
-    e.preventDefault(); const msg = inp.value.trim(); if (msg.length < 3) { inp.focus(); return; }
+    e.preventDefault(); if (!dlg || !dlg.wait) return; const msg = inp.value.trim(); if (msg.length < 3) { inp.focus(); return; }
     f.querySelector('button:not([data-x])').disabled = true;
     const ok = await sendFeedback(msg);
-    dlg.wait = false; dlgGo([ok ? "Got it, and it's already on its way to the one who dreams this place up. Thank you for taking the time, {name}, it genuinely helps more than you'd think."
+    dlg.wait = false; dlgGo([ok ? "Got it, and it's already on its way to the person who makes the game. Thank you for taking the time, {name}, it genuinely helps more than you'd think."
       : "The roots are a bit tangled right now, so I've tucked your note away somewhere safe and I'll send it along the next time you come by."]);
   };
 }
@@ -3661,7 +3698,7 @@ function glimIntro() {
     { focus: 'shellby', reveal: ['shellby'], say: "Shellby's down by the Market. It isn't open yet, and she'll swear it's opening any day now, but she hears everything that goes on out there in the dark, so she's worth a chat." },
     { focus: 'pell', reveal: ['pell'], say: "And that's Pell by the pond. He doesn't say much, and what he does say rarely makes sense straight away, but I've noticed it usually does by morning." },
     { focus: 'locked', say: "The paths that fade into the mist lead to places I haven't finished building. I'll get to them, I just work at about the speed you'd expect from a very old moth." },
-    { focus: 'glim', say: "That's the whole tour. If anything here bothers you, or you've got an idea that would make the place better, come and tell me. I write it all down, and whoever dreams this place up reads every word." },
+    { focus: 'glim', say: "That's the whole tour. If anything here bothers you, or you've got an idea that would make it better, come and tell me. I built the Haven, but I'm not the one who makes the game, and I pass every word along to the person who does." },
     () => { save.met = true; persist(); hubRefresh(); },
   ], () => { save.met = true; persist(); $('haven').classList.remove('intro'); });
 }
@@ -3672,15 +3709,15 @@ function talkTo(who) {
 function talkGlim() {
   const menu = say => ({ say, choices: [
     ['Grow the Root Tree', () => { endTalk(); openTree(); }],
-    ['I have feedback for the maker', () => dlgGo([{ feedback: true, say: "Go on, tell me what's on your mind. Good, bad or just plain strange, it all goes into the roots, and the one who dreams this place reads every word of it." }])],
+    ["I have feedback for the game's maker", () => dlgGo([{ feedback: true, say: "Go on, tell me what's on your mind. Good, bad or just plain strange, I'll pass it straight along to the person who makes this game, and they read every word." }])],
     ["What's new around here?", () => dlgGo([pickLine('glim', GLIM_NEWS), menu("Anything else I can do for you?")])],
     ['Call me something else', () => dlgGo([{ ask: 'name', say: "Changing your name? Fair enough, I've changed mine twice. What should I write down instead?" }, "{name} it is. I've crossed out the old one so neatly you'd never know it was there."])],
-    ['Just saying hi', () => dlgGo(["Hi yourself. Mind the lamps on your way out, I only just got them all burning at once."])],
+    ['Just saying hi', () => dlgGo(["Hi yourself. Mind the lamps on your way out, I've just topped up their oil and they're still a little sulky about it."])],
   ] });
   talk('glim', [menu(pickLine('glimHi', ["Back again, {name}? Good, the place feels emptier when nobody's walking around in it. What can I do for you?", "Ah, {name}. I was just admiring my own handiwork, which I'm told is a bad habit. What do you need?", "Welcome back. You look like someone who survived something, which around here is the highest compliment there is. What can I do for you?"]))]);
 }
 const GLIM_NEWS = [
-  "I've been meaning to fix the lamp by the bench for about a hundred nights now. I've decided it flickers on purpose, because it adds character, and that saves me a ladder.",
+  "I've been meaning to fix the lamp by the bench for about a hundred nights now. I've decided it flickers on purpose, because it adds character, and because no one sells ladders around here.",
   "Every time someone outlasts the night a little more amber washes up around the roots, and I like to think the whole Haven gets a bit brighter for it.",
   "The Maw came sniffing around the pond once. Pell just stared at it until it got uncomfortable and wandered off, and I still think about that more than I should.",
   "If the nights are starting to feel easy, the Gate has a Nightmare setting. I'll warn you now that my tree doesn't reach that far, so you'll be out there on your own.",
@@ -3702,9 +3739,9 @@ function talkShellby() {
 }
 const SHELLBY_GOSSIP = [
   "The Gloom has been sending out those shockwave rings again. Word is you can dash straight through them, and the ones who try to outrun them usually don't get very far.",
-  "A little bird told me the Maw goes soft whenever it opens its mouth to breathe in. That's the moment to hit it hardest, assuming you aren't busy being swallowed.",
-  "Folks say the Eclipse's corona cracks if you catch it in a dash flare. Break it and the whole thing just hangs there, stunned, for a few lovely seconds.",
-  "The Weaver leaves webs everywhere and they'll slow you to a crawl. Dash, though, and you'll tear right out of them, or so I'm told by people who still have legs.",
+  "A moth who flew a bit too close told me the Maw goes soft whenever it opens its mouth to breathe in. That's the moment to hit it hardest, assuming you aren't busy being swallowed.",
+  "Word around the pond is that the Eclipse's corona cracks if you catch it in a dash flare. Break it and the whole thing just hangs there, stunned, for a few lovely seconds.",
+  "The Weaver leaves webs everywhere and they'll slow you to a crawl. Dash, though, and you'll tear right out of them, or so I'm told by the bugs who made it back with all six legs.",
   "The Shade walks wherever you've already been, so if you keep doubling back you're basically holding the door open for it.",
   "The Hive hides behind its drones. Flare them away and its shield goes with them, which is more than I can say for my awning in a storm.",
   "Here's one for free: the boss clock stops while a boss is up, and the faster you put it down, the more points you walk away with.",
@@ -3729,7 +3766,7 @@ function talkPell() {
     moth: "A moth. Bold choice. They never sit still for long, which is the exact opposite of me, so I admire it from right here.",
     beetle: "A beetle. Slow and tough, like a good log. I mean that as the highest compliment I know, and I know about four." }[save.char];
   const menu = say => ({ say, choices: [
-    ['Sit with Pell for a while', () => dlgGo([pickLine('pell', PELL_THOUGHTS), menu("...")])],
+    ['Sit with Pell for a while', () => dlgGo([pickLine('pell', PELL_THOUGHTS), "Sit down, if you like. The fireflies come out to play once everything goes quiet, and they don't mind company as long as it holds still.", () => { endTalk(); hollow.sit(); }])],
     ['What do you make of my bug?', () => dlgGo([bug, menu("...")])],
     ['Bye', () => dlgGo(["Mm. Go on, then. The pond will still be here, and so will I, probably in this exact spot."])],
   ] });
@@ -3784,7 +3821,7 @@ requestAnimationFrame(frame);
 
 // small hook for automated playtests
 window.__glow = { sprite, SPRITES, get dmgDone() { return dmgDone; }, get state() { return state; }, get T() { return T; }, get P() { return P; }, get enemies() { return enemies; }, get ebullets() { return ebullets; },
-  get kills() { return kills; }, get wl() { return wl; }, get pl() { return pl; }, get gems() { return gems; }, get pickups() { return pickups; }, get flight() { return flight; }, get strays() { return strays; }, get shocks() { return shocks; }, get dmgLog() { return dmgLog; }, get webs() { return webs; }, get bossOrder() { return bossOrder; }, setBosses: a => { bossOrder = a; }, award, showStats, get rings() { return ringsMade; }, scoreParts, get boss() { return boss; }, keys, update, choose, start, dash, render, save, reroll, toMenu, music, shareText, get hollow() { return hollow; }, get embers() { return embers; }, finish, ART, hub: { openGate, openTree, openRoost, openRecords, openSettings, hubRefresh, payAmber, toHaven, toMenu, glimIntro, talkTo, endTalk, get dlg() { return dlg; }, get where() { return where; }, dlgAdvance, sendFeedback, get RT() { return RT; }, get TR() { return TR; } }, get lastDaily() { return lastDaily; } };
+  get kills() { return kills; }, get wl() { return wl; }, get pl() { return pl; }, get gems() { return gems; }, get pickups() { return pickups; }, get flight() { return flight; }, get strays() { return strays; }, get shocks() { return shocks; }, get dmgLog() { return dmgLog; }, get webs() { return webs; }, get bossOrder() { return bossOrder; }, setBosses: a => { bossOrder = a; }, award, showStats, get rings() { return ringsMade; }, scoreParts, get boss() { return boss; }, keys, update, choose, start, dash, render, save, reroll, toMenu, music, shareText, get hollow() { return hollow; }, get embers() { return embers; }, finish, ART, hub: { get sitting() { return hollow.sitting; }, openGate, openTree, openRoost, openRecords, openSettings, hubRefresh, payAmber, toHaven, toMenu, glimIntro, talkTo, endTalk, get dlg() { return dlg; }, get where() { return where; }, dlgAdvance, sendFeedback, get RT() { return RT; }, get TR() { return TR; } }, get lastDaily() { return lastDaily; } };
 })();
 </script>
 </body>

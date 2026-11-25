@@ -42,7 +42,7 @@ const TREE = [
   ['trail', 'wing', 'trail', 'Long Trail', 'Start with 2 more fireflies', 85, .7, -2.5, ['wings']],
   ['moth', 'wing', 'moth', 'Moth', 'Joins the Roost', 120, .1, -3.6, ['ember', 'trail']],
   ['double', 'wing', 'double', 'Double Dash', 'Two dash charges', 240, -.8, -4.6, ['moth']],
-  ['swarm', 'wing', 'swarm', 'Swarm', 'Your fireflies shoot', 380, .8, -4.8, ['moth']],
+  ['swarm', 'wing', 'swarm', 'Trail Shots', 'Your fireflies shoot', 380, .8, -4.8, ['moth']],
   ['shell', 'root', 'shell', 'Thick Shell', '+15 max health', 50, 2, -1, ['first']],
   ['amber', 'root', 'amber', 'Amber Sense', '+15% amber', 70, 3.2, -2, ['shell']],
   ['beetle', 'root', 'beetle', 'Beetle', 'Joins the Roost', 120, 1.9, -2.3, ['shell']],

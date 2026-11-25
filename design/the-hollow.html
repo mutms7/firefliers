@@ -811,7 +811,7 @@ const TREE = [
   ['trail', 'wing', 'trail', 'Long Trail', 'Start with 2 more fireflies', 85, .7, -2.5, ['wings']],
   ['moth', 'wing', 'moth', 'Moth', 'Joins the Roost', 120, .1, -3.6, ['ember', 'trail']],
   ['double', 'wing', 'double', 'Double Dash', 'Two dash charges', 240, -.8, -4.6, ['moth']],
-  ['swarm', 'wing', 'swarm', 'Swarm', 'Your fireflies shoot', 380, .8, -4.8, ['moth']],
+  ['swarm', 'wing', 'swarm', 'Trail Shots', 'Your fireflies shoot', 380, .8, -4.8, ['moth']],
   ['shell', 'root', 'shell', 'Thick Shell', '+15 max health', 50, 2, -1, ['first']],
   ['amber', 'root', 'amber', 'Amber Sense', '+15% amber', 70, 3.2, -2, ['shell']],
   ['beetle', 'root', 'beetle', 'Beetle', 'Joins the Roost', 120, 1.9, -2.3, ['shell']],
@@ -893,32 +893,32 @@ function makeHaven() {
   const add = (frames, fx, fy, o = {}) => { frames = Array.isArray(frames) ? frames : [frames]; const w = frames[0].width, h = frames[0].height; const p = { frames, x: Math.round(fx * 16 - w / 2), y: Math.round(fy * 16 - h), w, h, foot: fy * 16, ms: o.ms || 400, ...o }; if (o.solid !== false) p.box = o.box || [p.x + w * .2, p.foot - 7, w * .6, 7]; props.push(p); return p; };
   // the plaza: everything to do with playing
   add(BIG_GATE, 26, 15.4, { ms: 140, station: 'gate', label: 'Fly out', light: [26 * 16, 12.2 * 16, 80, WARM], beacon: true });
-  add(MOONSTONE, 31.6, 16.4, { ms: 900, station: 'daily', label: 'Daily run', light: [31.6 * 16, 13.6 * 16, 46, MINT] });
+  add(MOONSTONE, 33.6, 17.6, { ms: 900, station: 'daily', label: 'Daily run', light: [33.6 * 16, 14.8 * 16, 46, MINT] });
   add(SIGNPOST, 22.4, 22.6, { station: 'gate', label: 'Fly out' });
   // the Root Tree and its keeper
   add(ELDER, 9, 16, { ms: 900, station: 'tree', label: 'The Root Tree', box: [9 * 16 - 40, 16 * 16 - 10, 80, 10], light: [9 * 16, 13 * 16, 72, AMBERL] });
-  add(GLIM, 14, 17, { ms: 500, station: 'npc', npc: 'glim', label: 'Talk to Glim', anim: [0, 1, 0, 0] });
+  add(GLIM, 14, 17, { ms: 500, station: 'npc', npc: 'glim', label: 'Talk to Glim', anim: [0, 1, 0, 0], light: [14 * 16, 17 * 16 - 13, 28, AMBERL] });
   // the Roost: one mushroom per bug, each with its bug perched on top
   for (const [i, x, bug] of [[0, 6.4, 'firefly'], [1, 10.4, 'moth'], [2, 14.4, 'beetle']]) add(BIG_SHROOMS[i], x, 29.4, { station: 'roost', label: 'Choose your bug', perch: bug, light: [x * 16, 28.2 * 16, 30, ROSE] });
   // the Records board and Wick
   add(RECORDS, 34, 23.8, { station: 'records', label: 'Records', light: [34 * 16, 21.8 * 16, 50, WARM] });
-  add(WICK, 37, 24.6, { ms: 260, station: 'npc', npc: 'wick', label: 'Talk to Wick' });
+  add(WICK, 37, 24.6, { ms: 260, station: 'npc', npc: 'wick', label: 'Talk to Wick', light: [37 * 16, 24.6 * 16 - 12, 26, [255, 225, 130]] });
   // the places that aren't built yet, with their neighbours waiting outside
   add(POND_GATE, 42.5, 13.6, { station: 'locked', label: 'The Pond', box: [38 * 16, 12.6 * 16, 12 * 16, 16] });
-  add(PELL, 35.2, 11.2, { ms: 700, station: 'npc', npc: 'pell', label: 'Talk to Pell', light: [35.6 * 16, 9.6 * 16, 30, MINT] });
+  add(PELL, 35.2, 11.2, { ms: 700, station: 'npc', npc: 'pell', label: 'Talk to Pell', light: [35.2 * 16, 11.2 * 16 - 12, 28, MINT] });
   add(MARKET, 42, 31.6, { station: 'locked', label: 'The Market' });
-  add(SHELLBY, 36.4, 30.4, { ms: 600, station: 'npc', npc: 'shellby', label: 'Talk to Shellby', light: [36.4 * 16, 28.6 * 16, 34, WARM] });
+  add(SHELLBY, 36.4, 30.4, { ms: 600, station: 'npc', npc: 'shellby', label: 'Talk to Shellby', light: [36.4 * 16, 30.4 * 16 - 12, 28, WARM] });
   add(SOON_BOARD, 25.5, 31.8, { station: 'locked', label: 'The Old Road', box: [24 * 16, 32 * 16, 4 * 16, 32] });
   for (const [x, y] of [[21, 21.8], [31, 21.8], [21, 15.6], [31, 15.6], [16, 25.6], [30, 26.6], [12.5, 21.2]]) add(BIG_LAMP, x, y, { ms: 300, light: [x * 16, y * 16 - 34, 38, WARM], box: [x * 16 - 3, y * 16 - 4, 6, 4] });
   for (const [i, x, y] of [[0, 4.6, 8.4], [1, 17, 7.6], [2, 31.5, 8], [0, 48.8, 15.6], [1, 48.6, 24], [2, 3.8, 22.6], [0, 20.6, 32.4], [1, 31.8, 32.6], [2, 48.6, 32]]) add(TREES[i], x, y, { box: [x * 16 - 9, y * 16 - 8, 18, 8] });
   for (const [x, y] of [[19.2, 9.4], [34, 9.6], [3.6, 12.4], [21.8, 30.4], [46.6, 20.4], [15, 22.5], [44, 22]]) add(FERN, x, y, { solid: false });
-  for (const [x, y] of [[18, 29], [35.5, 17.2], [6, 20.6]]) add(SHROOM_PATCH, x, y, { solid: false });
+  for (const [x, y] of [[18, 29], [36.8, 16.2], [6, 20.6]]) add(SHROOM_PATCH, x, y, { solid: false });
   add(BENCH, 29.5, 24.4);
   const solidTile = (tx, ty) => { const t = T[ty] && T[ty][tx]; return t === undefined || t === 'R' || t === 'F' || t === 'w'; };
   const blocked = (x, y) => { if (y > (TH - 2.4) * 16 || solidTile(Math.floor(x / 16), Math.floor(y / 16))) return true; for (const p of props) if (p.box) { const [bx, by, bw, bh] = p.box; if (x >= bx && x <= bx + bw && y >= by && y <= by + bh) return true; } return false; };
   // mist over the unbuilt places: [x, y, w, h] in tiles
   const mist = [[39, 2, 13, 11], [38, 26, 14, 8], [22, 31, 8, 3]].map(([x, y, w, h]) => [x * 16, y * 16, w * 16, h * 16]);
-  return { W, H, ground, props, blocked, mist, spawn: [26 * 16, 19.6 * 16] };
+  return { W, H, ground, props, blocked, mist, spawn: [26 * 16, 19.6 * 16], seat: [33.5 * 16, 11.4 * 16], pondPlay: [37.6 * 16, 6.6 * 16] };
 }
 
 // soft mist: a feathered patch whose edge fades out over a couple of tiles, in a few pixel steps
@@ -946,7 +946,8 @@ function mountHaven(root, ui, opt = {}) {
   const resize = () => { const r = root.getBoundingClientRect(); RW = root.clientWidth; RH = root.clientHeight; S = r.width < 600 ? 2 : 3; VW = Math.ceil(r.width / S); VH = Math.ceil(r.height / S); cv.width = VW * S; cv.height = VH * S; cv.style.width = VW * S + 'px'; cv.style.height = VH * S + 'px'; buf = px(Math.max(1, VW), Math.max(1, VH), () => {}); bc = buf.getContext('2d'); };
   new ResizeObserver(resize).observe(root); resize();
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const me = { x: world.spawn[0], y: world.spawn[1], face: 1, moving: false, trail: [], bug: 'firefly', dash: 0, dvx: 0, dvy: 0, cd: 0, ghosts: [] };
+  const me = { x: world.spawn[0], y: world.spawn[1], face: 1, moving: false, trail: [], bug: 'firefly', dash: 0, dvx: 0, dvy: 0, cd: 0, ghosts: [], sitting: 0 };
+  let flies = []; // fireflies playing over the pond while you sit with Pell
   const keys = {}; let joy = null, near = null, paused = false, t0 = performance.now(), iris = 1, irisAt = 0, focus = null, cam = null;
   root.tabIndex = 0; const kt = opt.keys || root; let on = true, raf = 0;
   const dash = () => {
@@ -984,15 +985,18 @@ function mountHaven(root, ui, opt = {}) {
     // move (dashing is quick and does no harm here)
     let ix = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0), iy = (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0);
     if (joy) { const dx = joy.x - joy.x0, dy = joy.y - joy.y0, d = Math.hypot(dx, dy); if (d > 8) { ix = dx / d; iy = dy / d; } }
-    const m = Math.hypot(ix, iy); me.moving = (m > 0 || me.dash > 0) && !paused; me.cd -= dt;
+    const m = Math.hypot(ix, iy);
+    if (me.sitting && !paused && (m > 0 || me.dash > 0)) { me.sitting = 0; focus = null; for (const f of flies) { const a = Math.atan2(f.y - world.pondPlay[1], f.x - world.pondPlay[0]) - .6; f.vx = Math.cos(a) * (110 + Math.random() * 90); f.vy = Math.sin(a) * 90 - 70; f.gone = 1.4; } if (ui.rest) ui.rest(false); }
+    if (me.sitting) me.sitting += dt;
+    me.moving = (m > 0 || me.dash > 0) && !paused && !me.sitting; me.cd -= dt;
     const step = (vx, vy) => { const nx = me.x + vx, ny = me.y + vy; if (!world.blocked(nx, me.y)) me.x = nx; if (!world.blocked(me.x, ny)) me.y = ny; };
     if (me.dash > 0 && !paused) { me.dash -= dt; for (let k = 0; k < 3; k++) step(me.dvx * 300 * dt / 3, me.dvy * 300 * dt / 3); if (me.dvx) me.face = me.dvx > 0 ? 1 : -1; me.ghosts.push({ x: me.x, y: me.y, f: me.face, t: .22 }); me.trail.unshift([me.x, me.y]); }
-    else if (m > 0 && !paused) { ix /= m; iy /= m; step(ix * 78 * dt, iy * 78 * dt); if (ix) me.face = ix > 0 ? 1 : -1; me.trail.unshift([me.x, me.y]); }
+    else if (m > 0 && !paused && !me.sitting) { ix /= m; iy /= m; step(ix * 78 * dt, iy * 78 * dt); if (ix) me.face = ix > 0 ? 1 : -1; me.trail.unshift([me.x, me.y]); }
     if (me.trail.length > 60) me.trail.length = 60;
     for (const g of me.ghosts) g.t -= dt; me.ghosts = me.ghosts.filter(g => g.t > 0);
     // what's close
     near = null; let bd = 34;
-    for (const p of world.props) if (p.station) { const cx = p.x + p.w / 2, d = Math.hypot(me.x - cx, me.y - p.foot); if (d < bd + p.w * .35) { bd = d - p.w * .35; near = p; } }
+    if (!me.sitting) for (const p of world.props) if (p.station) { const cx = p.x + p.w / 2, d = Math.hypot(me.x - cx, me.y - p.foot); if (d < bd + p.w * .35) { bd = d - p.w * .35; near = p; } }
     ui.prompt(near && !paused ? near : null);
     // camera: follows you, or glides to whatever Glim is pointing at
     const tx = Math.max(0, Math.min(world.W - VW, (focus ? focus[0] : me.x) - VW / 2)), ty = Math.max(0, Math.min(world.H - VH, (focus ? focus[1] : me.y - 10) - VH / 2));
@@ -1007,7 +1011,8 @@ function mountHaven(root, ui, opt = {}) {
     for (const it of list) {
       if (it.me) {
         bc.fillStyle = 'rgba(0,0,0,.35)'; bc.fillRect(Math.round(me.x - 6 - cx), Math.round(me.y - 1 - cy), 12, 2);
-        const fi = me.moving ? Math.floor(T * 10) % 2 : Math.floor(T * 2) % 2, img = me.face < 0 ? FLIPPED[me.bug][fi] : BUGS[me.bug][fi], bob = me.moving ? 0 : Math.round(Math.sin(T * 3));
+        const fi = me.sitting ? 1 : me.moving ? Math.floor(T * 10) % 2 : Math.floor(T * 2) % 2, img = me.face < 0 ? FLIPPED[me.bug][fi] : BUGS[me.bug][fi];
+        const bob = me.sitting ? Math.round(Math.min(1, me.sitting / .4) * 3) + (still ? 0 : Math.round(Math.sin(T * 1.2) * .5)) : me.moving ? 0 : Math.round(Math.sin(T * 3));
         bc.drawImage(img, Math.round(me.x - img.width / 2 - cx), Math.round(me.y - img.height - 4 + bob - cy));
         continue;
       }
@@ -1022,7 +1027,22 @@ function mountHaven(root, ui, opt = {}) {
       if (arrow) { bc.fillStyle = p.beacon ? '#ffe066' : '#f2c14e'; bc.fillRect(ax - 3, ay, 7, 1); bc.fillRect(ax - 2, ay + 1, 5, 1); bc.fillRect(ax - 1, ay + 2, 3, 1); bc.fillRect(ax, ay + 3, 1, 1); }
     }
     // your fireflies, trailing behind
-    for (let i = 0; i < 3; i++) { const q = me.trail[(i + 1) * 9] || [me.x - me.face * (8 + i * 7), me.y + 2]; bc.drawImage(FIREFLY[Math.floor(T * 8 + i) % 2], Math.round(q[0] - 2 - cx), Math.round(q[1] - 12 - cy + Math.sin(T * 4 + i) * 2)); }
+    // (while you sit with Pell, your own fireflies are off playing over the pond with the others)
+    if (!me.sitting) for (let i = 0; i < 3; i++) { const q = me.trail[(i + 1) * 9] || [me.x - me.face * (8 + i * 7), me.y + 2]; bc.drawImage(FIREFLY[Math.floor(T * 8 + i) % 2], Math.round(q[0] - 2 - cx), Math.round(q[1] - 12 - cy + Math.sin(T * 4 + i) * 2)); }
+    if (flies.length) {
+      bc.globalCompositeOperation = 'lighter';
+      for (const f of flies) {
+        if (f.gone) { f.gone -= dt; f.x += f.vx * dt; f.y += f.vy * dt; f.vy -= 30 * dt; }
+        else { const k = still ? .3 : 1, cxp = world.pondPlay[0] + Math.sin(T * .35 * k + f.p) * 30, cyp = world.pondPlay[1] + Math.sin(T * .5 * k + f.p * 1.7) * 14, a = T * f.s * k + f.o; f.x = cxp + Math.cos(a) * f.r; f.y = cyp + Math.sin(a * 1.3) * f.r * .7; }
+        const al = f.gone ? Math.max(0, f.gone / 1.4) : Math.min(1, me.sitting / 1.5), tw = .7 + .3 * Math.sin(T * 6 + f.o), x = Math.round(f.x - cx), y = Math.round(f.y - cy);
+        bc.globalAlpha = al * tw; bc.drawImage(warmOf(12), x - 12, y - 12); bc.drawImage(warmOf(5), x - 5, y - 5);
+        // its reflection in the pond
+        bc.globalAlpha = al * tw * .45; bc.drawImage(warmOf(7), x - 7, y + 18 + Math.round(Math.sin(T * 3 + f.o)) - 7);
+      }
+      bc.globalCompositeOperation = 'source-over'; bc.globalAlpha = 1;
+      for (const f of flies) { const al = f.gone ? Math.max(0, f.gone / 1.4) : Math.min(1, me.sitting / 1.5); if (al <= 0) continue; bc.globalAlpha = al; bc.drawImage(FIREFLY[Math.floor(T * 8 + f.o) % 2], Math.round(f.x - 2 - cx), Math.round(f.y - 2 - cy)); }
+      bc.globalAlpha = 1; flies = flies.filter(f => !f.gone || f.gone > 0);
+    }
     // the unbuilt places sit in slow, soft mist
     for (const mi of mists) {
       if (mi.x - cx > VW || mi.x + mi.w - cx < 0 || mi.y - cy > VH || mi.y + mi.h - cy < 0) continue;
@@ -1061,8 +1081,12 @@ function mountHaven(root, ui, opt = {}) {
   const stationAt = s => world.props.find(p => p.npc === s) || world.props.find(p => p.station === s);
   return {
     active: v => { on = v; if (!v) { for (const k in keys) keys[k] = false; joy = null; } else { resize(); } if (v && !raf) { last = performance.now(); raf = requestAnimationFrame(frame); } },
-    enter: at => { iris = 0; irisAt = performance.now(); focus = null; cam = null; me.ghosts = []; me.trail = []; const p = at && stationAt(at); if (p) { me.x = p.x + p.w / 2 - 14; me.y = p.foot + 16; } else { me.x = world.spawn[0]; me.y = world.spawn[1]; } },
+    enter: at => { iris = 0; irisAt = performance.now(); focus = null; cam = null; me.ghosts = []; me.trail = []; me.sitting = 0; flies = []; if (ui.rest) ui.rest(false); const p = at && stationAt(at); if (p) { me.x = p.x + p.w / 2 - 14; me.y = p.foot + 16; } else { me.x = world.spawn[0]; me.y = world.spawn[1]; } },
     focusOn: s => { if (!s) { focus = null; return; } const p = stationAt(s); focus = p ? [p.x + p.w / 2, p.y + p.h / 2] : null; },
+    // sit beside Pell: the UI fades out, the camera settles on the pond, and fireflies come out to play until you move
+    sit: () => { me.x = world.seat[0]; me.y = world.seat[1]; me.face = 1; me.sitting = .001; me.trail = []; focus = [world.pondPlay[0] - 20, world.pondPlay[1] + 30]; flies = Array.from({ length: 7 }, (_, i) => ({ p: (i >> 1) * 2.1, o: i * 1.3, s: 1.6 + (i % 3) * .5, r: 6 + (i % 2) * 6 + (i % 3) * 2, x: world.pondPlay[0], y: world.pondPlay[1], gone: 0 })); if (ui.rest) ui.rest(true); },
+    get sitting() { return !!me.sitting; },
+    step: ms => { const r = raf; frameInner(performance.now() + (ms || 0)); cancelAnimationFrame(raf); raf = r; }, get flyCount() { return flies.length; }, get focus() { return focus; }, // for automated checks
     goto: (tx, ty) => { me.x = tx * 16; me.y = ty * 16; }, setBug: b => { me.bug = b; },
     pause: v => { paused = v; for (const k in keys) keys[k] = false; joy = null; }, get near() { return near; }, get me() { return me; }, get irisDone() { return iris >= 1; },
   };
