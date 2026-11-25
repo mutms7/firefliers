@@ -78,7 +78,7 @@ Station lights: the Lantern Gate is warm `255,200,110`, the Elder Root is amber 
 
 - Pixel 9-slice pieces (`design/src/ui.js`): flat dark slabs with corner brackets, chunky buttons with a hard bottom bevel that moves to the top when pressed, and a lantern-knob slider, toggle and key caps.
 - Only add controls the game actually needs. Settings are Music, Sounds and Screen shake; the game already follows the device's reduce-motion setting.
-- Use the Pixelify Sans font with ligatures off. Headings are uppercase with a hard drop shadow.
+- **Font: DotGothic16** (Google Fonts), chosen on 2026-11-25 over Pixelify Sans because its letters are regular, open and even-weighted, so short labels read at a glance while it still looks pixel-drawn. It's built on a 16px grid, so use 16px or 32px wherever you can, and never below 14px. It has one weight; for emphasis use colour or size, not bold. Headings are uppercase with a hard drop shadow. Keep ligatures off.
 
 ## Writing
 

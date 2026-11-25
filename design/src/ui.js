@@ -53,7 +53,7 @@ const IMG = {
 function kitCSS() {
   const b = (img, slice) => 'border-style:solid;border-image:url(' + uri(img) + ') ' + slice + ' fill / ' + (slice * U) + 'px stretch;image-rendering:pixelated;';
   return `
-  .k-btn{font:inherit;font-size:16px;letter-spacing:.06em;text-transform:uppercase;color:#1d1404;padding:6px 18px 9px;${b(KIT.btn, 3)}background:none;cursor:pointer;min-height:42px}
+  .k-btn{font:inherit;font-size:16px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:#1d1404;padding:6px 18px 9px;${b(KIT.btn, 3)}background:none;cursor:pointer;min-height:42px}
   .k-btn:hover,.k-btn.is-hover{${b(KIT.btnHover, 3)}} .k-btn:active,.k-btn.is-down{${b(KIT.btnDown, 3)}padding:9px 18px 6px}
   .k-btn:disabled,.k-btn.is-off{${b(KIT.btnOff, 3)}color:#5d6563;cursor:not-allowed}
   .k-btn.stone{color:#e9e4d6;${b(KIT.stone, 3)}} .k-btn.stone:hover,.k-btn.stone.is-hover{${b(KIT.stoneHover, 3)}} .k-btn.stone:active,.k-btn.stone.is-down{${b(KIT.stoneDown, 3)}}
