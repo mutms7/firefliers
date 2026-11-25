@@ -1760,119 +1760,276 @@ function eyes(e, a, sz, spread) {
     ctx.fillStyle = '#1a0b22'; ctx.beginPath(); ctx.arc(x + fx_ * sz * .55, y + fy * sz * .55, sz * .85, 0, TAU); ctx.fill();
   }
 }
-function drawEnemy(e) {
-  const a = Math.atan2(P.y - e.y, P.x - e.x), r = e.r;
-  ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(e.x, e.y + r * .95, r * .95, r * .38, 0, 0, TAU); ctx.fill();
-  ctx.strokeStyle = shade(e.col, .45); ctx.lineWidth = e.boss ? 3.5 : 2; ctx.lineJoin = 'round';
-  ctx.fillStyle = e.flash > 0 ? '#ffffff' : e.col;
-  switch (e.type) {
-    case 'gloomling': case 'wisp': { const w = 1 + Math.sin(T * 6 + e.ph) * .08; ctx.beginPath(); ctx.ellipse(e.x, e.y, r * w, r / w, 0, 0, TAU); ctx.fill(); ctx.stroke(); hl(e); eyes(e, a, r * .2, r * .36); break; }
-    case 'dart': {
-      const wf = Math.sin(T * 40 + e.ph) * .4, c0 = ctx.fillStyle, sx = Math.sin(a) * r * .9, sy = Math.cos(a) * r * .9;
-      ctx.fillStyle = 'rgba(255,255,255,.3)';
-      ctx.beginPath(); ctx.ellipse(e.x - sx, e.y + sy, r * 1.1, r * .42, a + 1.25 + wf, 0, TAU); ctx.fill();
-      ctx.beginPath(); ctx.ellipse(e.x + sx, e.y - sy, r * 1.1, r * .42, a - 1.25 - wf, 0, TAU); ctx.fill();
-      ctx.fillStyle = c0; poly(e.x, e.y, r * 1.35, 3, a); ctx.fill(); ctx.stroke(); break;
-    }
-    case 'brute': ctx.beginPath(); ctx.roundRect(e.x - r, e.y - r, r * 2, r * 2, r * .35); ctx.fill(); ctx.stroke(); hl(e); eyes(e, a, r * .16, r * .4); break;
-    case 'spit': poly(e.x, e.y, r * 1.25, 4, a); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#12061a'; ctx.beginPath(); ctx.arc(e.x + Math.cos(a) * r * .3, e.y + Math.sin(a) * r * .3, r * .3, 0, TAU); ctx.fill(); break;
-    case 'split': case 'mini': poly(e.x, e.y, r * 1.1, 6, T + e.ph); ctx.fill(); ctx.stroke(); hl(e); if (e.type === 'split') eyes(e, a, r * .16, r * .34); break;
-    case 'drone': {
-      ctx.fillStyle = 'rgba(255,255,255,.35)'; for (const sg of [1, -1]) { ctx.beginPath(); ctx.ellipse(e.x + sg * r * .8, e.y - r * .5, r * .9, r * .4, sg * (.5 + Math.sin(T * 40 + e.ph) * .3), 0, TAU); ctx.fill(); }
-      ctx.fillStyle = e.flash > 0 ? '#ffffff' : e.col; ctx.beginPath(); ctx.arc(e.x, e.y, r, 0, TAU); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#2a1c00'; ctx.fillRect(e.x - r * .9, e.y - 2, r * 1.8, 4);
-      break;
-    }
-    case 'jar': {
-      const wf = Math.sin(T * 22 + e.ph) * .7, hd = e.hd === undefined ? a : e.hd, c = Math.cos(hd), s2 = Math.sin(hd);
-      ctx.fillStyle = e.flash > 0 ? '#fff' : '#2c2458';
-      for (const sg of [1, -1]) { ctx.beginPath(); ctx.moveTo(e.x + c * r * .4, e.y + s2 * r * .4); ctx.lineTo(e.x - s2 * sg * r * 2.3 - c * r * (.3 + wf * .7), e.y + c * sg * r * 2.3 - s2 * r * (.3 + wf * .7)); ctx.lineTo(e.x - c * r * 1.1, e.y - s2 * r * 1.1); ctx.closePath(); ctx.fill(); ctx.stroke(); }
-      ctx.beginPath(); ctx.ellipse(e.x, e.y, r * 1.15, r * .7, hd, 0, TAU); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#ff5a5a'; for (const sg of [1, -1]) { ctx.beginPath(); ctx.arc(e.x + c * r * .7 - s2 * sg * r * .3, e.y + s2 * r * .7 + c * sg * r * .3, 2.2, 0, TAU); ctx.fill(); }
-      if (e.carry) { ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(glow('#ffe9a0'), e.x - 16, e.y - 16, 32, 32); ctx.globalCompositeOperation = 'source-over'; }
-      break;
-    }
-    case 'boom': {
-      const f = e.fuse > 0; if (f && Math.floor(e.fuse * 14) % 2) ctx.fillStyle = '#ffffff';
-      ctx.beginPath(); ctx.arc(e.x, e.y, r * (f ? 1.25 : 1), 0, TAU); ctx.fill(); ctx.stroke(); hl(e);
-      ctx.fillStyle = '#12061a'; ctx.fillRect(e.x - r * .5, e.y - 1.5, r, 3); ctx.fillRect(e.x - 1.5, e.y - r * .5, 3, r);
-      if (f) { ctx.strokeStyle = 'rgba(255,123,59,' + (1 - e.fuse) + ')'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(e.x, e.y, 88, 0, TAU); ctx.stroke(); ctx.fillStyle = 'rgba(255,123,59,.12)'; ctx.fill(); }
-      break;
-    }
-    case 'ghost': {
-      ctx.globalAlpha = e.mode === 'lunge' ? 1 : .8;
-      ctx.beginPath(); ctx.arc(e.x, e.y, r, Math.PI, 0); ctx.lineTo(e.x + r, e.y + r); ctx.lineTo(e.x + r * .5, e.y + r * .6); ctx.lineTo(e.x, e.y + r); ctx.lineTo(e.x - r * .5, e.y + r * .6); ctx.lineTo(e.x - r, e.y + r); ctx.closePath(); ctx.fill(); ctx.stroke();
-      ctx.globalAlpha = 1; eyes(e, a, r * .2, r * .38);
-      if (e.mode === 'wind') { ctx.strokeStyle = '#8fa8ff88'; ctx.lineWidth = 3; ctx.setLineDash([8, 8]); ctx.beginPath(); ctx.moveTo(e.x, e.y); ctx.lineTo(e.x + e.cx * 200, e.y + e.cy * 200); ctx.stroke(); ctx.setLineDash([]); }
-      break;
-    }
-    case 'boss': {
-      const k = e.kind, jit = (e.mode === 'wind' || e.mode === 'slam') ? rand(-3, 3) : 0, x = e.x + jit, y = e.y;
-      if (k === 0) {
-        const sq = e.mode === 'slam' ? 1.16 : 1; ctx.beginPath();
-        for (let i = 0; i <= 28; i++) { const an = i / 28 * TAU, rr = r * sq * (1 + Math.sin(an * 5 + T * 3) * .07 + Math.sin(an * 3 - T * 2) * .05); i ? ctx.lineTo(x + Math.cos(an) * rr, y + Math.sin(an) * rr) : ctx.moveTo(x + Math.cos(an) * rr, y + Math.sin(an) * rr); }
-        ctx.closePath(); if (e.mode === 'slam' && e.flash <= 0) ctx.fillStyle = '#d9b8ff'; ctx.fill(); ctx.stroke();
-        ctx.fillStyle = '#1a0b2e'; ctx.beginPath(); ctx.arc(x, y, r * .7, 0, TAU); ctx.fill();
-        ctx.fillStyle = '#e9d5ff'; const ex = Math.cos(a) * r * .24, ey = Math.sin(a) * r * .24, px = -Math.sin(a) * r * .28, py = Math.cos(a) * r * .28;
-        for (const sg of [1, -1]) { ctx.beginPath(); ctx.ellipse(x + ex + px * sg, y + ey + py * sg, r * .13, r * .21, a, 0, TAU); ctx.fill(); }
-        if (e.mode === 'slam') { ctx.strokeStyle = 'rgba(190,150,255,.6)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(x, y, r * (1.3 + (1 - e.ct / .75) * .9), 0, TAU); ctx.stroke(); }
-      } else if (k === 1) {
-        const open = e.mode === 'inhale' ? .95 : e.mode === 'spit' ? .62 : .32 + Math.sin(T * 4) * .06, face = e.mode === 'charge' ? Math.atan2(e.cy, e.cx) : a;
-        ctx.beginPath(); ctx.arc(x, y, r, face + open, face + TAU - open); ctx.lineTo(x - Math.cos(face) * r * .12, y - Math.sin(face) * r * .12); ctx.closePath();
-        if (e.mode === 'wind' && e.flash <= 0) ctx.fillStyle = '#ffb347'; ctx.fill(); ctx.stroke();
-        ctx.fillStyle = '#fff5f5';
-        for (const sg of [1, -1]) for (let i = 1; i <= 3; i++) {
-          const an = face + sg * open, rr = r * (.26 + i * .2), bx = x + Math.cos(an) * rr, by = y + Math.sin(an) * rr, tn = an - sg * 1.57;
-          ctx.beginPath(); ctx.moveTo(bx - Math.cos(an) * 6, by - Math.sin(an) * 6); ctx.lineTo(bx + Math.cos(an) * 6, by + Math.sin(an) * 6); ctx.lineTo(bx + Math.cos(tn) * 11, by + Math.sin(tn) * 11); ctx.closePath(); ctx.fill();
-        }
-        ctx.fillStyle = '#12061a'; for (const sg of [1, -1]) { const an = face + sg * (open + .5); ctx.beginPath(); ctx.arc(x + Math.cos(an) * r * .64, y + Math.sin(an) * r * .64, r * .1, 0, TAU); ctx.fill(); }
-        if (e.belly) { const gs = 14 + e.belly * 5; ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(glow('#ffe9a0'), x - Math.cos(face) * r * .45 - gs, y - Math.sin(face) * r * .45 - gs, gs * 2, gs * 2); ctx.globalCompositeOperation = 'source-over'; }
-      } else if (k === 2) {
-        const st = e.stun > 0;
-        ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = st ? .22 : .85 + Math.sin(T * 3) * .1; ctx.drawImage(glow('#ffb347'), x - r * 2.7, y - r * 2.7, r * 5.4, r * 5.4);
-        ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = e.flash > 0 ? '#ffffff' : '#05060c'; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
-        ctx.strokeStyle = st ? '#8a6a35' : '#ffd76a'; ctx.lineWidth = 4; if (st) ctx.setLineDash([10, 9]); ctx.stroke(); ctx.setLineDash([]);
-        if (e.beam && !st) {
-          const n = e.hp / e.maxhp < .5 ? 3 : 2; ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
-          for (let i = 0; i < n; i++) {
-            const an = e.ba + i / n * TAU, c = Math.cos(an), s2 = Math.sin(an); ctx.beginPath(); ctx.moveTo(x + c * r, y + s2 * r); ctx.lineTo(x + c * 620, y + s2 * 620);
-            if (e.beam === 1) { ctx.strokeStyle = 'rgba(255,179,71,.4)'; ctx.lineWidth = 3; ctx.stroke(); }
-            else { ctx.strokeStyle = 'rgba(255,140,60,.7)'; ctx.lineWidth = 18; ctx.stroke(); ctx.strokeStyle = '#fff6dc'; ctx.lineWidth = 5; ctx.stroke(); }
-          }
-          ctx.lineCap = 'butt'; ctx.globalCompositeOperation = 'source-over';
-        }
-      } else if (k === 3) {
-        ctx.strokeStyle = shade(e.col, .5); ctx.lineWidth = 4; ctx.lineCap = 'round';
-        for (let i = 0; i < 8; i++) {
-          const sd = i < 4 ? 1 : -1, an = a + sd * (.55 + (i % 4) * .42), kx = x + Math.cos(an) * r * 1.3, ky = y + Math.sin(an) * r * 1.3, wob = Math.sin(T * 6 + i * 1.3) * .14;
-          ctx.beginPath(); ctx.moveTo(x + Math.cos(an) * r * .6, y + Math.sin(an) * r * .6); ctx.lineTo(kx, ky); ctx.lineTo(kx + Math.cos(an + sd * (.9 + wob)) * r * .8, ky + Math.sin(an + sd * (.9 + wob)) * r * .8); ctx.stroke();
-        }
-        ctx.lineCap = 'butt'; ctx.lineWidth = 3.5;
-        const sq = e.mode === 'crouch' ? .85 : e.mode === 'leap' ? 1.18 : 1;
-        ctx.beginPath(); ctx.ellipse(x - Math.cos(a) * r * .35, y - Math.sin(a) * r * .35, r * .95 * sq, r * .8 * sq, a, 0, TAU); ctx.fill(); ctx.stroke();
-        ctx.beginPath(); ctx.arc(x + Math.cos(a) * r * .55, y + Math.sin(a) * r * .55, r * .5 * sq, 0, TAU); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = '#0b1f1a'; for (let i = 0; i < 4; i++) { const an = a + (i - 1.5) * .42; ctx.beginPath(); ctx.arc(x + Math.cos(an) * r * .9, y + Math.sin(an) * r * .9, r * (i % 3 ? .09 : .06), 0, TAU); ctx.fill(); }
-        if (e.mode === 'crouch') { ctx.strokeStyle = 'rgba(125,224,192,.85)'; ctx.lineWidth = 3; ctx.setLineDash([8, 7]); ctx.beginPath(); ctx.arc(e.tx, e.ty, 105, 0, TAU); ctx.stroke(); ctx.setLineDash([]); }
-      } else if (k === 4) {
-        ctx.globalAlpha = e.stun > 0 ? .5 : .94; ctx.fillStyle = e.flash > 0 ? '#ffffff' : '#141433';
-        for (const sg of [1, -1]) { ctx.beginPath(); ctx.ellipse(x - Math.cos(a) * 4 - Math.sin(a) * sg * r * .7, y - Math.sin(a) * 4 + Math.cos(a) * sg * r * .7, r * .95, r * .4, a + sg * (.6 + Math.sin(T * 14) * .25), 0, TAU); ctx.fill(); ctx.stroke(); }
-        ctx.beginPath(); ctx.ellipse(x, y, r, r * .72, a, 0, TAU); ctx.fill(); ctx.stroke();
-        ctx.globalAlpha = 1; ctx.fillStyle = '#c9caff';
-        for (const sg of [1, -1]) { ctx.beginPath(); ctx.arc(x + Math.cos(a) * r * .55 - Math.sin(a) * sg * r * .25, y + Math.sin(a) * r * .55 + Math.cos(a) * sg * r * .25, r * .11, 0, TAU); ctx.fill(); }
-      } else {
-        poly(x, y, r * 1.05, 6, T * .3); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = shade(e.col, .6); for (let i = 0; i < 6; i++) { const an = T * .3 + i / 6 * TAU + .52; poly(x + Math.cos(an) * r * .5, y + Math.sin(an) * r * .5, r * .2, 6, T * .3); ctx.fill(); }
-        ctx.fillStyle = '#2a1c00'; poly(x, y, r * .26, 6, T * .3); ctx.fill();
-        if (e.shield) { ctx.strokeStyle = 'rgba(255,220,120,' + (.5 + Math.sin(T * 6) * .2).toFixed(2) + ')'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(x, y, r * 1.38, 0, TAU); ctx.stroke(); }
-      }
-      break;
-    }
+/* ---------- pixel-art creatures ---------- */
+// Each creature is a small grid of characters. Upper-case letters are shaded materials, lit from the top left with a
+// five-step ramp whose shadows lean purple and whose highlights lean warm. Lower-case letters are flat colours and '.'
+// is empty. Every sprite gets a one-pixel dark outline, plus a white hit-flash copy, a gold-outlined elite copy and a
+// frosted copy. Creatures face right and are flipped to face you.
+const pg = (w, h) => Array.from({ length: h }, () => Array(w).fill('.'));
+const pgRows = g => g.map(r => r.join(''));
+const pgEll = (g, cx, cy, rx, ry, ch) => { for (let y = 0; y < g.length; y++) for (let x = 0; x < g[0].length; x++) if (((x + .5 - cx) / rx) ** 2 + ((y + .5 - cy) / ry) ** 2 <= 1) g[y][x] = ch; };
+const pgLine = (g, x0, y0, x1, y1, ch) => { const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) || 1; for (let i = 0; i <= n; i++) { const x = Math.round(x0 + (x1 - x0) * i / n), y = Math.round(y0 + (y1 - y0) * i / n); if (g[y] && x >= 0 && x < g[0].length) g[y][x] = ch; } };
+const pgMirror = g => { const w = g[0].length; for (const r of g) for (let x = 0; x < w / 2; x++) if (r[x] !== '.') r[w - 1 - x] = r[x]; return g; };
+
+// the Weaver, seen from above: legs are drawn on the left, then mirrored
+function weaverRows(pose) {
+  const g = pg(31, 28), legs = [[[12, 7], [7, 3], [4, 0]], [[11, 9], [5, 7], [1, 10]], [[11, 11], [5, 13], [1, 18]], [[12, 13], [7, 18], [4, 26]]];
+  legs.forEach(([h, k, f], i) => {
+    if (pose === 1) { const d = i % 2 ? -2 : 2; k = [k[0], k[1] + d]; f = [f[0], f[1] + d]; }
+    if (pose === 2) { k = [Math.round(h[0] + (k[0] - h[0]) * .75), Math.round(h[1] + (k[1] - h[1]) * .75)]; f = [Math.round(h[0] + (f[0] - h[0]) * .55), Math.round(h[1] + (f[1] - h[1]) * .6)]; }
+    pgLine(g, h[0], h[1], k[0], k[1], 'L'); pgLine(g, k[0], k[1], f[0], f[1], 'L'); pgLine(g, k[0] + 1, k[1], f[0] + 1, f[1], 'L');
+  });
+  pgMirror(g);
+  pgEll(g, 15.5, 19.5, 7.5, 7.5, 'B'); pgEll(g, 15.5, 9.5, 4.6, 4.6, 'H');
+  for (const [x, y] of [[15, 16], [14, 17], [16, 17], [13, 18], [17, 18], [15, 20], [15, 21], [14, 22], [16, 22]]) g[y][x] = 'k'; // the hourglass on its back
+  for (const [x, y] of [[14, 7], [16, 7], [13, 8], [17, 8], [15, 8]]) g[y][x] = 'e';
+  g[4][14] = g[4][16] = 'f'; g[5][14] = g[5][16] = 'f';
+  return pgRows(g);
+}
+// the Eclipse: a black sun with a spiked corona and one eye that shuts when the corona breaks
+function eclipseRows(f) {
+  const S = 31, g = pg(S, S), c = 15.5, k = 12;
+  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
+    const dx = x + .5 - c, dy = y + .5 - c, d = Math.hypot(dx, dy), a = Math.atan2(dy, dx);
+    if (d <= 9.6) g[y][x] = 'B';
+    else if (d <= 11) g[y][x] = f === 2 ? 'q' : 'o';
+    else if (d <= 12.3) g[y][x] = f === 2 ? 'q' : 'c';
+    else if (f !== 2 && d <= 15.4) { const off = f ? Math.PI / k : 0; let da = (((a - off) % (TAU / k)) + TAU / k) % (TAU / k); da = Math.min(da, TAU / k - da); if (da < .19 - (d - 12.3) * .055) g[y][x] = d < 13.8 ? 'c' : 'o'; }
   }
-  if (e.elite) { ctx.strokeStyle = '#fff2a8'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(e.x, e.y, r * 1.45, 0, TAU); ctx.stroke(); }
-  if (e.frz > 0) { ctx.fillStyle = '#c8f6ffaa'; ctx.beginPath(); ctx.arc(e.x, e.y, r * 1.2, 0, TAU); ctx.fill(); }
-  if (e.slowT > 0) { ctx.strokeStyle = '#9ff0ffaa'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(e.x, e.y, r * 1.15, 0, TAU); ctx.stroke(); }
-  if ((e.elite || e.type === 'brute') && e.hp < e.maxhp) { ctx.fillStyle = '#000a'; ctx.fillRect(e.x - r, e.y - r - 9, r * 2, 3); ctx.fillStyle = '#fff'; ctx.fillRect(e.x - r, e.y - r - 9, r * 2 * Math.max(0, e.hp / e.maxhp), 3); }
+  if (f === 2) { for (let x = 11; x <= 19; x++) g[15][x] = 'p'; }
+  else { pgEll(g, c, c, 5.2, 3.1, 'e'); pgEll(g, c, c, 1.7, 3.1, 'p'); g[14][13] = 'w'; }
+  return pgRows(g);
+}
+// the Hive: a papery wasp nest with a dark doorway
+function hiveRows(f) {
+  const g = pg(27, 31), c = 13.5;
+  pgEll(g, c, 17, 12.6, 13.6, 'B');
+  for (let y = 7; y < 30; y += 4) for (let x = 0; x < 27; x++) if (g[y][x] === 'B' && (x + (y >> 2) * 3) % 9 !== 0) g[y][x] = 'D';
+  pgLine(g, 13, 0, 13, 3, 's'); pgLine(g, 11, 0, 16, 0, 's'); pgEll(g, c, 4.5, 4, 1.8, 'D');
+  pgEll(g, c, 23, 3.4, 2.8, 'h'); g[23][13] = g[23][14] = f ? 'g' : 'h'; if (f) g[22][13] = 'g';
+  return pgRows(g);
+}
+
+// every regular creature shares one pixel size and every boss another, so pixels of different sizes never sit side by side
+const PX = 1.85, PX_BOSS = 3.6;
+const SPRITES = {
+  // wisp: a blood tick. Round, soft, slow.
+  tick: { r0: 10, px: PX, fps: 7, ol: '#14050f',
+    pal: { B: ['#3b0f2e', '#7a1f48', '#c8385e', '#f2647a', '#ffb59a'], d: '#5c1838', e: '#fff2e0', p: '#150510', f: '#f6e6cf', l: '#3a0f26' },
+    frames: [0, 1].map(f => ['...BBBBBB....', '.BBBBBBBBBB..', 'BBBdBBBBBBBB.', 'BBBBBBBeeBeeB', 'BBdBBBBepBepB', 'BBBBBdBBBBBBB', '.BBBBBBBBBfBf', '..BBBBBBBB...',
+      ...(f ? ['.l..l..l..l..', '..l..l..l..l.'] : ['..l..l..l..l.', '.l..l..l..l..'])]) },
+  // dart: a gnat. Thin, striped, needle-nosed, all wing.
+  gnat: { r0: 8, px: PX, fps: 14, ol: '#1a0f05',
+    pal: { B: ['#4a2a12', '#94601c', '#e0a42c', '#ffd45c', '#fff2b0'], d: '#3a2208', w: 'rgba(214,236,255,.62)', e: '#ff5a3c', n: '#3b2b14', l: '#5a4010' },
+    frames: [[
+      '....ww.ww......', '...wwwwwww.....', '....wwwww......', '......BBBBe....', 'BBdBdBBBBBeennn', '.BdBdBBBBB.....', '......l.l.l....', '.....l..l..l...'
+    ], [
+      '...............', '...............', '...wwww.www....', '..wwwwBBBBe....', 'BBdBdBBBBBeennn', '.BdBdBBBBBwww..', '.....l.l.l.....', '....l..l...l...'
+    ]] },
+  // brute: a toad. Wide, squat, warty; its throat puffs.
+  toad: { r0: 19, px: PX, fps: 2.5, ol: '#0c0518',
+    pal: { B: ['#1e0f3a', '#3f1f6b', '#6a34a3', '#9a5fd6', '#cfa0f5'], S: ['#4a3a6a', '#7a68a0', '#a896c8', '#cbbce0', '#ece4f6'], d: '#3f1f6b', e: '#ffd45a', p: '#1b0b28', m: '#1b0b28' },
+    frames: [[
+      '............BBBB....', '......BBBBBBBeepB...', '...BBBBdBBBBBeeBBB..', '..BBBBBBBBdBBBBBBBB.', '.BBBdBBBBBBBBBBBBBBB', '.BBBBBBBBBBBBBBmmmmB', 'BBBBBBBBBBBBSSSSSSB.', 'BBBBBBBBBBSSSSSSSS..', 'BBBBBBBBBSSSSSSSS...', '.BBBBBBBBSSSSSSS....', '..BBBBBBBBBBBBB.....', '.BBBB.......BB.B....', 'BBBBB......BBBBB....'
+    ], [
+      '............BBBB....', '......BBBBBBBeepB...', '...BBBBdBBBBBeeBBB..', '..BBBBBBBBdBBBBBBBB.', '.BBBdBBBBBBBBBBBBBBB', '.BBBBBBBBBBBBBBmmmmB', 'BBBBBBBBBBBBSSSSSSSB', 'BBBBBBBBBBSSSSSSSSS.', 'BBBBBBBBBSSSSSSSSS..', '.BBBBBBBBSSSSSSS....', '..BBBBBBBBBBBBB.....', '.BBBB.......BB.B....', 'BBBBB......BBBBB....'
+    ]] },
+  // spit: a bombardier beetle. Banded shell, glowing nozzle at the tail where its shots come from.
+  beetle: { r0: 12, px: PX, fps: 8, ol: '#0c0504',
+    pal: { B: ['#4a1408', '#8c2e0c', '#e0601c', '#ff9a3c', '#ffd27a'], H: ['#120a10', '#24161c', '#3a2428', '#563a38', '#7a5a50'], d: '#2a1208', e: '#ffd9a0', g: '#ffe07a', l: '#2a1510' },
+    frames: [[
+      '...BBBBBB......', '.BBBBBBBBBB....', 'BBdddBBBBBBHH..', 'BBBBBBdddBBHHHl', 'BBBBBBBBBBBHeHH', 'gBBBBBBBBBBHHHH', '.BBBBBBBBBBHHl.', '..BBBBBBBBB....', '..l.l..l.l.....', '.l..l.l..l.....'
+    ], [
+      '...BBBBBB......', '.BBBBBBBBBB....', 'BBdddBBBBBBHH..', 'BBBBBBdddBBHHHl', 'BBBBBBBBBBBHeHH', 'gBBBBBBBBBBHHHH', '.BBBBBBBBBBHHl.', '..BBBBBBBBB....', '...l.l..l.l....', '..l..l.l..l....'
+    ]] },
+  // split: a brood jelly. You can see the grubs it will burst into.
+  brood: { r0: 15, px: PX, fps: 4, ol: '#04150c',
+    pal: { B: ['#0f3a2a', '#1f6a44', '#3fae66', '#6fe08a', '#c4ffc8'], g: '#1c4a2a', k: '#c8ffd0', e: '#f4fff0', p: '#0a2414' },
+    frames: [[
+      '.....BBBBBB.....', '...BBBBBBBBBB...', '..BBBBBBBBBBBB..', '.BBBBBBBBBeeBBB.', '.BBBggBBBBepBBB.', 'BBBgkgBBBBBBBBBB', 'BBBBgBBBggBBBBBB', 'BBBBBBBgkgBBggBB', 'BBBggBBBgBBgkgBB', 'BBgkgBBBBBBBgBBB', '.BBgBBBBBBBBBBB.', '..BBBBBBBBBBBB..', '...BB.BBBB.BB...'
+    ], [
+      '................', '.....BBBBBB.....', '..BBBBBBBBBBBB..', '.BBBBBBBBBeeBBB.', '.BBBBBBBBBepBBB.', 'BBBBgBBBBBBBBBBB', 'BBBgkgBBBgBBBBBB', 'BBBBgBBBgkgBBgBB', 'BBBBBBBBBgBBgkgB', 'BBBgBBBBBBBBBgBB', '.BBgkgBBBBBBBBB.', '..BBBBBBBBBBBB..', '..BB..BBB..BB...'
+    ]] },
+  // mini: a grub that came out of a brood jelly
+  grub: { r0: 7, px: PX, fps: 8, hop: 1, ol: '#071a0a',
+    pal: { B: ['#24502a', '#3f8a46', '#6cc070', '#a2e69a', '#e0ffd0'], d: '#2c6a34', e: '#f4fff0', p: '#0a2414', l: '#24502a' },
+    frames: [['..BBBB...', '.BBBBBep.', 'BBBBBBBBB', 'BdBdBdBBB', '.BBBBBBB.', '.l.l.l.l.'], ['...BBBB..', '.BBBBBep.', 'BBBBBBBBB', 'BdBdBdBBB', '.BBBBBBB.', 'l.l.l.l..']] },
+  // boom: a puffcap mushroom. When its fuse is lit the cap swells and the cracks glow white.
+  puff: { r0: 11, px: PX, fps: 7, ol: '#140504',
+    pal: { C: ['#4a120c', '#8a2414', '#d84a22', '#ff7f3e', '#ffc07a'], S: ['#5a4a46', '#8a7a70', '#bcae9e', '#e0d6c4', '#fff6e6'], c: '#ffb040', w: '#fff2b0', e: '#fff6e6', p: '#1a0806', m: '#3a1008' },
+    frames: [[
+      '...CCCCCC...', '.CCCCcCCCCC.', 'CCCCCccCCCCC', 'CCcCCCCCCcCC', 'CCCCCCCCCCCC', '.CCCCCCCCCC.', '..SSSSSSSS..', '..SepSSepS..', '..SSSmmSSS..', '...SSSSSS...', '...S.SS.S...'
+    ], [
+      '...CCCCCC...', '.CCCCcCCCCC.', 'CCCCCccCCCCC', 'CCcCCCCCCcCC', 'CCCCCCCCCCCC', '.CCCCCCCCCC.', '..SSSSSSSS..', '..SepSSepS..', '..SSSmmSSS..', '...SSSSSS...', '....S..S.S..'
+    ], [
+      '..CCCCCCCC..', '.CCCcwcCCCC.', 'CCcCcwwcCCcC', 'CcwcCCCCcwcC', 'CCcCCCCCCcCC', 'CCCCCCCCCCCC', '.SSSSSSSSSS.', '..SepSSepS..', '..SSmmmmSS..', '...SSSSSS...', '...S.SS.S...'
+    ]] },
+  // ghost: a wraith moth. Wide pale wings with eyespots; it lunges.
+  moth: { r0: 12, px: PX, fps: 6, ol: '#080a1a',
+    pal: { W: ['#2a3466', '#4a5a9a', '#7f96d6', '#b4c6f2', '#e8f0ff'], V: ['#1a2050', '#2e3a78', '#4a5aa0', '#6a7ec4', '#9ab0e8'], B: ['#1a1e40', '#2e3466', '#4a5490', '#6e7ab8', '#a0aadc'], H: ['#1a1e40', '#2e3466', '#4a5490', '#6e7ab8', '#a0aadc'],
+      o: '#1a2050', k: '#ffffff', e: '#f4fbff', p: '#141a40', a: '#8a9ad0', l: '#2e3466' },
+    frames: [[
+      '..WWWW............', '.WWWWWWW..........', 'WWWWoWWWWW........', 'WWWokoWWWWW......a', '.WWWoWWWWWWW....a.', '..WWWWWWWWWWW..a..', '....WWWWWWWWWHHa..',
+      '......BBBBBBBHHHH.', '....BBBBBBBBBHHeH.', '...BBBBBBBBBBHHpH.', '....BBBBBBBBBHHH..', '......VVVVVV......', '.....VVVVV........', '......l..l..l.....'
+    ], [
+      '..................', '..................', '..................', '.................a', '................a.', '...............a..', '.............HHa..',
+      '......BBBBBBBHHHH.', '....BBBBBBBBBHHeH.', '...BBBBBBBBBBHHpH.', '...WWWWWWWWWWHHH..', '.WWWWoWWWWWW......', 'WWWokoWWWWW.......', '.WWWoWWWW.........'
+    ]] },
+  // gloomling: a one-eyed drip of the Gloom
+  gloomling: { r0: 9, px: PX, fps: 8, ol: '#07020f',
+    pal: { B: ['#14062a', '#2c1050', '#4e1f84', '#7a3fc0', '#b48aeb'], e: '#efe2ff', p: '#12061e' },
+    frames: [['...BBBB...', '.BBBBBBB..', 'BBBBBeeeB.', 'BBBBBeepB.', 'BBBBBBBBBB', '.BBBBBBBBB', '..BBBBBBB.', '...BB.BB..', '..B....B..'], ['...BBBB...', '.BBBBBBB..', 'BBBBBeeeB.', 'BBBBBeepB.', 'BBBBBBBBBB', '.BBBBBBBBB', '..BBBBBBB.', '..BB..BB..', '...B..B...']] },
+  // jar: a nightjar, mottled and quiet, that snatches the last firefly in your line
+  jar: { r0: 13, px: PX, fps: 8, ol: '#05040c',
+    pal: { B: ['#120e24', '#241c44', '#3c3068', '#5a4a8e', '#8a7ab8'], H: ['#1a1430', '#2e2652', '#4a3e7a', '#6a5ca0', '#9a8cc8'], W: ['#0d0a1c', '#1a1436', '#2c2456', '#443a7a', '#6a5ea4'], T: ['#0d0a1c', '#1a1436', '#2c2456', '#443a7a', '#6a5ea4'],
+      e: '#ff5a5a', k: '#c9a46a', m: '#7a6aae' },
+    frames: [[
+      '.......WW...........', '......WWWW..........', '.....WWWWWW.........', '....WWWWWWWW........', '...WWWWWWWWWW.......', '..WWmWWmWWWWWW......', '.......BBBBBBBBB....',
+      'TTT..BBBBBBmBBBBHH..', '.TTTBBBBmBBBBBBBHeHk', '..TTBBBBBBBBBBBBHHH.', '......BBBBBBBBBBB...', '........BBBBBBB.....', '....................', '....................'
+    ], [
+      '....................', '....................', '....................', '....................', '....................', '....................', '.......BBBBBBBBB....',
+      'TTT..BBBBBBmBBBBHH..', '.TTTBBBBmBBBBBBBHeHk', '..TTBBWWWWWWBBBBHHH.', '....WWWWmWWWWBBB....', '...WWWWWWWWWW.......', '..WWmWWWWWW.........', '.WWWWWWW............'
+    ]] },
+  // drone: one of the Hive's wasps
+  drone: { r0: 10, px: PX, fps: 16, ol: '#1a1002',
+    pal: { B: ['#5a3a08', '#a06a10', '#f0b41e', '#ffd84a', '#fff2a0'], d: '#2a1c00', w: 'rgba(230,240,255,.55)', e: '#1a1000', s: '#2a1c00', l: '#3a2a08' },
+    frames: [[
+      '...ww.ww....', '..wwwwwww...', '...wwwww....', '..BBBdBBBB..', '.BBdBBdBBBe.', 'sBBdBBdBBBBB', '.BBdBBdBBBB.', '..BBBBBBB...', '...l.l.l....'
+    ], [
+      '............', '....w..w....', '...wwwwww...', '..BBBdBBBB..', '.BBdBBdBBBe.', 'sBBdBBdBBBBB', '.BBdBBdBBBB.', '..BBBBBBB...', '....l.l.l...'
+    ]] },
+
+  // ---- bosses ----
+  gloom: { r0: 50, px: PX_BOSS, fps: 3, ol: '#06020c',
+    pal: { B: ['#12051f', '#2a0d4a', '#4d1a80', '#7a38bf', '#b07ae8'], e: '#efe2ff', p: '#1a0b2e', m: '#0b0316', t: '#e9d5ff' },
+    frames: [0, 1].map(f => [
+      '...........BBBBBBBBB............', '........BBBBBBBBBBBBBBB.........', '......BBBBBBBBBBBBBBBBBBB.......', '.....BBBeBBBBBBBBBBBBBBBBB......',
+      '....BBBBBBeeBBBBBBBBeeBBBBB.....', '...BBBBBBeeepBBBBBBeeepBBBBB....', '...BBBBBBeeppBBBBBBeeppBBBBB....', '..BBBBBBBBeeBBBBBBBBeeBBBBBBB...',
+      '..BBBBBBBBBBBBBBBBBBBBBBBBBeB...', '.BBBBBBBBBBBBBBBBBBBBBBBBBBBBB..', '.BBBBBBBmmmmmmmmmmmmmmmBBBBBBB..', 'BBBBBBBmtmtmtmtmtmtmtmmmBBBBBBB.',
+      'BBBBBBBmmmmmmmmmmmmmmmmmBBBBBBB.', 'BBBBBBBBmtmtmtmtmtmtmtmBBBBBBBB.', 'BBBBBBBBBmmmmmmmmmmmmmBBBBBBBBB.', 'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.',
+      '.BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.', '.BBBBBBBBBBBBBBBBBBBBBBBBBBBBB..', '..BBBBBBBBBBBBBBBBBBBBBBBBBBBB..',
+      ...(f ? ['..BBBBBBB.BBBBBBBBBB.BBBBBB.....', '...BB..BBBB..BBBBB...BBBB.......', '....B...BB....BBB....BB.........', '..............B.......B.........']
+            : ['..BBB.BBBBBBB.BBBBBBBB.BBBBB....', '...B...BBBBB...BBBBB....BBB.....', '........BBB.....BBB......B......', '.........B.......B..............'])
+    ]) },
+  maw: { r0: 46, px: PX_BOSS, fps: 4, ol: '#12020a',
+    pal: { B: ['#3a0614', '#7a1024', '#c8283c', '#f05a5a', '#ff9e88'], S: ['#12020a', '#2a0612', '#4a0c1c', '#6a1428', '#8a2034'], d: '#7a1024', t: '#fff2e6', e: '#ffe27a', p: '#200008', m: '#1a0208' },
+    frames: (() => {
+      const top = ['.......t...t...t............', '........BBBBBBBB............', '.....BBBBBBBBBBBBBB.........', '...BBBBBBBBBBBBBBBBBB.......', '..BBBBBdBBBBBBBBBBeeBB......', '.BBBBBBBBBBBdBBBBeepBBB.....', '.BBBBBBBBBBBBBBBBBeeBBBB....', 'BBBBBdBBBBBBBBBBBBBBBBBBB...'];
+      const shut = ['BBBBBBBBBBBBBBBBBBBBBBBBBB..', 'BBBBBBBBBBBBBBtBtBtBtBtBtBB.', 'BBBBBBBBBBBBBmmmmmmmmmmmmmmm', 'BBBBBBBBBBBBBBBtBtBtBtBtBtB.', 'BBBBBBBBBBBBBBBBBBBBBBBBBB..', '.BBBBBBBBBBBBBBBBBBBBBBBBB..', '.BBBBBBBBBBBBBBBBBBBBBBBB...'];
+      const open = ['BBBBBBBBBBBBBBBBBBBBBBB.....', 'BBBBBBBBBBBBtBtBtBtBtBt.....', 'BBBBBBBBBBSSSSSSSSSSSSSS....', 'BBBBBBBBBSSSSSSSSSSSSSSSSS..', 'BBBBBBBBBSSSSSSSSSSSSSSSSSS.', 'BBBBBBBBBSSSSSSSSSSSSSSSSSS.', 'BBBBBBBBBSSSSSSSSSSSSSSSSS..', 'BBBBBBBBBBSSSSSSSSSSSSSS....', '.BBBBBBBBBBBtBtBtBtBtBtB....'];
+      const body = ['..BBBBBBBBBBBBBBBBBBBBBB....', '...BBBBBBBBBBBBBBBBBBBB.....'];
+      const legsA = ['....BBBB..BBBBBBB..BBBB.....', '....BBB....BBBBB....BBB.....', '...BBBB...BBBBBB...BBBB.....'];
+      const legsB = ['....BBB...BBBBBBB...BBB.....', '...BBB....BBBBBB....BBB.....', '...BBB.....BBBBB...BBBB.....'];
+      return [[...top, ...shut, ...body, ...legsA], [...top, ...shut, ...body, ...legsB], [...top, ...open, ...body, ...legsA]];
+    })() },
+  eclipse: { r0: 54, px: PX_BOSS, fps: 2, ol: '#000000',
+    pal: { B: ['#020306', '#06080e', '#0c0f18', '#161a26', '#242a3a'], o: '#ff9a3c', c: '#ffd76a', q: '#6a5230', e: '#fff3c4', p: '#3a1a00', w: '#ffffff' },
+    frames: [eclipseRows(0), eclipseRows(1), eclipseRows(2)] },
+  weaver: { r0: 44, px: PX_BOSS, fps: 5, ol: '#04100c',
+    pal: { B: ['#0e2a24', '#1c4a40', '#2e7a68', '#5abaa0', '#a6f0d8'], H: ['#0a201c', '#163a32', '#245e52', '#3e8c78', '#7ac8b0'], L: ['#06140f', '#0e2a24', '#1c4a40', '#2e6a5a', '#4a9a84'], k: '#e8fff4', e: '#ff4a6a', f: '#a6f0d8' },
+    frames: [weaverRows(0), weaverRows(1), weaverRows(2)] },
+  shade: { r0: 34, px: PX_BOSS, fps: 6, ol: '#000006',
+    pal: { B: ['#05051a', '#0c0c2a', '#16163e', '#242458', '#36367a'], H: ['#06061e', '#101032', '#1c1c4a', '#2c2c66', '#40408a'], e: '#eeeeff', w: 'rgba(110,110,200,.38)', a: '#2a2a5a', l: '#2a2a5a' },
+    frames: [[
+      '......www.............', '....wwwwww............', '...wwwwwwwww.www......', '....wwwwwwwwwwwww.....', '......wwwwwwwwww......', '..BBBBBBB..HHHH...a...', '.BBBBBBBBBHHHHHHHa....',
+      'BBBBBBBBBBHHHHHeeH....', 'BBBBBBBBBBHHHHHHHH....', 'BBBBBBBBBBHHHHeeHH....', '.BBBBBBBBBHHHHHHH.....', '..BBBBBBB.HHHHH.a.....', '....l..l...l..l.......', '...l..l...l..l........'
+    ], [
+      '......................', '......................', '......................', '...wwwwwwww...........', '..wwwwwwwwwwww........', '..BBBBBBB..HHHH...a...', '.BBBBBBBBBHHHHHHHa....',
+      'BBBBBBBBBBHHHHHeeH....', 'BBBBBBBBBBHHHHHHHH....', 'BBBBBBBBBBHHHHeeHH....', '.BBBBBBBBBHHHHHHH.....', '..BBBBBBB.HHHHH.a.....', '...l..l...l..l........', '....l..l...l..l.......'
+    ]] },
+  hive: { r0: 52, px: PX_BOSS, fps: 2, ol: '#140c02',
+    pal: { B: ['#4a3008', '#8a5a14', '#d0952a', '#f0c050', '#fff0a0'], D: ['#2a1a04', '#4a3008', '#7a5210', '#a06e1c', '#c89030'], s: '#3a2606', h: '#140a00', g: '#ffd84a' },
+    frames: [hiveRows(0), hiveRows(1)] },
+};
+
+const spriteCache = {};
+function hexRgb(c) { if (c[0] !== '#' || c.length !== 7) return null; const n = parseInt(c.slice(1), 16); return [n >> 16, n >> 8 & 255, n & 255]; }
+function frostCol(c) { const v = hexRgb(c); if (!v) return c; const t = [200, 246, 255]; return 'rgb(' + v.map((x, i) => Math.round(x * .35 + t[i] * .65)).join(',') + ')'; }
+// bakes one frame: mode 0 normal, 1 hit flash, 2 elite (gold outline), 3 frozen
+function bakeFrame(def, rows, mode) {
+  const W = Math.max(...rows.map(r => r.length)), H = rows.length, pad = mode === 2 ? 2 : 1;
+  const cv2 = document.createElement('canvas'); cv2.width = W + pad * 2; cv2.height = H + pad * 2; const c = cv2.getContext('2d');
+  const at = (x, y) => (y >= 0 && y < H && rows[y][x]) || '.', solid = (x, y) => at(x, y) !== '.';
+  const bb = {};
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const ch = at(x, y); if (ch === '.') continue; const b = bb[ch] || (bb[ch] = { x0: x, x1: x, y0: y, y1: y }); b.x0 = Math.min(b.x0, x); b.x1 = Math.max(b.x1, x); b.y0 = Math.min(b.y0, y); b.y1 = Math.max(b.y1, y); }
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const ch = at(x, y); if (ch === '.') continue;
+    const p = def.pal[ch]; let col;
+    if (Array.isArray(p)) {
+      const b = bb[ch], rx = (x - b.x0 + .5) / (b.x1 - b.x0 + 1), ry = (y - b.y0 + .5) / (b.y1 - b.y0 + 1), out = (dx, dy) => at(x + dx, y + dy) !== ch;
+      const lit = out(0, -1) || out(-1, 0), sh = out(0, 1) || out(1, 0); let t = 2;
+      if (lit && !sh) t = 3; else if (sh && !lit) t = 1;
+      if (ry > .68 || (ry > .56 && (x + y) % 2)) t--; // a dithered band into the form shadow
+      if (ry > .86 && sh) t = 0;
+      if (Math.hypot(rx - .32, ry - .28) < .16 && !sh) t = 4;
+      col = p[Math.max(0, Math.min(4, t))];
+    } else col = p || '#ff00ff';
+    if (mode === 1) col = '#ffffff'; else if (mode === 3) col = frostCol(col);
+    c.fillStyle = col; c.fillRect(x + pad, y + pad, 1, 1);
+  }
+  const ring = (test, col) => { const pts = []; for (let y = -pad; y < H + pad; y++) for (let x = -pad; x < W + pad; x++) if (!test(x, y) && (test(x - 1, y) || test(x + 1, y) || test(x, y - 1) || test(x, y + 1))) pts.push([x, y]); c.fillStyle = col; for (const [x, y] of pts) c.fillRect(x + pad, y + pad, 1, 1); return pts; };
+  if (mode === 2) { const gold = new Set(ring(solid, '#f2c14e').map(q => q + '')); ring((x, y) => solid(x, y) || gold.has(x + ',' + y), def.ol); }
+  else ring(solid, mode === 3 ? '#3a6a80' : def.ol);
+  return cv2;
+}
+function sprite(name) {
+  let s = spriteCache[name]; if (s) return s;
+  const d = SPRITES[name];
+  s = spriteCache[name] = Object.assign({}, d, { nm: d.frames.map(f => bakeFrame(d, f, 0)), fl: d.frames.map(f => bakeFrame(d, f, 1)), el: d.frames.map(f => bakeFrame(d, f, 2)), ice: d.frames.map(f => bakeFrame(d, f, 3)) });
+  return s;
+}
+// draws a sprite centred on x, y, s world units per art pixel
+function blit(sp, fr, x, y, s, flip, e, alpha) {
+  const v = e && e.flash > 0 ? sp.fl : e && e.frz > 0 ? sp.ice : e && e.elite ? sp.el : sp.nm, c = v[Math.min(fr, v.length - 1)], w = c.width * s, h = c.height * s;
+  ctx.save(); ctx.imageSmoothingEnabled = false; ctx.translate(x, y); if (flip) ctx.scale(-1, 1); if (alpha !== undefined) ctx.globalAlpha = alpha;
+  ctx.drawImage(c, -w / 2, -h / 2, w, h); ctx.restore();
+}
+const SPR_OF = { wisp: 'tick', dart: 'gnat', brute: 'toad', spit: 'beetle', split: 'brood', mini: 'grub', boom: 'puff', ghost: 'moth', jar: 'jar', gloomling: 'gloomling', drone: 'drone' };
+function drawEnemy(e) {
+  const r = e.r, left = P.x < e.x;
+  ctx.fillStyle = 'rgba(0,0,0,.32)'; ctx.beginPath(); ctx.ellipse(e.x, e.y + r * .92, r * .9, r * .3, 0, 0, TAU); ctx.fill();
+  if (e.boss) drawBoss(e, left);
+  else {
+    const sp = sprite(SPR_OF[e.type]), s = sp.px * r / sp.r0; let fr = Math.floor(T * sp.fps + e.ph * 3) % 2, flip = left, y = e.y, look = e;
+    if (e.type === 'jar') flip = Math.cos(e.hd === undefined ? Math.atan2(P.y - e.y, P.x - e.x) : e.hd) < 0;
+    if (e.type === 'boom' && e.fuse > 0) { fr = 2; if (Math.floor(e.fuse * 14) % 2) look = { flash: 1 }; }
+    if (e.type === 'ghost' && (e.mode === 'wind' || e.mode === 'lunge')) { fr = 0; flip = e.cx < 0; }
+    if (sp.hop) y -= Math.abs(Math.sin((T * sp.fps + e.ph) * Math.PI / 2)) * r * .22;
+    blit(sp, fr, e.x, y, s, flip, look, e.type === 'ghost' && e.mode !== 'lunge' ? .86 : undefined);
+    if (e.type === 'boom' && e.fuse > 0) { ctx.strokeStyle = 'rgba(255,123,59,' + (1 - e.fuse) + ')'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(e.x, e.y, 88, 0, TAU); ctx.stroke(); ctx.fillStyle = 'rgba(255,123,59,.12)'; ctx.fill(); }
+    if (e.type === 'ghost' && e.mode === 'wind') { ctx.strokeStyle = '#8fa8ff88'; ctx.lineWidth = 3; ctx.setLineDash([8, 8]); ctx.beginPath(); ctx.moveTo(e.x, e.y); ctx.lineTo(e.x + e.cx * 200, e.y + e.cy * 200); ctx.stroke(); ctx.setLineDash([]); }
+    if (e.type === 'jar' && e.carry) { ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(glow('#ffe9a0'), e.x - 16, e.y - 16, 32, 32); ctx.globalCompositeOperation = 'source-over'; }
+  }
+  if (e.slowT > 0 && !e.boss) { ctx.strokeStyle = '#9ff0ff66'; ctx.lineWidth = 1.5; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.arc(e.x, e.y, r * 1.25, 0, TAU); ctx.stroke(); ctx.setLineDash([]); }
+  if ((e.elite || e.type === 'brute') && e.hp < e.maxhp) { ctx.fillStyle = '#000a'; ctx.fillRect(e.x - r, e.y - r - 10, r * 2, 3); ctx.fillStyle = '#fff'; ctx.fillRect(e.x - r, e.y - r - 10, r * 2 * Math.max(0, e.hp / e.maxhp), 3); }
+}
+function drawBoss(e, left) {
+  const k = e.kind, jit = (e.mode === 'wind' || e.mode === 'slam') ? rand(-3, 3) : 0, x = e.x + jit, y = e.y, r = e.r;
+  const sp = sprite(['gloom', 'maw', 'eclipse', 'weaver', 'shade', 'hive'][k]), s = sp.px * r / sp.r0;
+  let fr = Math.floor(T * sp.fps + e.ph) % 2, flip = false, sx = 1, sy = 1, al, look = e;
+  if (k === 0 && e.mode === 'slam') { sx = 1.14; sy = .86; if (Math.floor(T * 20) % 2) look = { flash: 1 }; }
+  if (k === 1) { flip = left; if (e.mode === 'inhale' || e.mode === 'spit') fr = 2; if (e.mode === 'charge') flip = e.cx < 0; if (e.mode === 'wind' && Math.floor(T * 20) % 2) look = { flash: 1 }; }
+  if (k === 2) {
+    const st = e.stun > 0; fr = st ? 2 : fr;
+    ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = st ? .22 : .85 + Math.sin(T * 3) * .1; ctx.drawImage(glow('#ffb347'), x - r * 2.7, y - r * 2.7, r * 5.4, r * 5.4);
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  }
+  if (k === 3) { if (e.mode === 'crouch') fr = 2; if (e.mode === 'leap') sx = sy = 1.18; }
+  if (k === 4) { flip = left; al = e.stun > 0 ? .5 : .94; }
+  ctx.save(); ctx.translate(x, y); ctx.scale(sx, sy); blit(sp, fr, 0, 0, s, flip, look, al); ctx.restore();
+  if (k === 0 && e.mode === 'slam') { ctx.strokeStyle = 'rgba(190,150,255,.6)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(x, y, r * (1.3 + (1 - e.ct / .75) * .9), 0, TAU); ctx.stroke(); }
+  if (k === 1 && e.belly) { const gs = 14 + e.belly * 5; ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(glow('#ffe9a0'), x + (flip ? 1 : -1) * r * .25 - gs, y - gs, gs * 2, gs * 2); ctx.globalCompositeOperation = 'source-over'; }
+  if (k === 2 && e.beam && !(e.stun > 0)) {
+    const n = e.hp / e.maxhp < .5 ? 3 : 2; ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
+    for (let i = 0; i < n; i++) {
+      const an = e.ba + i / n * TAU, c = Math.cos(an), s2 = Math.sin(an); ctx.beginPath(); ctx.moveTo(x + c * r, y + s2 * r); ctx.lineTo(x + c * 620, y + s2 * 620);
+      if (e.beam === 1) { ctx.strokeStyle = 'rgba(255,179,71,.4)'; ctx.lineWidth = 3; ctx.stroke(); }
+      else { ctx.strokeStyle = 'rgba(255,140,60,.7)'; ctx.lineWidth = 18; ctx.stroke(); ctx.strokeStyle = '#fff6dc'; ctx.lineWidth = 5; ctx.stroke(); }
+    }
+    ctx.lineCap = 'butt'; ctx.globalCompositeOperation = 'source-over';
+  }
+  if (k === 3 && e.mode === 'crouch') { ctx.strokeStyle = 'rgba(125,224,192,.85)'; ctx.lineWidth = 3; ctx.setLineDash([8, 7]); ctx.beginPath(); ctx.arc(e.tx, e.ty, 105, 0, TAU); ctx.stroke(); ctx.setLineDash([]); }
+  if (k === 5 && e.shield) { ctx.strokeStyle = 'rgba(255,220,120,' + (.5 + Math.sin(T * 6) * .2).toFixed(2) + ')'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(x, y, r * 1.38, 0, TAU); ctx.stroke(); }
 }
 function render() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -1905,8 +2062,8 @@ function render() {
   ctx.globalAlpha = 1;
   // glows
   for (const g of gems) if (vis(g.x, g.y, 20)) { const c = g.v >= 15 ? '#ffd34d' : g.v >= 4 ? '#7dff9a' : '#6fd3ff'; ctx.drawImage(glow(c), g.x - 12, g.y - 12, 24, 24); }
-  ctx.globalAlpha = .75;
-  for (const e of enemies) if (vis(e.x, e.y, e.r * 3)) { const s = e.r * 2.8; ctx.drawImage(glow(e.col), e.x - s, e.y - s, s * 2, s * 2); }
+  ctx.globalAlpha = .3; // a faint glow under each creature; strong enough to find them in the dark, weak enough to keep the sprites crisp
+  for (const e of enemies) if (vis(e.x, e.y, e.r * 3)) { const s = e.r * 2.2; ctx.drawImage(glow(e.col), e.x - s, e.y - s, s * 2, s * 2); }
   ctx.globalAlpha = 1;
   for (const b of ebullets) ctx.drawImage(glow('#ff5533'), b.x - 20, b.y - 20, 40, 40);
   for (const p of parts) { ctx.globalAlpha = Math.max(0, p.life / p.max); ctx.fillStyle = p.col; const s = p.s * (p.life / p.max); ctx.fillRect(p.x - s / 2, p.y - s / 2, s, s); }
@@ -2132,7 +2289,7 @@ reset(); state = 'menu'; buildStart(); // after the drawing helpers exist, since
 requestAnimationFrame(frame);
 
 // small hook for automated playtests
-window.__glow = { get dmgDone() { return dmgDone; }, get state() { return state; }, get T() { return T; }, get P() { return P; }, get enemies() { return enemies; }, get ebullets() { return ebullets; },
+window.__glow = { sprite, SPRITES, get dmgDone() { return dmgDone; }, get state() { return state; }, get T() { return T; }, get P() { return P; }, get enemies() { return enemies; }, get ebullets() { return ebullets; },
   get kills() { return kills; }, get wl() { return wl; }, get pl() { return pl; }, get gems() { return gems; }, get pickups() { return pickups; }, get flight() { return flight; }, get strays() { return strays; }, get shocks() { return shocks; }, get dmgLog() { return dmgLog; }, get webs() { return webs; }, get bossOrder() { return bossOrder; }, setBosses: a => { bossOrder = a; }, award, showStats, get rings() { return ringsMade; }, scoreParts, get boss() { return boss; }, keys, update, choose, start, dash, render, save, reroll, toMenu, music, shareText, get lastDaily() { return lastDaily; } };
 })();
 </script>
