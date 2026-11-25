@@ -1,0 +1,112 @@
+<title>Firefliers Art Redesign</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jersey+20&display=swap" rel="stylesheet">
+<style>
+/*PAGE2CSS*/
+  /* pitch additions */
+  .hero{display:grid;gap:14px;padding-block:10px 6px}
+  .hero h1{font-size:clamp(55px,9vw,120px);text-transform:uppercase;letter-spacing:.06em;text-shadow:0 5px 0 #140c03,0 0 28px rgba(242,193,78,.25)}
+  .hero .kicker{font-size:18px;letter-spacing:.3em;text-transform:uppercase;color:var(--mint)}
+  .hero .lede{font-size:22px;max-width:58ch;color:var(--ink)}
+  .hero .lede span{color:var(--dim)}
+  .heroart{position:relative;border:2px solid var(--line2);background:#06090a;overflow:hidden}
+  .heroart canvas{display:block;width:100%;height:auto}
+  .pillars{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:8px;margin-top:6px}
+  .pillars div{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--gold);padding:12px 13px}
+  .pillars b{display:block;font-size:21px;margin-bottom:4px} .pillars span{font-size:18px;color:var(--dim)}
+  .shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:10px}
+  .shots figure{margin:0;background:var(--panel);border:1px solid var(--line)} .shots img{display:block;width:100%;height:auto}
+  .shots figcaption{display:flex;justify-content:space-between;gap:8px;align-items:center}
+  .tag{font-size:18px;letter-spacing:.12em;text-transform:uppercase;padding:2px 7px;border:1px solid currentColor}
+  .tag.built{color:var(--mint)} .tag.pr{color:var(--gold)} .tag.design{color:#c8b0ff}
+  .status{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:18px;color:var(--dim);margin:0 0 12px} .status span{display:inline-flex;gap:6px;align-items:center}
+  .variants{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:8px}
+  .swatches{display:grid;gap:8px}
+  .sw{display:grid;grid-template-columns:150px minmax(0,1fr);gap:10px;align-items:center;font-size:18px}
+  .sw .ramp{display:flex;height:34px;border:1px solid var(--line)} .sw .ramp i{flex:1}
+  .rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:8px}
+  .rules div{background:var(--panel);border:1px solid var(--line);padding:10px 12px;font-size:18px;color:var(--dim)} .rules b{display:block;color:var(--ink);font-size:19px;margin-bottom:3px}
+  .demo{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  .plan{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+  .plan li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start;background:var(--panel);border:1px solid var(--line);padding:11px 13px}
+  .plan li b{display:block;font-size:20px} .plan li span{font-size:18px;color:var(--dim)}
+  .plan .n{width:30px;height:30px;display:grid;place-items:center;background:var(--gold);color:#1d1404;font-weight:400;border:2px solid #1d1404}
+  .plan li.done .n{background:var(--mint)}
+</style>
+<style id="kit"></style>
+
+<div class="wrap">
+  <header class="hero">
+    <span class="kicker">Art redesign</span>
+    <h1>Firefliers</h1>
+    <p class="lede">A firefly's night, drawn in pixels. <span>Vampire Survivors readability, Rain World mood, no medieval trim. Warm light against a cold, quiet dark.</span></p>
+    <div class="heroart" id="heroart"></div>
+    <div class="pillars">
+      <div><b>Silhouette first</b><span>Every creature and icon reads as a solid black shape.</span></div>
+      <div><b>Warm light, cold night</b><span>A muted world. Colour is saved for creatures, pickups and light.</span></div>
+      <div><b>Simple hub, deep tree</b><span>Five stations. All the depth lives in one skill tree.</span></div>
+      <div><b>Few words</b><span>Every description is a few words. You learn by trying.</span></div>
+    </div>
+    <nav aria-label="Sections"><a href="#now">The game now</a><a href="#bestiary">Bestiary</a><a href="#cast">Bugs</a><a href="#walk">The Hollow</a><a href="#treeart">Root Tree</a><a href="#iconsart">Icons</a><a href="#shotsart">Projectiles</a><a href="#levelart">The run</a><a href="#kitart">UI</a><a href="#palette">Palette</a><a href="#plan">Plan</a></nav>
+  </header>
+
+  <section id="now"><h2>The game now</h2>
+    <div class="status"><span><span class="tag built">Live</span> on firefliers.vercel.app</span><span><span class="tag pr">PR</span> built, waiting to merge</span><span><span class="tag design">Design</span> drawn, not built yet</span></div>
+    <div class="shots">
+      <figure><img alt="A run: toads, ticks, a puffcap and a gnat around the firefly" src="{{SHOT_run}}"><figcaption><b>A run, with pixel creatures</b><span class="tag pr">PR</span></figcaption></figure>
+      <figure><img alt="The Maw and a pack of toads, two with gold elite outlines" src="{{SHOT_boss}}"><figcaption><b>The Maw, with elites</b><span class="tag pr">PR</span></figcaption></figure>
+      <figure><img alt="Level up screen with three item rows" src="{{SHOT_level}}"><figcaption><b>Level up</b><span class="tag built">Live</span></figcaption></figure>
+      <figure><img alt="Game over screen with score and damage by weapon" src="{{SHOT_over}}"><figcaption><b>Game over</b><span class="tag built">Live</span></figcaption></figure>
+      <figure><img alt="Pause screen with your build and damage dealt" src="{{SHOT_pause}}"><figcaption><b>Pause</b><span class="tag built">Live</span></figcaption></figure>
+      <figure><img alt="Title menu with the pixel logo and bug portraits" src="{{SHOT_menu}}"><figcaption><b>Menu (the Hollow replaces it)</b><span class="tag built">Live</span></figcaption></figure>
+    </div></section>
+
+  <section id="bestiary"><h2>Bestiary</h2><p class="intro">Every enemy is a night creature whose shape says what it does.</p>
+    <h3>Creatures</h3><div id="creatures"></div><h3>Bosses</h3><div id="bosses"></div>
+    <h3>One creature, four looks</h3><div class="variants" id="variants"></div></section>
+
+  <section id="cast"><h2>Your bugs</h2><p class="intro">Three bugs. The Moth and the Beetle are grown on the Root Tree.</p><div id="chars"></div></section>
+
+  <section id="walk"><h2>The Hollow</h2><p class="intro">Your home between runs. Walk around it: click, then WASD or drag, and E at a station.</p>
+    <div class="hollow" id="hollow" aria-label="The Hollow. Move with WASD or the arrow keys, or drag. Press E at a station."></div>
+    <div class="controls"><span><span class="k-key">W</span><span class="k-key">A</span><span class="k-key">S</span><span class="k-key">D</span> or drag</span><span><span class="k-key">E</span> use a station</span><span class="tag design">Design</span></div>
+    <div id="stations" style="margin-top:14px"></div><h3>Scenery</h3><div id="scenery"></div><h3>Tiles</h3><div id="tiles"></div></section>
+
+  <section id="treeart"><h2>The Root Tree</h2><p class="intro">One tree for all your amber. Nodes add something new more often than a bigger number. Drag to look around, tap a node.</p>
+    <div class="branches"><span><b style="color:#f2c14e">Light</b> attacks</span><span><b style="color:#7fd6c2">Wing</b> dashing and fireflies</span><span><b style="color:#8fd06a">Root</b> staying alive and amber</span><span>Bridges unlock weapons</span><span class="tag design">Design</span></div>
+    <div id="tree"></div></section>
+
+  <section id="iconsart"><h2>Icons</h2><p class="intro">Drawn icons replace every font symbol in the game.</p>
+    <h3>Weapons</h3><div id="weapons"></div><h3>Boosts</h3><div id="passives"></div><h3>Pickups</h3><div id="pickups"></div><h3>HUD</h3><div id="hudicons"></div></section>
+
+  <section id="shotsart"><h2>Projectiles</h2><p class="intro">Yours are warm and pointed. Theirs are round and red.</p>
+    <h3>Yours</h3><div id="shots"></div><h3>Theirs</h3><div id="eshots"></div><h3>Effects</h3><div id="effects"></div></section>
+
+  <section id="levelart"><h2>The run</h2><p class="intro">The meadow as real tiles, colder than the Hollow so creatures and your light pop.</p>
+    <div class="mapwrap"><div class="mapin" id="level"></div></div><h3>Tiles and props</h3><div id="runtiles"></div></section>
+
+  <section id="kitart"><h2>UI</h2><p class="intro">Pixel 9-slice pieces. Only what the game uses. All live.</p>
+    <div class="kitgrid"><div class="kitbox" id="kit-a"></div><div class="kitbox" id="kit-b"></div></div>
+    <h3>Screens</h3><div class="screens"><div><h3>Settings</h3><div id="settings"></div></div><div><h3>Level up</h3><div id="levelup"></div></div><div><h3>After a run</h3><div id="summary"></div></div></div></section>
+
+  <section id="palette"><h2>Palette and rules</h2><p class="intro">The short version of the art direction, which lives in the repo as <code>design/ART_DIRECTION.md</code>.</p>
+    <div class="swatches" id="swatches"></div>
+    <h3>Shading</h3><div class="demo" id="shading"></div>
+    <h3>Rules</h3><div class="rules">
+      <div><b>One pixel size per family</b>Creatures 1.85, bosses 3.6 world units per pixel. Never mixed.</div>
+      <div><b>Light from the top left</b>Five-step ramps. Shadows lean purple, highlights lean warm.</div>
+      <div><b>Dark outline</b>One pixel, darker than sprite and ground. Gold for elites.</div>
+      <div><b>Flip, don't rotate</b>Creatures face right and flip to face you.</div>
+      <div><b>Two frames</b>Walk, flap, flicker. Keep idle motion small.</div>
+      <div><b>Stations get their own light</b>Darker between them, so they stand out.</div>
+    </div></section>
+
+  <section id="plan"><h2>Building it</h2>
+    <ol class="plan">
+      <li class="done"><span class="n">1</span><div><b>New look and pixel creatures</b><span>Menus, HUD and the world are live. All creatures and bosses are built and waiting to merge.</span></div></li>
+      <li><span class="n">2</span><div><b>Pixel bugs, icons, projectiles and tiles</b><span>Swap the last vector shapes and font symbols for the drawn versions.</span></div></li>
+      <li><span class="n">3</span><div><b>The Hollow, amber and the Root Tree</b><span>The hub replaces the menu. Runs earn amber. The tree replaces unlock conditions.</span></div></li>
+      <li><span class="n">4</span><div><b>Trim</b><span>Three bugs, three settings, shorter words everywhere.</span></div></li>
+    </ol></section>
+</div>

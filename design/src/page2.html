@@ -1,0 +1,117 @@
+<title>The Hollow Art Kit</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jersey+20&display=swap" rel="stylesheet">
+<style>
+  /* Layout: a walkable hub up top, then the tree, then everything else as a review sheet. Pixel art always at whole-number scale. Single dark look, matching the game. */
+  :root{--bg:#0a0c0d;--panel:#0e1213;--stage:#111a1b;--ink:#e9e4d6;--dim:#8d9491;--mute:#5d6563;--line:#283030;--line2:#465150;--gold:#f2c14e;--mint:#7fd6c2;--red:#e8604c;
+    --px:"Jersey 20",ui-monospace,Consolas,monospace;color-scheme:dark}
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--px);font-variant-ligatures:none;line-height:1.5;font-size:20px}
+  .wrap{max-width:1180px;margin:0 auto;padding-block:26px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  h1{margin:0;font-size:clamp(50px,7vw,80px);font-weight:400;letter-spacing:.03em;line-height:1.05;color:var(--gold);text-shadow:0 4px 0 #140c03}
+  .lede{max-width:62ch;color:var(--dim);margin:10px 0 0;font-size:20px}
+  nav{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 0}
+  nav a{color:var(--ink);text-decoration:none;font-size:18px;padding:4px 9px;border:1px solid var(--line2);background:#0c1011}
+  nav a:hover,nav a:focus-visible{border-color:var(--gold);color:var(--gold);outline:none}
+  section{padding-top:28px;margin-top:22px;border-top:1px solid var(--line)}
+  h2{margin:0 0 4px;font-size:40px;font-weight:400;letter-spacing:.04em;text-transform:uppercase;text-shadow:0 3px 0 #000}
+  h3{margin:18px 0 8px;font-size:18px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);font-weight:400}
+  .intro{color:var(--dim);max-width:66ch;margin:0 0 12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+  .grid.wide{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+  .card{margin:0;background:var(--panel);border:1px solid var(--line);display:flex;flex-direction:column;min-width:0}
+  .card.big{grid-column:span 2}
+  .stage{flex:1;display:grid;place-items:center;padding:14px 8px;min-height:120px;background:var(--stage);overflow:hidden}
+  .stage canvas{max-width:100%;height:auto}
+  figcaption{padding:7px 9px 9px;display:grid;gap:2px;border-top:1px solid var(--line)}
+  figcaption b{font-weight:400;font-size:20px} figcaption span{font-size:18px;color:var(--dim)}
+  canvas.px,img.pxi{image-rendering:pixelated;image-rendering:crisp-edges} img.pxi{vertical-align:middle}
+  /* the walkable hub */
+  .hollow{position:relative;height:clamp(380px,62vh,620px);border:2px solid var(--line2);background:#06090a;overflow:hidden;outline:none;touch-action:none}
+  .hollow:focus-visible{border-color:var(--gold)}
+  .hollow-cv{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+  .hollow-start{z-index:2;position:absolute;inset:0;margin:auto;width:max-content;height:max-content;font:inherit;font-size:20px;color:#1d1404;background:var(--gold);border:2px solid #1d1404;padding:10px 18px;box-shadow:0 4px 0 #000a;cursor:pointer}
+  .hollow-hint{z-index:2;position:absolute;left:50%;bottom:16px;transform:translateX(-50%)}
+  .hint-btn{font:inherit;font-size:19px;color:var(--ink);display:inline-flex;gap:8px;align-items:center;background:rgba(6,9,10,.75);border:1px solid var(--line2);padding:5px 12px 5px 6px;cursor:pointer;text-shadow:0 2px 0 #000}
+  .hollow-toast{z-index:2;position:absolute;left:50%;top:16px;transform:translateX(-50%);background:#141410;border:1px solid #7c6630;border-left:3px solid var(--gold);padding:7px 14px;font-size:18px;display:flex;gap:8px;align-items:center;white-space:nowrap}
+  .hollow-ov{z-index:2;position:absolute;inset:0;background:rgba(4,6,7,.62);display:grid;place-items:center;padding:14px}
+  .ov-panel{width:min(820px,100%);max-height:100%;display:flex;flex-direction:column;gap:10px}
+  .ov-head{display:flex;justify-content:space-between;align-items:center;gap:10px} .ov-head h3{margin:0;color:var(--gold);font-size:22px;letter-spacing:.08em}
+  .ov-tree{height:min(420px,52vh)}
+  .controls{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;color:var(--dim);font-size:18px;align-items:center}
+  .stations{list-style:none;padding:0;margin:12px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px}
+  .stations li{background:var(--panel);border:1px solid var(--line);padding:7px 10px;font-size:18px} .stations li span{color:var(--dim)} .stations li.locked{color:var(--mute)}
+  .pick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .pick-b{font:inherit;color:var(--ink);display:grid;justify-items:center;gap:4px;padding:12px 6px;background:#0c1011;border:1px solid var(--line2);cursor:pointer}
+  .pick-b.on{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)} .pick-b:disabled{cursor:not-allowed;color:var(--mute)} .pick-b span{font-size:18px;color:var(--dim)}
+  .daily{display:flex;gap:14px;align-items:center} .daily b{display:block;font-size:21px} .daily span{display:block;font-size:18px;color:var(--dim)}
+  .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+  .stats div{background:#0c1011;padding:10px 6px;font-size:18px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;text-align:center} .stats b{display:block;font-size:30px;color:var(--ink);letter-spacing:0}
+  /* the tree */
+  .tree{position:relative;height:100%;min-height:360px;border:1px solid var(--line);background:#06090a;overflow:hidden;cursor:grab;touch-action:none;outline:none}
+  .tree:focus-visible{border-color:var(--gold)} .tree canvas{position:absolute;inset:0;width:100%;height:100%}
+  .tree-bal{position:absolute;left:12px;top:10px;font-size:25px;text-shadow:0 2px 0 #000}
+  .tree-card{position:absolute;right:10px;bottom:10px;width:min(300px,calc(100% - 20px));display:grid;gap:8px}
+  .tc{display:flex;gap:10px;align-items:center} .tc b{display:block;font-size:20px} .tc span{font-size:18px;color:var(--dim)}
+  .tc-own{color:var(--mint);display:flex;gap:6px;align-items:center;font-size:18px} .tc-need{color:var(--dim);font-size:18px} .tc-hint{margin:0;color:var(--dim);font-size:18px}
+  .tree-card .k-btn{display:inline-flex;gap:6px;align-items:center;justify-content:center}
+  #tree{height:clamp(420px,64vh,600px)}
+  .branches{display:flex;flex-wrap:wrap;gap:6px 16px;margin:0 0 10px;font-size:18px;color:var(--dim)} .branches b{font-weight:400}
+  .mapwrap{overflow-x:auto;border:1px solid var(--line);background:#06090a} .mapin{width:max(100%,760px)} canvas.map{display:block;width:100%;height:auto}
+  .kitgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:12px}
+  .kitbox{background:var(--panel);border:1px solid var(--line);padding:14px;display:grid;gap:12px;align-content:start;min-width:0}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center} .row.end{justify-content:flex-end}
+  .field{display:grid;grid-template-columns:80px minmax(0,1fr) 30px;gap:10px;align-items:center;font-size:18px} .field output{color:var(--dim);text-align:right;font-variant-numeric:tabular-nums}
+  .opt{display:inline-flex;gap:8px;align-items:center;font-size:18px;cursor:pointer}
+  .bars{display:grid;gap:8px}
+  .price{display:inline-flex;gap:6px;align-items:center;font-size:20px;color:var(--gold)}
+  .prompt{display:inline-flex;gap:8px;align-items:center;font-size:18px}
+  .screens{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px;align-items:start}
+  .screens h3{margin-top:0}
+  .set-min{display:grid;gap:12px} .set-min h3,.sum h3,.lu h3{margin:0;color:var(--gold);font-size:22px;letter-spacing:.06em;display:flex;gap:8px;align-items:center}
+  .sum{display:grid;gap:10px} .sum-amber{display:flex;gap:14px;align-items:center} .sum-amber b{font-size:38px;color:var(--gold)}
+  .lu{display:grid;gap:6px} .lu-row{font:inherit;color:var(--ink);display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;background:#0c1011;border:1px solid var(--line);border-left:3px solid var(--gold);padding:6px 10px;cursor:pointer;text-align:left}
+  .lu-row:hover{background:#16180f} .lu-row .tag{font-size:18px;color:var(--gold)}
+  .ask{margin-top:30px;background:#141410;border:1px solid #7c6630;border-left:4px solid var(--gold);padding:14px 16px;max-width:72ch} .ask b{color:var(--gold)}
+  @media (max-width:560px){.card.big{grid-column:auto}.pick{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+<style id="kit"></style>
+
+<div class="wrap">
+  <h1>The Hollow</h1>
+  <p class="lede">Walk around the hub, grow the Root Tree, and check every new piece of art. Nothing here is in the game yet.</p>
+  <nav aria-label="Sections"><a href="#walk">Walk around</a><a href="#stationsart">Stations</a><a href="#treeart">Root Tree</a><a href="#cast">Bugs</a><a href="#iconsart">Icons</a><a href="#shotsart">Projectiles</a><a href="#levelart">The run</a><a href="#kitart">UI</a></nav>
+
+  <section id="walk"><h2>Walk around</h2>
+    <div class="hollow" id="hollow" aria-label="The Hollow. Move with WASD or the arrow keys, or drag. Press E at a station."></div>
+    <div class="controls"><span><span class="k-key">W</span><span class="k-key">A</span><span class="k-key">S</span><span class="k-key">D</span> or drag to move</span><span><span class="k-key">E</span> or tap the prompt to use a station</span></div>
+    <ul class="stations"><li>Lantern Gate <span>fly out</span></li><li>Old Glim <span>the Root Tree</span></li><li>The Roost <span>choose your bug</span></li><li>Moonstone <span>daily run</span></li><li>Records <span>your best</span></li><li class="locked">Pond <span>locked: modes</span></li><li class="locked">Market <span>locked: a shop</span></li></ul>
+  </section>
+
+  <section id="stationsart"><h2>Stations</h2><p class="intro">Five stations and two locked spots. That's the whole hub.</p>
+    <div id="stations"></div><h3>Scenery</h3><div id="scenery"></div><h3>Tiles</h3><div id="tiles"></div></section>
+
+  <section id="treeart"><h2>The Root Tree</h2>
+    <p class="intro">Your amber grows one tree. Nodes add something new more often than a bigger number.</p>
+    <div class="branches"><span><b style="color:#f2c14e">Light</b> attacks</span><span><b style="color:#7fd6c2">Wing</b> dashing and fireflies</span><span><b style="color:#8fd06a">Root</b> staying alive and amber</span><span>Bridges unlock weapons</span></div>
+    <div id="tree"></div></section>
+
+  <section id="cast"><h2>Bugs</h2><p class="intro">Three bugs. The Moth and the Beetle are grown on the tree.</p><div id="chars"></div></section>
+
+  <section id="iconsart"><h2>Icons</h2>
+    <h3>Weapons</h3><div id="weapons"></div><h3>Boosts</h3><div id="passives"></div><h3>Pickups</h3><div id="pickups"></div><h3>HUD</h3><div id="hudicons"></div></section>
+
+  <section id="shotsart"><h2>Projectiles</h2><p class="intro">Yours are warm and pointed. Theirs are round and red.</p>
+    <h3>Yours</h3><div id="shots"></div><h3>Theirs</h3><div id="eshots"></div><h3>Effects</h3><div id="effects"></div></section>
+
+  <section id="levelart"><h2>The run</h2><p class="intro">The meadow as tiles: colder than the Hollow, so creatures and your light pop.</p>
+    <div class="mapwrap"><div class="mapin" id="level"></div></div><h3>Tiles and props</h3><div id="runtiles"></div></section>
+
+  <section id="kitart"><h2>UI</h2><p class="intro">Only the pieces the game uses. All live.</p>
+    <div class="kitgrid"><div class="kitbox" id="kit-a"></div><div class="kitbox" id="kit-b"></div></div>
+    <h3>Screens</h3>
+    <div class="screens"><div><h3>Settings</h3><div id="settings"></div></div><div><h3>Level up</h3><div id="levelup"></div></div><div><h3>After a run</h3><div id="summary"></div></div></div>
+    <div class="ask"><b>Your call.</b> Tell me what to change or cut. Once you like it, I'll build it into the game.</div></section>
+</div>
