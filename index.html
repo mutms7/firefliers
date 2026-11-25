@@ -408,7 +408,7 @@ const WEAPONS = {
   orbit: { name: 'Moon Guard', icon: '◉', col: '#7ad7ff', max: 6, desc: l => l === 1 ? '2 moon scythes sweep around you and cut whatever they pass' : (l % 2 ? '+1 scythe, ' : '') + 'more damage, longer blades' },
   nova:  { name: 'Pulse', icon: '✺', col: '#ff7ad9', max: 6, desc: l => l === 1 ? 'A shockwave bursts out of you and shoves enemies back' : 'Bigger, stronger, more often' },
   zap:   { name: 'Chain Zap', icon: '⚡', col: '#b69cff', max: 6, desc: l => l === 1 ? 'Lightning jumps between 3 enemies' : '+1 jump, more damage' },
-  fly:   { name: 'Fireflies', icon: '✦', col: '#9dff8a', max: 6, desc: l => l === 1 ? 'A homing firefly hunts enemies down for you' : l === 3 ? 'Fireflies now explode on impact' : 'More fireflies, more damage' },
+  fly:   { name: 'Fireflies', icon: '✦', col: '#9dff8a', max: 6, desc: l => l === 1 ? 'Two homing fireflies hunt enemies down for you' : l === 2 ? 'Fireflies now explode on impact' : 'More fireflies, more damage' },
   frost: { name: 'Chill Aura', icon: '❄', col: '#9ff0ff', max: 6, desc: l => l === 1 ? 'Enemies near you slow down and take damage' : 'Wider, colder, more damage' },
 };
 Object.assign(WEAPONS, {
@@ -483,7 +483,7 @@ try { best = Object.assign(best, JSON.parse(localStorage.getItem('firefliers.bes
 let zones = [], rerolls = 2, ch = CHARS.glow, nm = false, newUnlocks = [];
 let flight = [], strays = [], path = [], ringFx = [], pathSer = 0, ringSer = 0, ringCd = 0, syncT = 2.4, strayT = 5, jarT = 12, ringsMade = 0, bossKills = 0, killsDawn = -1;
 const MAX_FLIGHT = 30;
-let frenzyT = 0, wonW = 0, newBestScore = false;
+let frenzyT = 0, quietT = 0, wonW = 0, newBestScore = false; // quietT: enemies can't fire (Cold snap)
 let shocks = [], dark = 0, webs = [], bossOrder = [0, 1, 2, 3, 4, 5], frameMove = 0;
 let save = { unlocked: { glow: true }, char: 'glow', nm: false, won: false, nmWon: false, daily: { day: 0, best: 0, attempts: 0, streak: 0 },
   runs: [], ach: {}, stats: { runs: 0, wins: 0, kills: 0, time: 0, rings: 0, rescued: 0, bestFlight: 0, bossKills: {} } };
@@ -541,7 +541,7 @@ function reset() {
   recompute(); P.hp = P.maxhp;
   zones = []; rerolls = 2; newUnlocks = [];
   flight = [{ x: 0, y: 0, fl: 0 }, { x: 0, y: 0, fl: 0 }, { x: 0, y: 0, fl: 0 }]; strays = []; path = [{ x: 0, y: 0, s: 0 }]; ringFx = [];
-  run = { rescued: 0, maxFlight: 3, bosses: [], bossHurt: false }; webs = []; frameMove = 0; frenzyT = 0; wonW = 0;
+  run = { rescued: 0, maxFlight: 3, bosses: [], bossHurt: false }; webs = []; frameMove = 0; frenzyT = 0; quietT = 0; wonW = 0;
   { const rnd = daily ? mkRng(4, 0) : Math.random; bossOrder = BOSSES.map((b, i) => i); for (let i = bossOrder.length - 1; i > 0; i--) { const j = (rnd() * (i + 1)) | 0, t = bossOrder[i]; bossOrder[i] = bossOrder[j]; bossOrder[j] = t; } }
   dmgLog = {}; shocks = []; dark = 0; pathSer = 0; ringSer = 0; ringCd = 0; syncT = 2.4; strayT = 5; jarT = 12; ringsMade = 0; bossKills = 0; killsDawn = -1;
   enemies = []; bullets = []; ebullets = []; gems = []; pickups = []; parts = []; texts = []; rings = []; arcs = [];
@@ -727,7 +727,7 @@ function director(dt) {
     }
   }
 }
-function ebullet(x, y, a, sp) { ebullets.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: 6, life: 6 }); }
+function ebullet(x, y, a, sp) { if (quietT > 0) return; ebullets.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: 6, life: 6 }); }
 function bossAI(e, dt, dx, dy, d) {
   const k = e.kind, pw = pwOf(e), hpf = e.hp / e.maxhp;
   if (e.pop > 0) e.pop -= dt;
@@ -927,19 +927,19 @@ function fireBolt() {
   const n = [1, 1, 2, 2, 3, 4, 6][l - 1], a0 = Math.atan2(t.y - P.y, t.x - P.x);
   for (let i = 0; i < n; i++) {
     const a = a0 + (i - (n - 1) / 2) * .13;
-    bullets.push({ k: 'bolt', x: P.x, y: P.y, vx: Math.cos(a) * 620, vy: Math.sin(a) * 620, r: 5, dmg: [10, 14, 14, 17, 19, 22, 28][l - 1], pierce: [0, 0, 0, 1, 1, 2, 4][l - 1], life: .95, hit: [] });
+    bullets.push({ k: 'bolt', x: P.x, y: P.y, vx: Math.cos(a) * 620, vy: Math.sin(a) * 620, r: 5, dmg: [12, 15, 16, 19, 21, 24, 22][l - 1], pierce: [1, 1, 2, 2, 3, 3, 3][l - 1], life: .95, hit: [] });
   }
   sfx('shoot'); return true;
 }
 function fireNova() {
-  const l = wl.nova, ev = l >= 7, R = (ev ? 300 : 100 + 22 * l) * S.area, dmg = ev ? 100 : 16 + 9 * l;
+  const l = wl.nova, ev = l >= 7, R = (ev ? 300 : 110 + 26 * l) * S.area, dmg = ev ? 100 : 18 + 10 * l;
   src = 'nova'; near(P.x, P.y, R + 50, e => { const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1; if (d < R + e.r) hit(e, dmg, dx / d * 430, dy / d * 430); });
   rings.push({ x: P.x, y: P.y, r0: 10, r1: R, life: .35, max: .35, col: '#ff7ad9', w: 7 }); sfx('nova'); shake(3);
 }
 function fireZap() {
   const l = wl.zap; let cur = nearest(P.x, P.y, 330 * S.area); if (!cur) return false;
   const ev = l >= 7, done = [], dmg = ev ? 55 : 12 + 6 * l; let px = P.x, py = P.y;
-  for (let i = 0; i < (ev ? 12 : 2 + l) && cur; i++) {
+  for (let i = 0; i < (ev ? 12 : 3 + l) && cur; i++) {
     arcs.push(mkArc(px, py, cur.x, cur.y)); done.push(cur); px = cur.x; py = cur.y;
     src = 'zap'; hit(cur, dmg); burst(px, py, '#b69cff', 3, 120);
     if (ev) { const c = cur, bx = px, by = py; rings.push({ x: bx, y: by, r0: 5, r1: 50, life: .2, max: .2, col: '#b69cff', w: 4 }); near(bx, by, 100, o => { if (o !== c && (o.x - bx) ** 2 + (o.y - by) ** 2 < (50 + o.r) ** 2) hit(o, dmg * .4); }); }
@@ -948,29 +948,29 @@ function fireZap() {
   sfx('zap'); return true;
 }
 function fireFly() {
-  const l = wl.fly, n = [1, 2, 2, 3, 3, 4, 7][l - 1]; if (!enemies.length) return false;
+  const l = wl.fly, n = [2, 2, 3, 3, 4, 5, 7][l - 1]; if (!enemies.length) return false;
   for (let i = 0; i < n; i++) {
     const a = rand(0, TAU);
-    bullets.push({ k: 'fly', x: P.x, y: P.y, a, sp: 340, vx: 0, vy: 0, r: 6, dmg: 12 + 5 * l, boom: l >= 3, pierce: 0, life: 3, hit: [], tg: null });
+    bullets.push({ k: 'fly', x: P.x, y: P.y, a, sp: 340, vx: 0, vy: 0, r: 6, dmg: 14 + 6 * l, boom: l >= 2, pierce: 0, life: 3, hit: [], tg: null });
   }
   return true;
 }
 function fireThorn() {
   const l = wl.thorn, ev = l >= 7, t = nearest(P.x, P.y, 440 * S.area); if (!t) return false;
   const n = ev ? 3 : l >= 4 ? 2 : 1, a0 = Math.atan2(t.y - P.y, t.x - P.x);
-  for (let i = 0; i < n; i++) bullets.push({ k: 'thorn', x: P.x, y: P.y, a: a0 + (i - (n - 1) / 2) * .55, v: 720, vx: 0, vy: 0, r: (ev ? 17 : 10 + l) * S.area, dmg: ev ? 38 : 9 + 4.5 * l, pierce: 1e9, life: 3, hit: [], back: false, rot: 0 });
+  for (let i = 0; i < n; i++) bullets.push({ k: 'thorn', x: P.x, y: P.y, a: a0 + (i - (n - 1) / 2) * .55, v: 720, vx: 0, vy: 0, r: (ev ? 17 : 10 + l) * S.area, dmg: ev ? 42 : 11 + 5 * l, pierce: 1e9, life: 3, hit: [], back: false, rot: 0 });
   sfx('shoot'); return true;
 }
 function dropSpore() {
   const l = wl.spore, ev = l >= 7, life = ev ? 4.5 : 2.6 + .2 * l, r = (ev ? 72 : 34 + 5 * l) * S.area, z = zones[zones.length - 1];
   if (z && (z.x - P.x) ** 2 + (z.y - P.y) ** 2 < r * r * .8) { z.life = z.max; return; }
-  zones.push({ x: P.x, y: P.y, r, life, max: life, tick: 0, dps: ev ? 48 : 6 + 4.5 * l });
+  zones.push({ x: P.x, y: P.y, r, life, max: life, tick: 0, dps: ev ? 54 : 8 + 5.5 * l });
 }
 // scythe blades only cover the outer half of their reach, so anything that gets in close slips under them
 const orbSpec = () => { const o = wl.orbit >= 7 ? { n: 5, R: 190 * S.area, dmg: 70, w: .5 } : { n: 2 + ((wl.orbit - 1) >> 1), R: (100 + 8 * wl.orbit) * S.area, dmg: 14 + 6 * (wl.orbit - 1), w: .45 }; o.Ri = o.R * .5; return o; };
 const frostR = () => (wl.frost >= 7 ? 190 : 85 + 14 * wl.frost) * S.area;
 function weapons(dt) {
-  const hs = frenzyT > 0 ? 2 : 1; for (const k in cds) cds[k] -= dt * hs;
+  quietT -= dt; const hs = frenzyT > 0 ? 2 : 1; for (const k in cds) cds[k] -= dt * hs;
   if (wl.bolt && cds.bolt <= 0) cds.bolt = fireBolt() ? [.5, .42, .42, .4, .38, .34, .24][wl.bolt - 1] * S.cd : .1;
   if (wl.nova && cds.nova <= 0) { fireNova(); cds.nova = (wl.nova >= 7 ? 1.5 : 3.3 - .3 * wl.nova) * S.cd; }
   if (wl.thorn && cds.thorn <= 0) cds.thorn = fireThorn() ? (wl.thorn >= 7 ? 1.1 : 1.6) * S.cd : .15;
@@ -995,7 +995,7 @@ function weapons(dt) {
     frostT -= dt;
     if (frostT <= 0) {
       frostT = .25; const l = wl.frost, R = frostR();
-      src = 'frost'; near(P.x, P.y, R + 50, e => { if ((e.x - P.x) ** 2 + (e.y - P.y) ** 2 < (R + e.r) ** 2) { e.slowT = .5; e.slowF = e.boss ? .85 : 1 - (.25 + .05 * l); hit(e, (6 + 5 * l) * .25, undefined, undefined, true); } });
+      src = 'frost'; near(P.x, P.y, R + 50, e => { if ((e.x - P.x) ** 2 + (e.y - P.y) ** 2 < (R + e.r) ** 2) { e.slowT = .5; e.slowF = e.boss ? .85 : 1 - (.25 + .05 * l); hit(e, (8 + 6 * l) * .25, undefined, undefined, true); } });
     }
   }
 }
@@ -1241,7 +1241,7 @@ function update(dt) {
         e.hd = Math.atan2(vy, vx);
       } else if (e.type === 'spit') {
         if (d < 210) { vx = -dx * sp * .7; vy = -dy * sp * .7; } else if (d < 290) { vx = -dy * sp * .6; vy = dx * sp * .6; }
-        e.t -= dt; if (e.t <= 0 && d < 420) { e.t = 2.6; ebullet(e.x, e.y, Math.atan2(dy, dx), 170); }
+        e.t -= dt; if (e.t <= 0 && d < 420 && !(e.frz > 0)) { e.t = 2.6; ebullet(e.x, e.y, Math.atan2(dy, dx), 170); }
       } else if (e.type === 'boom') {
         if (e.fuse > 0) {
           e.fuse -= dt; vx *= .2; vy *= .2;
@@ -1293,8 +1293,8 @@ function update(dt) {
       if ((e.x - b.x) ** 2 + (e.y - b.y) ** 2 < rr * rr) {
         src = b.k; hit(e, b.dmg, b.vx * .12, b.vy * .12);
         if (b.boom) {
-          const R = 52 * S.area; rings.push({ x: b.x, y: b.y, r0: 6, r1: R, life: .22, max: .22, col: '#9dff8a', w: 4 });
-          near(b.x, b.y, R + 50, o => { if (o !== e && (o.x - b.x) ** 2 + (o.y - b.y) ** 2 < (R + o.r) ** 2) hit(o, b.dmg * .5); });
+          const R = 70 * S.area; rings.push({ x: b.x, y: b.y, r0: 6, r1: R, life: .22, max: .22, col: '#9dff8a', w: 4 });
+          near(b.x, b.y, R + 50, o => { if (o !== e && (o.x - b.x) ** 2 + (o.y - b.y) ** 2 < (R + o.r) ** 2) hit(o, b.dmg * .8); });
         }
         if (b.pierce-- > 0) b.hit.push(e); else b.dead = true;
       }
@@ -1303,7 +1303,8 @@ function update(dt) {
   for (const w of webs) { if (w.land > 0) w.land -= dt; else w.life -= dt; } webs = webs.filter(w => w.life > 0);
   if (clearWave) {
     const w = clearWave; w.r += 1300 * dt;
-    for (const o of enemies) if (!o.dead && !o.boss && (o.x - w.x) ** 2 + (o.y - w.y) ** 2 < w.r * w.r) { o.noSplit = o.noDrop = true; o.xp = 0; kill(o); } // no sparks or pickups, or every boss would hand out a free level
+    for (const o of enemies) if (!o.dead && !o.boss && (o.x - w.x) ** 2 + (o.y - w.y) ** 2 < w.r * w.r) { o.noSplit = o.noDrop = true; kill(o); } // their sparks drop, but no pickups
+    ebullets.length = 0;
     if (w.r >= w.max) clearWave = null;
   }
   // boss shockwaves: dash through them or stay out of reach
@@ -1338,19 +1339,20 @@ function update(dt) {
   for (const k of pickups) {
     if ((k.x - P.x) ** 2 + (k.y - P.y) ** 2 < (P.r + 20) ** 2) {
       k.dead = true; sfx('pick');
-      if (k.kind === 'heart') { P.hp = Math.min(P.maxhp, P.hp + 30); burst(P.x, P.y, '#ff6b8a', 16, 180); texts.push({ x: P.x, y: P.y - 24, t: '+30', life: .9, max: .9, heal: true }); }
+      if (k.kind === 'heart') { P.hp = Math.min(P.maxhp, P.hp + 50); burst(P.x, P.y, '#ff6b8a', 16, 180); texts.push({ x: P.x, y: P.y - 24, t: '+50', life: .9, max: .9, heal: true }); }
       else if (k.kind === 'magnet') { for (const g of gems) { g.pull = true; g.sp = g.sp || 300; } rings.push({ x: P.x, y: P.y, r0: 500, r1: 20, life: .5, max: .5, col: '#6fd3ff', w: 5 }); }
       else if (k.kind === 'zap') { // thunderclap: lightning finds the toughest few on screen
-        const R = viewR(), tg = enemies.filter(e => !e.dead && (e.x - P.x) ** 2 + (e.y - P.y) ** 2 < R * R).sort((a, b) => b.hp - a.hp).slice(0, 7);
-        for (const e of tg) { arcs.push(mkArc(P.x, P.y, e.x, e.y)); burst(e.x, e.y, '#b69cff', 8, 200); src = 'power'; hit(e, (140 + T * .6) / S.dmg); }
+        const R = viewR(), tg = enemies.filter(e => !e.dead && (e.x - P.x) ** 2 + (e.y - P.y) ** 2 < R * R).sort((a, b) => b.hp - a.hp).slice(0, 12);
+        for (const e of tg) { arcs.push(mkArc(P.x, P.y, e.x, e.y)); burst(e.x, e.y, '#b69cff', 8, 200); src = 'power'; hit(e, (220 + T * 1) / S.dmg); }
         sfx('zap'); shake(8);
       } else if (k.kind === 'blast') { // fire ring: a burst around you that shoves things back
-        const R = 270, dmg = (45 + T * .3) / S.dmg; rings.push({ x: P.x, y: P.y, r0: 20, r1: R, life: .45, max: .45, col: '#ff9a4d', w: 12 }); shake(10); sfx('boom');
+        const R = 340, dmg = (90 + T * .6) / S.dmg; rings.push({ x: P.x, y: P.y, r0: 20, r1: R, life: .45, max: .45, col: '#ff9a4d', w: 12 }); shake(10); sfx('boom');
         for (const e of enemies.slice()) { const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1; if (!e.dead && d < R + e.r) { src = 'power'; hit(e, dmg, dx / d * 520, dy / d * 520); } }
       } else if (k.kind === 'freeze') { // cold snap: everything on screen stops for a moment
         const R = viewR() + 40; rings.push({ x: P.x, y: P.y, r0: 20, r1: R, life: .5, max: .5, col: '#9ff0ff', w: 10 }); sfx('nova');
-        for (const e of enemies) if ((e.x - P.x) ** 2 + (e.y - P.y) ** 2 < R * R) { if (e.boss) { e.slowT = 3; e.slowF = .5; } else e.frz = 3; }
-      } else { frenzyT = 7; sfx('level'); } // frenzy: weapons fire twice as fast for a few seconds
+        for (const e of enemies) if ((e.x - P.x) ** 2 + (e.y - P.y) ** 2 < R * R) { if (e.boss) { e.slowT = 5; e.slowF = .5; } else e.frz = 5; }
+        ebullets.length = 0; quietT = 5; // every shot on screen is gone, and nothing fires for a while
+      } else { frenzyT = 10; sfx('level'); } // frenzy: weapons fire twice as fast for a few seconds
       if (PICK[k.kind][2] && texts.length < 80) texts.push({ x: P.x, y: P.y - 30, t: PICK[k.kind][2], life: 1, max: 1, crit: true });
     }
   }
@@ -2084,7 +2086,7 @@ function drawForeground() {
     // fade out toward the middle of the screen so the plants frame the action instead of hiding it
     const k = clamp((Math.hypot(sx - VW / 2, sy - VH / 2) / half - .3) / .32, 0, 1); if (k <= 0) continue;
     const sc = (.9 + hash2(i, j, 4) * .7) * zoom;
-    ctx.save(); ctx.globalAlpha = k * .95; ctx.translate(sx, sy); ctx.rotate(hash2(i, j, 5) * TAU); ctx.scale(sc, sc);
+    ctx.save(); ctx.globalAlpha = k * .5; ctx.translate(sx, sy); ctx.rotate(hash2(i, j, 5) * TAU); ctx.scale(sc, sc);
     ctx.drawImage(fgSprites[(hash2(i, j, 6) * fgSprites.length) | 0], -200, -200); ctx.restore();
   }
 }
@@ -2539,7 +2541,7 @@ function render() {
     ctx.strokeStyle = dk >= 1 ? '#ffe066aa' : '#ffffff44'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(P.x, P.y, 21, -Math.PI / 2, -Math.PI / 2 + TAU * dk); ctx.stroke();
     ctx.fillStyle = 'rgba(5,7,8,.85)'; ctx.fillRect(P.x - 21, P.y + 26, 42, 7);
     ctx.fillStyle = P.hp / P.maxhp < .3 ? '#ff6a50' : '#d9574a'; ctx.fillRect(P.x - 20, P.y + 27, 40 * clamp(P.hp / P.maxhp, 0, 1), 5);
-    if (frenzyT > 0) { ctx.fillStyle = '#ffe066'; ctx.fillRect(P.x - 20, P.y + 34, 40 * Math.min(1, frenzyT / 7), 3); }
+    if (frenzyT > 0) { ctx.fillStyle = '#ffe066'; ctx.fillRect(P.x - 20, P.y + 34, 40 * Math.min(1, frenzyT / 10), 3); }
   }
   // damage numbers
   for (const t of texts) {
