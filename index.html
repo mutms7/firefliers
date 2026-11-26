@@ -1127,7 +1127,7 @@ function fireThorn() {
   sfx('shoot'); return true;
 }
 function dropSpore() {
-  const l = wl.spore, ev = l >= 7, life = ev ? 4.5 : 2.6 + .2 * l, r = (ev ? 72 : 34 + 5 * l) * S.area, z = zones[zones.length - 1];
+  const l = wl.spore, ev = l >= 7, life = ev ? 4.5 : 2.6 + .2 * l, r = (ev ? 100 : 46 + 7 * l) * S.area, z = zones[zones.length - 1];
   if (z && !ev && (z.x - P.x) ** 2 + (z.y - P.y) ** 2 < r * r * .8) { z.life = z.max; return; }
   zones.push({ x: P.x, y: P.y, r, life, max: life, tick: 0, dps: ev ? 54 : 8 + 5.5 * l, bloom: ev });
 }
@@ -1141,7 +1141,7 @@ function weapons(dt) {
   if (wl.thorn && cds.thorn <= 0) cds.thorn = fireThorn() ? (wl.thorn >= 7 ? 1.1 : 1.6) * S.cd : .15;
   if (wl.spore && cds.spore <= 0) { dropSpore(); cds.spore = (wl.spore >= 7 ? 1.4 : .5) * S.cd; } // Full Bloom's clouds roam, so fewer of them at once
   if (wl.frost >= 7 && cds.freeze <= 0) {
-    cds.freeze = 4; const R = frostR(); rings.push({ x: P.x, y: P.y, r0: 10, r1: R, life: .4, max: .4, col: '#9ff0ff', w: 8 }); sfx('nova');
+    cds.freeze = 4 * S.cd; const R = frostR(); rings.push({ x: P.x, y: P.y, r0: 10, r1: R, life: .4, max: .4, col: '#9ff0ff', w: 8 }); sfx('nova');
     near(P.x, P.y, R + 50, e => { if (!e.boss && (e.x - P.x) ** 2 + (e.y - P.y) ** 2 < (R + e.r) ** 2) e.frz = 1.2; });
   }
   if (wl.zap && cds.zap <= 0) cds.zap = fireZap() ? (wl.zap >= 7 ? 1 : 1.5) * S.cd : .15;
@@ -1163,7 +1163,8 @@ function weapons(dt) {
   if (wl.frost) {
     frostT -= dt;
     if (frostT <= 0) {
-      frostT = .25; const l = wl.frost, R = frostR();
+      // cooldown reduction makes the aura tick faster, not harder
+      frostT = .25 * S.cd; const l = wl.frost, R = frostR();
       src = 'frost'; near(P.x, P.y, R + 50, e => { if ((e.x - P.x) ** 2 + (e.y - P.y) ** 2 < (R + e.r) ** 2) { e.slowT = .5; e.slowF = e.boss ? .85 : 1 - (.25 + .05 * l); tickNum(e, hit(e, (8 + 6 * l) * .25, undefined, undefined, true), 'fa', '#9ff0ff'); } });
     }
   }
@@ -1511,7 +1512,7 @@ function update(dt) {
   // spore clouds
   for (const z of zones) {
     z.life -= dt; z.tick -= dt;
-    if (z.tick <= 0) { z.tick = .25; src = 'spore'; near(z.x, z.y, z.r + 50, e => { if ((e.x - z.x) ** 2 + (e.y - z.y) ** 2 < (z.r + e.r) ** 2) tickNum(e, hit(e, z.dps * .25, undefined, undefined, true), 'sa', '#d6ff5c'); }); }
+    if (z.tick <= 0) { z.tick = .25 * S.cd; src = 'spore'; near(z.x, z.y, z.r + 50, e => { if ((e.x - z.x) ** 2 + (e.y - z.y) ** 2 < (z.r + e.r) ** 2) tickNum(e, hit(e, z.dps * .25, undefined, undefined, true), 'sa', '#d6ff5c'); }); }
     // Full Bloom's clouds drift toward the nearest enemy instead of sitting where you dropped them
     if (z.bloom) { const t = nearest(z.x, z.y, 320); if (t) { const dx = t.x - z.x, dy = t.y - z.y, dd = Math.hypot(dx, dy) || 1; if (dd > 6) { z.x += dx / dd * 85 * dt; z.y += dy / dd * 85 * dt; } } }
   }
@@ -3935,7 +3936,7 @@ requestAnimationFrame(frame);
 
 // small hook for automated playtests
 window.__glow = { sprite, SPRITES, get dmgDone() { return dmgDone; }, get state() { return state; }, get T() { return T; }, get P() { return P; }, get enemies() { return enemies; }, get ebullets() { return ebullets; },
-  get kills() { return kills; }, get wl() { return wl; }, get pl() { return pl; }, get gems() { return gems; }, get pickups() { return pickups; }, get flight() { return flight; }, get strays() { return strays; }, get shocks() { return shocks; }, get dmgLog() { return dmgLog; }, get webs() { return webs; }, get bossOrder() { return bossOrder; }, setBosses: a => { bossOrder = a; }, award, showStats, get rings() { return ringsMade; }, scoreParts, get boss() { return boss; }, keys, update, choose, start, dash, render, save, reroll, toMenu, music, shareText, get hollow() { return hollow; }, get embers() { return embers; }, finish, ART, hub: { get endK() { return endK(); }, get endT() { return endT; }, get sitting() { return hollow.sitting; }, openGate, openTree, openRoost, openRecords, openSettings, hubRefresh, payAmber, toHaven, toMenu, glimIntro, talkTo, endTalk, get dlg() { return dlg; }, get where() { return where; }, dlgAdvance, sendFeedback, get RT() { return RT; }, get TR() { return TR; } }, get lastDaily() { return lastDaily; } };
+  get kills() { return kills; }, get wl() { return wl; }, get pl() { return pl; }, get gems() { return gems; }, get pickups() { return pickups; }, get flight() { return flight; }, get strays() { return strays; }, get shocks() { return shocks; }, get dmgLog() { return dmgLog; }, get webs() { return webs; }, get bossOrder() { return bossOrder; }, setBosses: a => { bossOrder = a; }, award, showStats, get rings() { return ringsMade; }, scoreParts, get boss() { return boss; }, keys, update, choose, recompute, start, dash, render, save, reroll, toMenu, music, shareText, get hollow() { return hollow; }, get embers() { return embers; }, finish, ART, hub: { get endK() { return endK(); }, get endT() { return endT; }, get sitting() { return hollow.sitting; }, openGate, openTree, openRoost, openRecords, openSettings, hubRefresh, payAmber, toHaven, toMenu, glimIntro, talkTo, endTalk, get dlg() { return dlg; }, get where() { return where; }, dlgAdvance, sendFeedback, get RT() { return RT; }, get TR() { return TR; } }, get lastDaily() { return lastDaily; } };
 })();
 </script>
 </body>
