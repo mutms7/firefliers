@@ -241,10 +241,11 @@
 
   #toast{position:fixed;bottom:110px;left:50%;transform:translateX(-50%);z-index:7;background:rgba(14,18,19,.96);border:1px solid #7c6630;border-left:3px solid var(--gold);border-radius:2px;
     padding:9px 16px;font-size:18px;color:var(--ink);pointer-events:none;transition:opacity .3s;max-width:calc(100% - 24px);text-align:center;box-shadow:0 10px 30px -10px #000}
-  #tutBox{--k:var(--gold);position:fixed;left:50%;top:112px;transform:translateX(-50%);z-index:4;width:min(560px,calc(100% - 32px));padding:12px 16px;text-align:center;pointer-events:none}
-  #tutStep{font-size:15px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:400}
-  #tutText{font-size:20px;line-height:1.4;margin:5px 0 9px;min-height:calc(3 * 1.4em)}#tutText b{color:var(--gold);font-weight:400}#tutText .u{visibility:hidden}
-  #tutRow{display:flex;gap:10px;justify-content:center;align-items:center}#tutGo{pointer-events:auto;display:none;align-items:center;gap:8px}#tutGo.on{display:inline-flex}#tutGo .keycap{min-width:0;height:24px;font-size:17px;padding:0 6px 3px}
+  /* the tutorial box stays small and see-through so the meadow and your bug are never hidden behind it */
+  #tutBox{position:fixed;left:50%;top:84px;transform:translateX(-50%);z-index:4;width:min(470px,calc(100% - 32px));padding:7px 14px 8px;text-align:center;pointer-events:none;background:rgba(8,11,12,.5);border:1px solid rgba(70,81,80,.45);border-radius:2px;text-shadow:0 2px 0 #000}
+  #tutStep{font-size:14px;opacity:.8;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:400}
+  #tutText{font-size:18px;line-height:1.3;margin:2px 0 6px;min-height:calc(3 * 1.3em)}#tutText b{color:var(--gold);font-weight:400}#tutText .u{visibility:hidden}
+  #tutRow{display:flex;gap:10px;justify-content:center;align-items:center}#tutGo{pointer-events:auto;display:none;align-items:center;gap:8px}#tutGo.on{display:inline-flex}#tutGo .keycap{min-width:0;height:22px;font-size:16px;padding:0 5px 3px}#tutRow .btn{font-size:16px;padding:4px 10px 6px}
   #tutSkip{pointer-events:auto}
   #topbtns{position:fixed;top:24px;right:10px;display:flex;gap:6px;z-index:4}
   #topbtns button{display:grid;place-items:center;width:36px;height:36px;border-radius:2px;background:rgba(13,17,18,.85);border:1px solid var(--line2);font-size:18px;color:var(--ink)}
@@ -281,7 +282,7 @@
   <p style="font-size:13px" id="statNote">Saved in this browser.</p>
   <div class="row" style="margin-top:6px"><button class="btn" id="statsBack">Back</button></div>
 </div></div>
-<div id="tutBox" class="panel hidden" role="status" aria-live="polite"><div id="tutStep"></div><div id="tutText"></div><div id="tutRow"><button class="btn small" id="tutGo" aria-label="Next step"><span class="keycap">Enter</span>Next</button><button class="btn ghost small" id="tutSkip">Skip tutorial</button></div></div>
+<div id="tutBox" class="hidden" role="status" aria-live="polite"><div id="tutStep"></div><div id="tutText"></div><div id="tutRow"><button class="btn small" id="tutGo" aria-label="Next step"><span class="keycap">Enter</span>Next</button><button class="btn ghost small" id="tutSkip">Skip tutorial</button></div></div>
 
 <div id="start" class="screen">
   <div class="flies" id="flies" aria-hidden="true"></div>
@@ -1689,7 +1690,7 @@ const TUT = [
 let tutTypeT = 0;
 function tutType(html) {
   const el = $('tutText'), letters = []; clearInterval(tutTypeT); el.innerHTML = html;
-  if (tut) tut.readAt = performance.now() + (reduceMotion ? 0 : el.textContent.length * 14) + Math.max(2200, el.textContent.length * 25);
+  if (tut) tut.readAt = performance.now() + (reduceMotion ? 0 : el.textContent.length * 14) + Math.max(4400, el.textContent.length * 50);
   const walk = n => { for (const c of [...n.childNodes]) { if (c.nodeType === 3) { const f = document.createDocumentFragment(); for (const q of c.textContent) { const sp = document.createElement('span'); sp.className = 'u'; sp.textContent = q; f.appendChild(sp); letters.push(sp); } c.replaceWith(f); } else walk(c); } };
   if (reduceMotion) return; walk(el);
   let i = 0; tutTypeT = setInterval(() => { for (let k = 0; k < 2 && i < letters.length; k++) letters[i++].className = ''; if (i >= letters.length) clearInterval(tutTypeT); }, 28);
@@ -3856,13 +3857,13 @@ function dlgFeedback() {
   $('dlg').classList.add('choosing'); const box = $('dlgOpts');
   box.innerHTML = '<form class="ask fb"><textarea id="fbIn" maxlength="1000" rows="3" placeholder="Anything you liked, hated or would change" aria-label="Your feedback" aria-describedby="fbNote"></textarea><p class="fb-note" id="fbNote">Sent with your name, your bug, how many runs you&#39;ve played and your best score, so the game&#39;s maker knows where you&#39;re coming from.</p><div class="fb-row"><button type="button" class="btn ghost small" data-x>Never mind</button><button class="btn small">Send it</button></div></form>';
   const f = box.querySelector('form'), inp = box.querySelector('textarea');
-  box.querySelector('[data-x]').onclick = () => { dlg.wait = false; dlgGo(["No harm done. If something comes to you later, you know where I'll be standing."]); };
+  box.querySelector('[data-x]').onclick = () => { dlg.wait = false; dlgGo(["No harm done. You know where to find me."]); };
   f.onsubmit = async e => {
     e.preventDefault(); if (!dlg || !dlg.wait) return; const msg = inp.value.trim(); if (msg.length < 3) { inp.focus(); return; }
     f.querySelector('button:not([data-x])').disabled = true;
     const ok = await sendFeedback(msg);
-    dlg.wait = false; dlgGo([ok ? "Got it, and it's already on its way to the person who makes the game. Thank you for taking the time, {name}, it genuinely helps more than you'd think."
-      : "The roots are a bit tangled right now, so I've tucked your note away somewhere safe and I'll send it along the next time you come by."]);
+    dlg.wait = false; dlgGo([ok ? "Sent. It's on its way to the one who makes the game. Thank you, {name}. It helps more than you'd think."
+      : "The roots are tangled tonight. I've tucked your note away, and I'll send it next time you visit."]);
   };
 }
 // feedback goes to a small server function that forwards it to the maker's Discord. If it can't get through, it waits in the save.
@@ -3882,21 +3883,25 @@ async function sendOutbox() {
 
 // ---- the residents ----
 const pickLine = (key, lines) => { save.talk = save.talk || {}; const i = (save.talk[key] || 0) % lines.length; save.talk[key] = i + 1; persist(); return lines[i]; };
+// Voices. Glim: an old moth, proud of what he built, dry, a little vain, always "renovating".
+// Shellby: a snail who talks like a market stall, brisk, a haggler, never misses gossip.
+// Wick: a young firefly who loves numbers far too much, all exclamation marks and tangents.
+// Pell: a sleepy frog, few words, long pauses, odd thoughts that land later.
 function glimIntro() {
   revealed.clear(); $('haven').classList.add('intro');
   talk('glim', [
-    { focus: 'glim', ask: 'name', say: "There you are, back from the dark in one piece. Before anything else, what should I call you? I'm hopeless with faces, but once I've written a name down I never lose it." },
-    "{name}. That's a good one, it sounds like something that would still be glowing when the sun comes up. I'm Glim, and I'm glad the night handed you back.",
-    "I made this place, you know. Every root, every lamp and most of the mushrooms were my doing, back when the dark still came right up to the edge of the pond, so welcome to the Haven, {name}.",
-    "Now, that orange stuff stuck to your wings is amber. The night leaves it behind whenever somebody outlasts it, and if you bring it to me I can grow it into something useful.",
-    { focus: 'tree', reveal: ['tree'], say: "This is the Root Tree. Spend amber on it and it grows branches that change how your nights go, and if something I grow isn't to your taste you can switch it off without hurting my feelings. Much." },
-    { focus: 'gate', reveal: ['gate', 'daily'], say: "The Lantern Gate is how you get back out there, and everything to do with playing lives around it. The usual night, the daily run that everyone shares and Nightmare, once you've earned it, all leave from the same spot." },
-    { focus: 'roost', reveal: ['roost'], say: "Those mushrooms are the Roost, where bugs who are willing to fly for you like to rest. Only the firefly trusts you right now, but grow the right branches and the others will come around." },
-    { focus: 'wick', reveal: ['records', 'wick'], say: "Over by the board is Wick, who keeps the records. He gets very excited about numbers, so if you ever want to know how you're doing he'll tell you, probably at some length." },
-    { focus: 'shellby', reveal: ['shellby'], say: "Shellby's down by the Market. It isn't open yet, and she'll swear it's opening any day now, but she hears everything that goes on out there in the dark, so she's worth a chat." },
-    { focus: 'pell', reveal: ['pell'], say: "And that's Pell by the pond. He doesn't say much, and what he does say rarely makes sense straight away, but I've noticed it usually does by morning." },
-    { focus: 'locked', say: "The paths that fade into the mist lead to places I haven't finished building. I'll get to them, I just work at about the speed you'd expect from a very old moth." },
-    { focus: 'glim', say: "That's the whole tour. If anything here bothers you, or you've got an idea that would make it better, come and tell me. I built the Haven, but I'm not the one who makes the game, and I pass every word along to the person who does." },
+    { focus: 'glim', ask: 'name', say: "Ah. You made it back. Before anything else, what do I call you? I forget faces, but never a name I've written down." },
+    "{name}. Good name. It sounds like it could last until morning. I'm Glim.",
+    "I built this place. The roots, the lamps, most of the mushrooms. Mine. Welcome to the Haven, {name}.",
+    "That orange stuff on your wings is amber. The night drops it when someone outlasts it. Bring it to me and I'll grow you something.",
+    { focus: 'tree', reveal: ['tree'], say: "The Root Tree. Feed it amber and it grows branches that change your nights. Don't like a branch? Switch it off. I won't be hurt. Much." },
+    { focus: 'gate', reveal: ['gate', 'daily'], say: "The Lantern Gate. Every way out starts here: a normal night, the Daily everyone shares, and Nightmare, once you've earned it." },
+    { focus: 'roost', reveal: ['roost'], say: "The Roost. Bugs who'll fly for you rest on those caps. Only the firefly trusts you so far. Grow the right branches and the rest will come." },
+    { focus: 'wick', reveal: ['records', 'wick'], say: "That's Wick, by the records board. Ask him how you're doing. Then get comfortable." },
+    { focus: 'shellby', reveal: ['shellby'], say: "Shellby runs the Market. Well. She will. It's been opening any day now for years. She hears everything, though." },
+    { focus: 'pell', reveal: ['pell'], say: "Pell, by the pond. Says very little. Somehow it makes sense by morning." },
+    { focus: 'locked', say: "Those misty paths go places I haven't finished. I'm renovating. I'm a very old moth, so it's slow going." },
+    { focus: 'glim', say: "That's the tour. If something bugs you, or you've got an idea, tell me. I didn't make the game, but I know who did, and I pass every word along." },
     () => { save.met = true; persist(); hubRefresh(); },
   ], () => { save.met = true; persist(); $('haven').classList.remove('intro'); });
 }
@@ -3908,76 +3913,76 @@ function talkTo(who) {
 function talkGlim() {
   const menu = say => ({ say, choices: [
     ['Grow the Root Tree', () => { endTalk(); openTree(); }],
-    ["I have feedback for the game's maker", () => dlgGo([{ feedback: true, say: "Go on, tell me what's on your mind. Good, bad or just plain strange, I'll pass it straight along to the person who makes this game, and they read every word." }])],
-    ["What's new around here?", () => dlgGo([pickLine('glim', GLIM_NEWS), menu("Anything else I can do for you?")])],
-    ['Call me something else', () => dlgGo([{ ask: 'name', say: "Changing your name? Fair enough, I've changed mine twice. What should I write down instead?" }, "{name} it is. I've crossed out the old one so neatly you'd never know it was there."])],
-    ['Just saying hi', () => dlgGo(["Hi yourself. Mind the lamps on your way out, I've just topped up their oil and they're still a little sulky about it."])],
+    ["I have feedback for the game's maker", () => dlgGo([{ feedback: true, say: "Go on. Good, bad or strange, I'll send it to the one who makes the game. They read all of it." }])],
+    ["What's new around here?", () => dlgGo([pickLine('glim', GLIM_NEWS), menu("Anything else?")])],
+    ['Call me something else', () => dlgGo([{ ask: 'name', say: "A new name? Fine. I've had three myself. What should I write?" }, "{name}. Done. I crossed out the old one very neatly."])],
+    ['Just saying hi', () => dlgGo(["Hello. Mind the lamps on the way out. I just refilled them and they're sulking."])],
   ] });
-  talk('glim', [menu(pickLine('glimHi', ["Back again, {name}? Good, the place feels emptier when nobody's walking around in it. What can I do for you?", "Ah, {name}. I was just admiring my own handiwork, which I'm told is a bad habit. What do you need?", "Welcome back. You look like someone who survived something, which around here is the highest compliment there is. What can I do for you?"]))]);
+  talk('glim', [menu(pickLine('glimHi', ["{name}. Good. The place is too quiet without someone walking around in it. What do you need?", "Ah, {name}. I was just admiring my own work. Bad habit. What can I do for you?", "You're back. Out here, that's the best compliment there is. What can I do for you?"]))]);
 }
 const GLIM_NEWS = [
-  "I've been meaning to fix the lamp by the bench for about a hundred nights now. I've decided it flickers on purpose, because it adds character, and because no one sells ladders around here.",
-  "Every time someone outlasts the night a little more amber washes up around the roots, and I like to think the whole Haven gets a bit brighter for it.",
-  "The Maw came sniffing around the pond once. Pell just stared at it until it got uncomfortable and wandered off, and I still think about that more than I should.",
-  "If the nights are starting to feel easy, the Gate has a Nightmare setting. I'll warn you now that my tree doesn't reach that far, so you'll be out there on your own.",
-  "Shellby has been opening that Market any day now for as long as I've known her. I've stopped asking, and honestly I think the asking was what she enjoyed.",
+  "The lamp by the bench has flickered for a hundred nights. I've decided it's on purpose. Adds character. Also, no one sells ladders around here.",
+  "Every time someone outlasts the night, more amber washes up by the roots. The whole Haven glows a little brighter. You're welcome.",
+  "The Maw came sniffing round the pond once. Pell just stared at it until it got embarrassed and left. I think about that a lot.",
+  "Nights feeling easy? The Gate has a Nightmare setting. My tree's boosts don't reach that far. Only the things it unlocked come with you.",
+  "Shellby's Market has been opening any day now for as long as I've known her. I stopped asking. I think she misses it.",
 ];
 function talkShellby() {
   const r = save.runs[0];
-  const lastRun = !r ? "You haven't been out there yet, so I've got nothing to gossip about. Fix that and come back, I'm counting on you."
-    : r.win ? "You saw the dawn last time out, and the whole Haven's been talking about it. Well, I've been talking about it, which is basically the same thing."
-    : r.T < 120 ? "That last one was over in " + fmt(r.T) + ". I've had customers take longer to pick a mushroom, but everybody has to start somewhere, and you started."
-    : fmt(r.T) + " out there and " + num(r.kills) + " squashed. That's respectable, and if I sold medals I'd give you one, but I don't, so you'll have to settle for this nod.";
+  const lastRun = !r ? "You haven't even been out yet. No run, no gossip. Go fix that."
+    : r.win ? "You saw the dawn last time! The whole Haven's talking. Well, I am. Same thing."
+    : r.T < 120 ? "Over in " + fmt(r.T) + "? I've had customers take longer to pick a mushroom. Still, you went. That counts."
+    : fmt(r.T) + " out there, " + num(r.kills) + " squashed. Respectable. I'd give you a medal, but medals cost extra.";
   const menu = say => ({ say, choices: [
-    ['Heard any gossip?', () => dlgGo([pickLine('shellby', SHELLBY_GOSSIP), menu("What else? Don't be shy, I've got all night and nowhere to be.")])],
-    ['How did my last run look?', () => dlgGo([lastRun, menu("Anything else on your mind?")])],
-    ['When does the Market open?', () => dlgGo([pickLine('market', ["Any day now. I've got the awning up and I've got the sign, and all I'm missing is stock, staff and a door that actually closes.", "Soon. I keep meaning to open at dawn, but every time dawn comes around I'm asleep, which is a real flaw in the plan.", "When it's ready, and not a moment before. Glim says that about his paths too, so at least we're consistent around here."]), menu("Anything else?")])],
-    ['Bye', () => dlgGo(["Off you go, then. Come back with some gossip of your own, I'm running a little low."])],
+    ['Heard any gossip?', () => dlgGo([pickLine('shellby', SHELLBY_GOSSIP), menu("What else? I've got all night.")])],
+    ['How did my last run look?', () => dlgGo([lastRun, menu("Anything else, sweetheart?")])],
+    ['When does the Market open?', () => dlgGo([pickLine('market', ["Any day now. I've got the awning and the sign. I'm only missing stock, staff, and a door that shuts.", "Soon. I keep meaning to open at dawn, but I'm always asleep by then. Small flaw in the plan.", "When it's ready. Glim says that about his paths too. At least we're consistent."]), menu("Anything else?")])],
+    ['Bye', () => dlgGo(["Off you go. Bring back some gossip. I'm running low."])],
   ] });
-  talk('shellby', [menu(pickLine('shellbyHi', ["Oh, it's you, {name}. Come closer, would you, I don't shout, it's bad for the shell.", "{name}! Perfect timing, I was just about to tell somebody something, and you're somebody.", "Back again? Good. The Market's not open, but the gossip counter never closes."]))]);
+  talk('shellby', [menu(pickLine('shellbyHi', ["Oh, {name}! Come closer. I don't shout, it's bad for the shell.", "{name}! Perfect timing. I had something to tell somebody, and you're somebody.", "Back again? Good. The Market's closed, but the gossip counter never is."]))]);
 }
 const SHELLBY_GOSSIP = [
-  "The Gloom has been sending out those shockwave rings again. Word is you can dash straight through them, and the ones who try to outrun them usually don't get very far.",
-  "A moth who flew a bit too close told me the Maw goes soft whenever it opens its mouth to breathe in. That's the moment to hit it hardest, assuming you aren't busy being swallowed.",
-  "Word around the pond is that the Eclipse's corona cracks if you catch it in a dash flare. Break it and the whole thing just hangs there, stunned, for a few lovely seconds.",
-  "The Weaver leaves webs everywhere and they'll slow you to a crawl. Dash, though, and you'll tear right out of them, or so I'm told by the bugs who made it back with all six legs.",
-  "The Shade walks wherever you've already been, so if you keep doubling back you're basically holding the door open for it.",
-  "The Hive hides behind its drones. Flare them away and its shield goes with them, which is more than I can say for my awning in a storm.",
-  "Here's one for free: the boss clock stops while a boss is up, and the faster you put it down, the more points you walk away with.",
+  "The Gloom's been throwing those shockwave rings again. Dash straight through them. The ones who try to outrun them? Don't ask.",
+  "A moth told me the Maw goes soft when it breathes in. That's when you hit it. Assuming you're not the thing it's breathing in.",
+  "Word at the pond: catch the Eclipse's corona in a dash flare and it cracks. Then the whole thing just hangs there. Stunned. Lovely.",
+  "The Weaver's webs slow you to a crawl. Dash and you'll rip right out. That's straight from bugs who came back with all six legs.",
+  "The Shade walks where you've already been. Keep doubling back and you're holding the door open for it.",
+  "The Hive hides behind its drones. Flare them off and the shield goes too. Better than my awning manages in a storm.",
+  "This one's free: the boss clock stops while a boss is up. Kill it fast, you walk off with more points. Don't get used to free.",
 ];
 function talkWick() {
   const st = save.stats, r = save.runs[0], newBest = r && best.score && r.score === best.score && save.wickSeen !== r.d;
   if (r) { save.wickSeen = r.d; persist(); }
-  const hi = newBest ? "You beat your best score! I knew it the second you walked over, you've got that new-record glow and it's honestly a little blinding."
-    : pickLine('wickHi', ["Oh! {name}! Hi! Did you know you've flown " + num(st.runs) + " runs so far? I counted. I count everything, it's sort of my whole thing.", "{name}! I just finished re-sorting the board by how much each run made me gasp. You're on it, by the way, more than once.", "Hi! Hold on, let me find your page, I keep everyone's numbers in order of how fun they are to read out loud."]);
+  const hi = newBest ? "NEW BEST SCORE! I could tell from across the Haven! You've got that new-record glow and it's honestly a bit blinding!"
+    : pickLine('wickHi', ["{name}! Hi! You've flown " + num(st.runs) + " runs so far! I counted. I count everything. It's kind of my whole thing.", "{name}! I just re-sorted the board by how much each run made me gasp! You're on it! Twice!", "Hi! Hang on, finding your page! I keep everyone in order of how fun their numbers are to read out loud."]);
   const todo = ACH.filter(a => !save.ach[a[0]]), goal = todo.length ? todo[(save.stats.runs + todo.length) % todo.length] : null;
   const menu = say => ({ say, choices: [
-    ['How am I doing?', () => dlgGo(["Your best score is " + num(best.score || 0) + " and your longest night lasted " + fmt(best.time) + ". I've got both of those written down twice, just in case one of them wanders off.",
-      best.won ? "And you've seen the dawn, which I underlined three times and then drew a little sun next to, because it felt like it deserved one." : "You haven't seen the dawn yet, but you will, and I've already saved you a spot on the board for when it happens.", menu("Want to hear anything else?")])],
-    ['What should I go for next?', () => dlgGo([goal ? "Nobody's written up '" + goal[1] + "' for you yet, and that's the one for when you " + goal[2].charAt(0).toLowerCase() + goal[2].slice(1) + ". I'd really love to add that to the board, if you're taking requests." : "You've got every badge I know about. I'm going to have to invent brand new ones, which honestly sounds like the best day of my life.", menu("Anything else?")])],
+    ['How am I doing?', () => dlgGo(["Best score: " + num(best.score || 0) + "! Longest night: " + fmt(best.time) + "! I wrote both down twice. In case one wanders off.",
+      best.won ? "Oh, and you've seen the dawn! I underlined it three times and drew a little sun next to it. It deserved a sun." : "No dawn yet. But you'll get there! I already saved you a spot on the board!", menu("What else? I have SO many numbers.")])],
+    ['What should I go for next?', () => dlgGo([goal ? "Ooh, okay! You don't have '" + goal[1] + "' yet. That's for when you " + goal[2].charAt(0).toLowerCase() + goal[2].slice(1) + ". I'd love to add it to the board! No pressure! Some pressure." : "You have every badge I know about. Every single one. I'm going to have to invent new ones. Best day of my life!", menu("Anything else?")])],
     ['Show me the full records', () => { endTalk(); showStats(); }],
-    ['Bye', () => dlgGo(["Bye! I'll keep counting while you're gone, I promise I won't lose any of it!"])],
+    ['Bye', () => dlgGo(["Bye! I'll keep counting while you're gone! I won't lose a single one!"])],
   ] });
   talk('wick', [menu(hi)]);
 }
 function talkPell() {
-  const bug = { glow: "A firefly. Steady. You don't see many things that are steady these days, and I think that's a shame, so thank you for being one of them.",
-    moth: "A moth. Bold choice. They never sit still for long, which is the exact opposite of me, so I admire it from right here.",
-    beetle: "A beetle. Slow and tough, like a good log. I mean that as the highest compliment I know, and I know about four." }[save.char];
+  const bug = { glow: "A firefly. Steady. Not many steady things left. Thank you for being one.",
+    moth: "A moth. Never sits still. The opposite of me. I admire it. From here.",
+    beetle: "A beetle. Slow and tough. Like a good log. That's the nicest thing I know how to say." }[save.char];
   const menu = say => ({ say, choices: [
-    ['Sit with Pell for a while', () => dlgGo([pickLine('pell', PELL_THOUGHTS), "Sit down, if you like. The fireflies come out to play once everything goes quiet, and they don't mind company as long as it holds still.", () => { endTalk(); hollow.sit(); }])],
+    ['Sit with Pell for a while', () => dlgGo([pickLine('pell', PELL_THOUGHTS), "Sit, if you like. The fireflies come out when it's quiet. They don't mind company. If it holds still.", () => { endTalk(); hollow.sit(); }])],
     ['What do you make of my bug?', () => dlgGo([bug, menu("...")])],
-    ['Bye', () => dlgGo(["Mm. Go on, then. The pond will still be here, and so will I, probably in this exact spot."])],
+    ['Bye', () => dlgGo(["Mm. Go on. The pond will be here. So will I. Probably right here."])],
   ] });
-  talk('pell', [menu(pickLine('pellHi', ["Oh. Hello, {name}. Mind the line, I've almost got one.", "...Mm? Oh, it's you. Sit down if you like, the stars are biting tonight.", "Shh. No, it's fine, you didn't scare anything off. They always come back."]))]);
+  talk('pell', [menu(pickLine('pellHi', ["Oh. Hello, {name}. Mind the line. I've almost got one.", "...Mm? Oh. It's you. The stars are biting tonight.", "Shh. No. It's fine. You didn't scare anything. They always come back."]))]);
 }
 const PELL_THOUGHTS = [
-  "The stars in the pond are easier to catch than the ones up there. They're the same stars, mind you, they've just come a bit closer to the ground.",
-  "Every night ends eventually. Most of them don't even need any help, but it's nice to be around when they do.",
-  "I caught a star once. It was very bright and very wet, and I let it go again, because it looked like it had somewhere to be.",
-  "Glim says I don't say much. I say plenty, I just leave long gaps so the words have room to sit down.",
-  "The fireflies you carry aren't following you, you know. They're keeping you company, which is a different thing entirely.",
-  "Shellby asked me once what I'd sell if I had a shop. I said quiet, and she laughed, but I still think there'd be a market for it.",
+  "Stars in the pond are easier to catch than the ones up there. Same stars. They just came closer.",
+  "Every night ends. Most don't need help. Still nice to be there when it happens.",
+  "I caught a star once. Bright. Very wet. I let it go. It looked like it had somewhere to be.",
+  "Glim says I don't say much. I say plenty. I just leave gaps. So the words can sit down.",
+  "Your fireflies aren't following you. They're keeping you company. Different thing.",
+  "Shellby asked what I'd sell, if I had a shop. I said quiet. She laughed. I still think it'd sell.",
 ];
 
 // ---- settings: Music, Sounds and Screen shake. The game already follows the device's reduce-motion setting. ----
