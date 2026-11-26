@@ -544,10 +544,10 @@ function music() {
 const WEAPONS = {
   bolt:  { name: 'Spark Shot', icon: '➤', col: '#ffe066', max: 6, desc: l => ['', 'Fires sparks at the nearest enemy', 'More damage, faster fire', 'Fires 2 sparks', 'Sparks pierce through an enemy', 'Fires 3 sparks', 'Fires 4 sparks that pierce twice'][l] },
   orbit: { name: 'Moon Guard', icon: '◉', col: '#7ad7ff', max: 6, desc: l => l === 1 ? '2 moon scythes sweep around you and cut whatever they pass' : (l % 2 ? '+1 scythe, ' : '') + 'more damage, longer blades' },
-  nova:  { name: 'Pulse', icon: '✺', col: '#ff7ad9', max: 6, desc: l => l === 1 ? 'A shockwave bursts out of you and shoves enemies back' : 'Bigger, stronger, more often' },
+  nova:  { name: 'Pulse', icon: '✺', col: '#ff7ad9', max: 6, desc: l => l === 1 ? 'A shockwave bursts out of you and shoves enemies back' : 'Bigger blasts, more often' },
   zap:   { name: 'Chain Zap', icon: '⚡', col: '#b69cff', max: 6, desc: l => l === 1 ? 'Lightning jumps between 3 enemies' : '+1 jump, more damage' },
   fly:   { name: 'Fireflies', icon: '✦', col: '#9dff8a', max: 6, desc: l => l === 1 ? 'Two homing fireflies hunt enemies down for you' : l === 2 ? 'Fireflies now explode on impact' : 'More fireflies, more damage' },
-  frost: { name: 'Chill Aura', icon: '❄', col: '#9ff0ff', max: 6, desc: l => l === 1 ? 'Enemies near you slow down and take damage' : 'Wider, colder, more damage' },
+  frost: { name: 'Chill Aura', icon: '❄', col: '#9ff0ff', max: 6, desc: l => l === 1 ? 'Enemies near you slow down and take damage' : 'Wider aura, more damage' },
 };
 Object.assign(WEAPONS, {
   thorn: { name: 'Boomerang Thorn', icon: '✢', col: '#ffb36b', max: 6, desc: l => l === 1 ? 'A spinning thorn flies out and comes back, cutting through everything both ways' : l === 4 ? 'Throws 2 thorns' : 'Bigger thorn, more damage' },
@@ -1665,11 +1665,11 @@ function tutLevel(offer) { tut.lvl = true; tut.offer = offer || null; P.xp = 0; 
 const TUT = [
   { text: () => isTouch() ? 'Drag anywhere on the screen to fly around.' : 'Fly around with <b>WASD</b> or the arrow keys. Clicking and dragging works too.',
     done: t => t.moved > 240, after: 10, then: () => 'Good. The meadow goes on forever, so fly wherever you like.' },
-  { text: () => 'You attack on your own, so all you have to do is steer. Squash 3 of these and fly over the <b>blue sparks</b> they drop.',
+  { text: () => 'You attack on your own. You just steer. Squash 3 of these and fly over the <b>blue sparks</b> they drop.',
     enter: () => tutSpawn(4, 'wisp', 40), keep: ['wisp', 40, 4], done: t => kills - t.k0 >= 3 && P.level * 1e4 + P.xp > t.x0,
     after: 10, then: () => 'Sparks fill the bar at the top of the screen. Keep squashing for a few seconds.' },
   { text: () => (isTouch() ? 'Tap <b>DASH</b> to dash.' : 'Press <b>Space</b> to dash.') + ' Nothing can hurt you mid-dash, and you damage whatever you fly through.',
-    keep: ['wisp', 55, 5], done: t => t.dashed, after: 10, then: () => 'Try dashing straight through a few of them. It\'s also how you slip out of a tight spot.' },
+    keep: ['wisp', 55, 5], done: t => t.dashed, after: 10, then: () => 'Dash straight through a few of them. It\'s also how you get out of a tight spot.' },
   { text: () => 'A stray firefly is lost in the dark. Follow the <b>gold arrow</b> and touch it to rescue it.',
     enter: () => { const a = rand(0, TAU); strays.push({ x: P.x + Math.cos(a) * 460, y: P.y + Math.sin(a) * 460, ph: 0 }); }, done: t => flight.length > t.f0,
     after: 10, then: () => 'Every firefly you save joins your trail, and each one is worth points at the end of the night.' },
@@ -1766,10 +1766,10 @@ function finish(win) {
   $('unlockLine').textContent = firstWin ? 'Unlocked: Nightmare mode, at the Lantern Gate' : '';
   { const a = payAmber(); $('amberLine').innerHTML = a ? iconImg(ART.AMBER_PILE, 3) + '+' + num(a) + ' amber' : ''; }
   $('overTitle').textContent = win ? 'Dawn breaks. You made it!' : 'The night got you';
-  $('overSub').textContent = win ? 'The last boss is down and the meadow is yours. You can keep going into the endless night if you want to see how far this build goes.'
+  $('overSub').textContent = win ? 'The last boss is down. Keep going into the endless night to see how far this build can carry you.'
     : RT < 120 ? 'Tip: dashing makes you untouchable for a moment, and it hurts whatever you fly through.'
     : RT < 270 ? 'Tip: a few weapons leveled high will carry you further than a little bit of everything.'
-    : RT < 360 ? 'So close. Dawn comes once the third boss falls, right after the 6 minute mark.' : 'That was a serious run.';
+    : RT < 360 ? 'So close. Dawn comes once the third boss falls, right after the 6 minute mark.' : 'Dawn was right there. The last boss got you first.';
   $('stTime').textContent = fmt(RT); $('stKills').textContent = kills; $('stLevel').textContent = P.level; $('stFlight').textContent = flight.length;
   { const sp = scoreParts(win); $('stScore').textContent = num(sp.total);
     $('scoreLine').textContent = 'time ' + num(sp.t) + ' · squashed ' + num(sp.k) + ' · bosses ' + num(sp.b) + ' · fireflies ' + num(sp.f) + (sp.w ? ' · dawn ' + num(sp.w) : '') + (sp.e ? ' · endless ' + num(sp.e) : '') + (nm ? ' · ×1.5 Nightmare' : ''); }
