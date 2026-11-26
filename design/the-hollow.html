@@ -934,6 +934,14 @@ function mistPatch(w, h) {
   });
 }
 
+function frogRows(f) {
+  const g = pg(16, 11);
+  ell(g, 7, 7.4, 6, 3.4, 'F'); ell(g, 10.5, 4.4, 4, 3, 'F'); ell(g, 9, 2.2, 1.6, 1.6, 'F'); ell(g, 12.4, 2.2, 1.6, 1.6, 'F');
+  put(g, 9, 2, 'e'); put(g, 12, 2, 'e'); line(g, 10, 6, 14, 5, 'm'); ell(g, 8.5, 8.6, 3.4, 1.4, 'b');
+  if (f) { line(g, 0, 9, 3, 8, 'F'); line(g, 0, 10, 2, 9, 'F'); } else ell(g, 3.5, 9.4, 3, 1.4, 'F');
+  return g;
+}
+const HOPPER = [0, 1].map(f => bake({ F: ['#1a3a12', '#2e6a1e', '#4e9a2e', '#7cc84a', '#c4f08a'], e: '#1a1208', m: '#1a3a12', b: '#e8e0a8' }, frogRows(f)));
 const FLIPPED = {}; for (const k in BUGS) FLIPPED[k] = BUGS[k].map(flipX);
 const SILHOUETTE = {}; for (const k in BUGS) SILHOUETTE[k] = BUGS[k].map(f => px(f.width, f.height, c => { c.drawImage(f, 0, 0); c.globalCompositeOperation = 'source-in'; c.fillStyle = '#0e1414'; c.fillRect(0, 0, 99, 99); }));
 // opt.keys: where to listen for keys (default: the root). opt.lit(p): is a station open yet. opt.bugOpen(bug): is that bug unlocked.
@@ -948,6 +956,7 @@ function mountHaven(root, ui, opt = {}) {
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const me = { x: world.spawn[0], y: world.spawn[1], face: 1, moving: false, trail: [], bug: 'firefly', dash: 0, dvx: 0, dvy: 0, cd: 0, ghosts: [], sitting: 0 };
   let flies = []; // fireflies playing over the pond while you sit with Pell
+  let frog = null, frogDone = false; // after half a minute of sitting, a frog hops in, snaps one up and hops off
   const keys = {}; let joy = null, near = null, paused = false, t0 = performance.now(), iris = 1, irisAt = 0, focus = null, cam = null;
   root.tabIndex = 0; const kt = opt.keys || root; let on = true, raf = 0;
   const dash = () => {
@@ -988,6 +997,17 @@ function mountHaven(root, ui, opt = {}) {
     const m = Math.hypot(ix, iy);
     if (me.sitting && !paused && (m > 0 || me.dash > 0)) { me.sitting = 0; focus = null; for (const f of flies) { const a = Math.atan2(f.y - world.pondPlay[1], f.x - world.pondPlay[0]) - .6; f.vx = Math.cos(a) * (110 + Math.random() * 90); f.vy = Math.sin(a) * 90 - 70; f.gone = 1.4; } if (ui.rest) ui.rest(false); }
     if (me.sitting) me.sitting += dt;
+    if (me.sitting > 30 && !frog && !frogDone && flies.some(f => !f.gone)) { const sx = world.pondPlay[0] + 150; frog = { x: sx, y: world.seat[1] - 4, tx: world.pondPlay[0] + 26, ph: 'in', t: 0, face: -1, hop: 0 }; }
+    if (frog) {
+      frog.t += dt;
+      const hopTo = (x, sp) => { const d = x - frog.x; frog.face = d < 0 ? -1 : 1; frog.hop = (frog.hop + dt * 2.2) % 1; frog.x += Math.sign(d) * Math.min(Math.abs(d), sp * dt * (frog.hop < .55 ? 1 : 0)); return Math.abs(d) < 2; };
+      if (!me.sitting && frog.ph !== 'out') { frog.ph = 'out'; frog.ex = frog.x + 200; }
+      if (frog.ph === 'in' && hopTo(frog.tx, 46)) { frog.ph = 'eye'; frog.t = 0; frog.hop = 0; }
+      else if (frog.ph === 'eye' && frog.t > .8) { const live = flies.filter(f => !f.gone); frog.prey = live.reduce((a, f) => (!a || Math.hypot(f.x - frog.x, f.y - frog.y) < Math.hypot(a.x - frog.x, a.y - frog.y) ? f : a), null); frog.ph = 'tongue'; frog.t = 0; }
+      else if (frog.ph === 'tongue') { if (frog.t > .18 && frog.prey && !frog.prey.eaten) { frog.prey.eaten = true; flies = flies.filter(f => f !== frog.prey); frogDone = true; if (ui.frogAte) ui.frogAte(); } if (frog.t > .36) { frog.ph = 'chew'; frog.t = 0; } }
+      else if (frog.ph === 'chew' && frog.t > 1) { frog.ph = 'out'; frog.ex = frog.x + 220; }
+      else if (frog.ph === 'out' && hopTo(frog.ex, 70)) frog = null;
+    }
     me.moving = (m > 0 || me.dash > 0) && !paused && !me.sitting; me.cd -= dt;
     const step = (vx, vy) => { const nx = me.x + vx, ny = me.y + vy; if (!world.blocked(nx, me.y)) me.x = nx; if (!world.blocked(me.x, ny)) me.y = ny; };
     if (me.dash > 0 && !paused) { me.dash -= dt; for (let k = 0; k < 3; k++) step(me.dvx * 300 * dt / 3, me.dvy * 300 * dt / 3); if (me.dvx) me.face = me.dvx > 0 ? 1 : -1; me.ghosts.push({ x: me.x, y: me.y, f: me.face, t: .22 }); me.trail.unshift([me.x, me.y]); }
@@ -1043,6 +1063,11 @@ function mountHaven(root, ui, opt = {}) {
       for (const f of flies) { const al = f.gone ? Math.max(0, f.gone / 1.4) : Math.min(1, me.sitting / 1.5); if (al <= 0) continue; bc.globalAlpha = al; bc.drawImage(FIREFLY[Math.floor(T * 8 + f.o) % 2], Math.round(f.x - 2 - cx), Math.round(f.y - 2 - cy)); }
       bc.globalAlpha = 1; flies = flies.filter(f => !f.gone || f.gone > 0);
     }
+    if (frog) {
+      const img = HOPPER[frog.hop > 0 && frog.hop < .55 ? 1 : 0], fx = Math.round(frog.x - cx), fy = Math.round(frog.y - cy - (frog.hop > 0 && frog.hop < .55 ? Math.sin(frog.hop / .55 * Math.PI) * 7 : 0));
+      bc.save(); bc.translate(fx, fy); if (frog.face < 0) bc.scale(-1, 1); bc.drawImage(img, -img.width / 2, -img.height); bc.restore();
+      if (frog.ph === 'tongue' && frog.prey) { const k = frog.t < .18 ? frog.t / .18 : Math.max(0, 1 - (frog.t - .18) / .18), mx = fx + frog.face * 5, my = fy - 6, px2 = frog.prey.x - cx, py2 = frog.prey.y - cy; bc.strokeStyle = '#e8708a'; bc.lineWidth = 1; bc.beginPath(); bc.moveTo(mx, my); bc.lineTo(mx + (px2 - mx) * k, my + (py2 - my) * k); bc.stroke(); }
+    }
     // the unbuilt places sit in slow, soft mist
     for (const mi of mists) {
       if (mi.x - cx > VW || mi.x + mi.w - cx < 0 || mi.y - cy > VH || mi.y + mi.h - cy < 0) continue;
@@ -1084,7 +1109,7 @@ function mountHaven(root, ui, opt = {}) {
     enter: at => { iris = 0; irisAt = performance.now(); focus = null; cam = null; me.ghosts = []; me.trail = []; me.sitting = 0; flies = []; if (ui.rest) ui.rest(false); const p = at && stationAt(at); if (p) { me.x = p.x + p.w / 2 - 14; me.y = p.foot + 16; } else { me.x = world.spawn[0]; me.y = world.spawn[1]; } },
     focusOn: s => { if (!s) { focus = null; return; } const p = stationAt(s); focus = p ? [p.x + p.w / 2, p.y + p.h / 2] : null; },
     // sit beside Pell: the UI fades out, the camera settles on the pond, and fireflies come out to play until you move
-    sit: () => { me.x = world.seat[0]; me.y = world.seat[1]; me.face = 1; me.sitting = .001; me.trail = []; focus = [world.pondPlay[0] - 20, world.pondPlay[1] + 30]; flies = Array.from({ length: 7 }, (_, i) => ({ p: (i >> 1) * 2.1, o: i * 1.3, s: 1.6 + (i % 3) * .5, r: 6 + (i % 2) * 6 + (i % 3) * 2, x: world.pondPlay[0], y: world.pondPlay[1], gone: 0 })); if (ui.rest) ui.rest(true); },
+    sit: () => { frog = null; frogDone = false; me.x = world.seat[0]; me.y = world.seat[1]; me.face = 1; me.sitting = .001; me.trail = []; focus = [world.pondPlay[0] - 20, world.pondPlay[1] + 30]; flies = Array.from({ length: 7 }, (_, i) => ({ p: (i >> 1) * 2.1, o: i * 1.3, s: 1.6 + (i % 3) * .5, r: 6 + (i % 2) * 6 + (i % 3) * 2, x: world.pondPlay[0], y: world.pondPlay[1], gone: 0 })); if (ui.rest) ui.rest(true); },
     get sitting() { return !!me.sitting; },
     step: ms => { const r = raf; frameInner(performance.now() + (ms || 0)); cancelAnimationFrame(raf); raf = r; }, get flyCount() { return flies.length; }, get focus() { return focus; }, // for automated checks
     goto: (tx, ty) => { me.x = tx * 16; me.y = ty * 16; }, setBug: b => { me.bug = b; },
