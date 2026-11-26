@@ -2833,16 +2833,6 @@ function drawForeground() {
     ctx.drawImage(fgSprites[(hash2(i, j, 6) * fgSprites.length) | 0], -200, -200); ctx.restore();
   }
 }
-let grainPat = null;
-function drawGrain() {
-  if (!grainPat) {
-    const g = document.createElement('canvas'); g.width = g.height = 128; const c = g.getContext('2d'), im = c.createImageData(128, 128);
-    for (let i = 0; i < im.data.length; i += 4) { const v = Math.random() < .5 ? 0 : 255; im.data[i] = im.data[i + 1] = im.data[i + 2] = v; im.data[i + 3] = Math.random() * 26; }
-    c.putImageData(im, 0, 0); grainPat = ctx.createPattern(g, 'repeat');
-  }
-  ctx.save(); if (!reduceMotion) ctx.translate((Math.random() * 128) | 0, (Math.random() * 128) | 0);
-  ctx.fillStyle = grainPat; ctx.fillRect(-128, -128, VW + 256, VH + 256); ctx.restore();
-}
 // everything between the world and the HUD: plants, a cool haze from above, rain
 function atmos() {
   drawForeground();
@@ -3145,7 +3135,7 @@ function render() {
   // meadow floor
   if (!groundTile) makeGround();
   ctx.imageSmoothingEnabled = false; for (let x = Math.floor(L / 1024) * 1024; x < R; x += 1024) for (let y = Math.floor(U / 1024) * 1024; y < D; y += 1024) ctx.drawImage(groundTile, x, y, 1025, 1025); // two world units per tile pixel, close to the creatures' pixel size
-  if (!P) { ctx.setTransform(DPR, 0, 0, DPR, 0, 0); atmos(); ctx.fillStyle = vignette; ctx.fillRect(0, 0, VW, VH); drawGrain(); return; }
+  if (!P) { ctx.setTransform(DPR, 0, 0, DPR, 0, 0); atmos(); ctx.fillStyle = vignette; ctx.fillRect(0, 0, VW, VH); return; }
   const alive = state !== 'dying' && state !== 'over';
 
   ctx.globalCompositeOperation = 'lighter';
@@ -3303,7 +3293,6 @@ function render() {
   if (flashT > 0) { ctx.fillStyle = 'rgba(255,40,80,' + flashT * .9 + ')'; ctx.fillRect(0, 0, VW, VH); }
   if (whiteT > 0) { ctx.fillStyle = 'rgba(255,255,255,' + whiteT * 1.6 + ')'; ctx.fillRect(0, 0, VW, VH); }
   if (alive && P.hp / P.maxhp < .3) { ctx.strokeStyle = 'rgba(255,40,80,' + (.25 + Math.sin(T * 8) * .15) + ')'; ctx.lineWidth = 14; ctx.strokeRect(0, 0, VW, VH); }
-  drawGrain();
   if (state === 'menu') return;
 
   // arrows pointing at strays that are off screen
