@@ -600,7 +600,7 @@ const BOSSES = [
   { name: 'The Shade', col: '#8a8cff', tip: 'It walks the trail you leave. Never double back', r: 34, sp: 0, dmg: 22, dark: .25 },
   { name: 'The Hive', col: '#ffc93b', tip: 'Flare its drones away to strip its shield', r: 52, sp: 54, dmg: 22, dark: 0 },
 ];
-const BOSS_HP = [1150, 2400, 8600];
+const BOSS_HP = [950, 2000, 7200];
 const WIN_TIER = 2;
 
 /* ---------- state ---------- */
@@ -745,7 +745,7 @@ function mkArc(x0, y0, x1, y1) {
 }
 
 /* ---------- enemies ---------- */
-const hpMult = () => (1 + Math.pow(RT / 60, 1.5) * 1.12) * (nm ? 1.5 : 1);
+const hpMult = () => (1 + Math.pow(RT / 60, 1.5) * 0.74) * (nm ? 1.5 : 1);
 function spawn(type, x, y, opt) {
   const d = ET[type];
   if (x === undefined) { const a = rand(0, TAU), R = viewR() + 50; x = P.x + Math.cos(a) * R; y = P.y + Math.sin(a) * R; }
@@ -774,7 +774,7 @@ function spawnBoss() {
   const e = spawn('boss', P.x + Math.cos(a) * R, P.y + Math.sin(a) * R);
   e.boss = true; e.tier = tier; e.kind = kind; e.col = B.col;
   e.name = B.name + (tier >= BOSSES.length ? ' ' + 'I'.repeat(Math.floor(tier / BOSSES.length) + 1) : '');
-  e.hp = e.maxhp = (tier <= 2 ? BOSS_HP[tier] : 8600 * Math.pow(1.7, tier - 2)) * (nm ? 1.3 : 1);
+  e.hp = e.maxhp = (tier <= 2 ? BOSS_HP[tier] : 7200 * Math.pow(1.7, tier - 2)) * (nm ? 1.3 : 1);
   e.r = B.r; e.speed = B.sp * (1 + late * .1); e.dmg = B.dmg * [.85, 1, 1.15][Math.min(tier, 2)];
   e.mode = 'walk'; e.t = 2.5; e.phase = 0; e.ct = 0; e.split = 0; e.echo = 0; e.belly = 0; e.eat = 0; e.vol = 0;
   e.beam = 0; e.bt = 2.5; e.ba = rand(0, TAU); e.bdir = 1; e.stun = 0; e.born = T;
@@ -850,7 +850,7 @@ function pickType() {
   return 'wisp';
 }
 function director(dt) {
-  let rate = 1.0 + RT * 0.033 + (RT > 180 ? (RT - 180) * 0.03 : 0); if (boss) rate *= 0.55; if (nm) rate *= 1.3;
+  let rate = 1.0 + RT * 0.03 + (RT > 180 ? (RT - 180) * 0.026 : 0); if (boss) rate *= 0.55; if (nm) rate *= 1.3;
   spawnAcc += dt * rate;
   if (enemies.length >= 330) spawnAcc = 0;
   while (spawnAcc >= 1) { spawnAcc--; spawn(pickType(), undefined, undefined, { elite: RT > 50 && (daily ? drand(3, spawnN) : Math.random()) < .03 }); spawnN++; }
