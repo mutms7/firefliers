@@ -751,7 +751,7 @@ function spawn(type, x, y, opt) {
     flash: 0, orbT: 0, slowT: 0, slowF: 1, kx: 0, ky: 0, t: rand(1, 3), ph: rand(0, TAU), dead: false };
   if (opt && opt.elite) { e.elite = true; e.hp *= 5; e.r *= 1.35; e.xp = e.xp * 4 + 6; e.dmg *= 1.2; }
   if (endless) { const k = endK(); e.hp *= k; e.speed *= k; }
-  e.maxhp = e.hp; enemies.push(e); if (FOE_TIP[type]) firstMeet(type); return e;
+  e.maxhp = e.hp; enemies.push(e); return e;
 }
 const pwOf = e => [.8, 1, 1.2][Math.min(e.tier, 2)] * (1 + Math.max(0, e.tier - 2) * .25);
 function hiveDrone(h, slot) {
@@ -840,24 +840,18 @@ function gloomShock(e, pw) {
 }
 function shock(e, pw) { shocks.push({ x: e.x, y: e.y, r: e.r, max: 440, v: 250, dmg: 12 * pw, hit: false }); sfx('nova'); shake(6); }
 function pickType() {
-  const w = [['wisp', 10], ['dart', RT > 25 ? 4 : 0], ['brute', RT > 75 ? 2 + RT / 150 : 0], ['spit', RT > 130 ? 2.2 : 0], ['split', RT > 185 ? 2.6 : 0], ['boom', RT > 100 ? 1.6 : 0], ['ghost', RT > 250 ? 1.8 : 0], ['burrow', RT > 100 ? 1.4 : 0], ['shield', RT > 170 ? .35 : 0], ['drag', RT > 220 ? 1.5 : 0]];
+  // the newer creatures ramp in over two minutes each, taking part of an older one's share: Burrowers from the ticks, Shieldbacks from the toads, Dragonflies from the gnats
+  const ramp = (from, max) => RT > from ? Math.min(max, (RT - from) / 120 * max) : 0, bur = ramp(100, 2.4), shd = ramp(170, 1.8), drg = ramp(220, 2.2);
+  const w = [['wisp', 10 - bur], ['dart', RT > 25 ? 4 - drg * .8 : 0], ['brute', RT > 75 ? 2 + RT / 150 - shd * .6 : 0], ['spit', RT > 130 ? 2.2 : 0], ['split', RT > 185 ? 2.6 : 0], ['boom', RT > 100 ? 1.6 : 0], ['ghost', RT > 250 ? 1.8 : 0], ['burrow', bur], ['shield', shd], ['drag', drg]];
   let tot = 0; for (const x of w) tot += x[1];
   let r = (daily ? drand(2, spawnN) : Math.random()) * tot; for (const x of w) { if ((r -= x[1]) < 0) return x[0]; }
   return 'wisp';
 }
-// shieldbacks come as a marching line of four (five later on), side by side, all facing you
-function shieldLine() {
-  const a = rand(0, TAU), R = viewR() + 60, cx = P.x + Math.cos(a) * R, cy = P.y + Math.sin(a) * R, n = RT > 300 ? 5 : 4;
-  for (let i = 0; i < n; i++) { const o = (i - (n - 1) / 2) * 34, e = spawn('shield', cx - Math.sin(a) * o, cy + Math.cos(a) * o); e.hd = a + Math.PI; }
-}
-// the first time you meet a new creature, the banner tells you what it does and how to beat it
-const FOE_TIP = { burrow: ['Burrower', 'Keep moving when the ground cracks'], shield: ['Shieldbacks', 'Their plates face front. Go round, or use zaps, spores and flares'], drag: ['Dragonfly', 'It draws a line before it strikes. Step off it'] };
-function firstMeet(t) { if (!FOE_TIP[t] || tut) return; save.seenFoe = save.seenFoe || {}; if (save.seenFoe[t]) return; save.seenFoe[t] = 1; persist(); if (!boss) say(FOE_TIP[t][0], FOE_TIP[t][1], 3.4); }
 function director(dt) {
   let rate = 1.0 + RT * 0.03 + (RT > 180 ? (RT - 180) * 0.026 : 0); if (boss) rate *= 0.55; if (nm) rate *= 1.3;
   spawnAcc += dt * rate;
   if (enemies.length >= 330) spawnAcc = 0;
-  while (spawnAcc >= 1) { spawnAcc--; const t = pickType(), el = RT > 50 && (daily ? drand(3, spawnN) : Math.random()) < .03; if (t === 'shield') shieldLine(); else spawn(t, undefined, undefined, { elite: el }); spawnN++; }
+  while (spawnAcc >= 1) { spawnAcc--; spawn(pickType(), undefined, undefined, { elite: RT > 50 && (daily ? drand(3, spawnN) : Math.random()) < .03 }); spawnN++; }
   if (RT >= nextEvent) {
     const n = Math.floor(nextEvent / 45); nextEvent += 45;
     if (n % 2) { // ring of darts
@@ -1014,7 +1008,7 @@ function bossAI(e, dt, dx, dy, d) {
   return [dx * e.speed, dy * e.speed];
 }
 function hit(e, base, kx, ky, quiet) {
-  if (e.dead || e.under) return;
+  if (e.dead || e.under) return 0;
   let d = base * S.dmg; const crit = !quiet && Math.random() < S.crit; if (crit) d *= 2;
   if (e.boss && e.mode === 'inhale') d *= 1.5;
   if (e.type === 'shield' && kx !== undefined && (kx || ky)) { const kl = Math.hypot(kx, ky); if ((kx * Math.cos(e.hd) + ky * Math.sin(e.hd)) / kl < -.35) { d *= .3; kx *= .15; ky *= .15; if (!quiet && Math.random() < .3) burst(e.x + Math.cos(e.hd) * e.r, e.y + Math.sin(e.hd) * e.r, '#e4eef2', 3, 120); } }
@@ -1027,6 +1021,12 @@ function hit(e, base, kx, ky, quiet) {
     sfx('hit');
   }
   if (e.hp <= 0) kill(e);
+  return d;
+}
+// small, steady damage (auras, clouds) shows as one number every couple of ticks instead of a flood of tiny ones
+function tickNum(e, d, key, col) {
+  if (!d) return; e[key] = (e[key] || 0) + d; e[key + 'n'] = (e[key + 'n'] || 0) + 1;
+  if (e[key + 'n'] >= 2) { if (texts.length < 80) texts.push({ x: e.x + rand(-6, 6), y: e.y - e.r - 2, t: Math.round(e[key]), life: .5, max: .5, col }); e[key] = 0; e[key + 'n'] = 0; }
 }
 function dropGem(x, y, v) {
   if (gems.length > 320) { gems[(Math.random() * gems.length) | 0].v += v; return; }
@@ -1034,8 +1034,10 @@ function dropGem(x, y, v) {
 }
 // pickup kinds: icon, colour, and the word shown when you grab an attack one
 const PICK = { heart: ['♥', '#ff6b8a'], magnet: ['◎', '#6fd3ff'], zap: ['⚡', '#b69cff', 'Thunderclap!'], blast: ['✹', '#ff9a4d', 'Fire ring!'], freeze: ['❄', '#9ff0ff', 'Cold snap!'], frenzy: ['»', '#ffe066', 'Frenzy!'] };
+const crowdK = () => clamp(40 / Math.max(40, enemies.length), .12, 1);
 function dropPickup(x, y, kind) {
-  if (!kind) { const r = Math.random(); kind = r < .4 ? 'heart' : r < .62 ? 'magnet' : r < .72 ? 'zap' : r < .82 ? 'blast' : r < .91 ? 'freeze' : 'frenzy'; }
+  // hearts make up less of the mix in a big crowd, and half as much again in the endless night, so it can still kill you
+  if (!kind) { const h = .4 * Math.sqrt(crowdK()) * (endless ? .5 : 1); let r = Math.random() * (1 - .4 + h); kind = r < h ? 'heart' : (r -= h) < .22 ? 'magnet' : r < .32 ? 'zap' : r < .42 ? 'blast' : r < .51 ? 'freeze' : 'frenzy'; }
   pickups.push({ x, y, kind, ph: rand(0, TAU) });
 }
 function kill(e) {
@@ -1061,7 +1063,7 @@ function kill(e) {
   } else {
     if (e.carry) { award('freed'); strays.push({ x: e.x, y: e.y, ph: rand(0, TAU) }); if (texts.length < 80) texts.push({ x: e.x, y: e.y - 18, t: 'Freed!', life: 1, max: 1, heal: true }); }
     if (e.xp > 0) dropGem(e.x, e.y, e.xp);
-    const r = Math.random() * (nm ? 2 : 1); if (!e.noDrop && ((e.elite && r < .45) || r < .011)) dropPickup(e.x, e.y); // Nightmare drops half as often
+    const r = Math.random() * (nm ? 2 : 1), ck = crowdK(); if (!e.noDrop && ((e.elite && r < .45 * Math.max(.3, ck)) || r < .011 * ck)) dropPickup(e.x, e.y); // Nightmare drops half as often, and crowds drop less
   }
 }
 let dmgLog = {};
@@ -1118,15 +1120,15 @@ function fireFly() {
   return true;
 }
 function fireThorn() {
-  const l = wl.thorn, ev = l >= 7, t = nearest(P.x, P.y, 440 * S.area); if (!t) return false;
+  const l = wl.thorn, ev = l >= 7, t = nearest(P.x, P.y, 600 * S.area); if (!t) return false;
   const n = ev ? 3 : l >= 4 ? 2 : 1, a0 = Math.atan2(t.y - P.y, t.x - P.x);
-  for (let i = 0; i < n; i++) bullets.push({ k: 'thorn', x: P.x, y: P.y, a: a0 + (i - (n - 1) / 2) * .55, v: 720, vx: 0, vy: 0, r: (ev ? 17 : 10 + l) * S.area, dmg: ev ? 42 : 11 + 5 * l, pierce: 1e9, life: 3, hit: [], back: false, rot: 0 });
+  for (let i = 0; i < n; i++) bullets.push({ k: 'thorn', x: P.x, y: P.y, a: a0 + (i - (n - 1) / 2) * .55, v: 900, vx: 0, vy: 0, r: (ev ? 28 : 16 + 1.6 * l) * S.area, dmg: ev ? 42 : 11 + 5 * l, pierce: 1e9, life: 3, hit: [], back: false, rot: 0 });
   sfx('shoot'); return true;
 }
 function dropSpore() {
   const l = wl.spore, ev = l >= 7, life = ev ? 4.5 : 2.6 + .2 * l, r = (ev ? 72 : 34 + 5 * l) * S.area, z = zones[zones.length - 1];
-  if (z && (z.x - P.x) ** 2 + (z.y - P.y) ** 2 < r * r * .8) { z.life = z.max; return; }
-  zones.push({ x: P.x, y: P.y, r, life, max: life, tick: 0, dps: ev ? 54 : 8 + 5.5 * l });
+  if (z && !ev && (z.x - P.x) ** 2 + (z.y - P.y) ** 2 < r * r * .8) { z.life = z.max; return; }
+  zones.push({ x: P.x, y: P.y, r, life, max: life, tick: 0, dps: ev ? 54 : 8 + 5.5 * l, bloom: ev });
 }
 // scythe blades only cover the outer half of their reach, so anything that gets in close slips under them
 const orbSpec = () => { const o = wl.orbit >= 7 ? { n: 5, R: 190 * S.area, dmg: 70, w: .5 } : { n: 2 + ((wl.orbit - 1) >> 1), R: (100 + 8 * wl.orbit) * S.area, dmg: 14 + 6 * (wl.orbit - 1), w: .45 }; o.Ri = o.R * .5; return o; };
@@ -1136,7 +1138,7 @@ function weapons(dt) {
   if (wl.bolt && cds.bolt <= 0) cds.bolt = fireBolt() ? [.68, .56, .5, .46, .42, .36, .24][wl.bolt - 1] * S.cd : .1;
   if (wl.nova && cds.nova <= 0) { fireNova(); cds.nova = (wl.nova >= 7 ? 1.5 : 3.3 - .3 * wl.nova) * S.cd; }
   if (wl.thorn && cds.thorn <= 0) cds.thorn = fireThorn() ? (wl.thorn >= 7 ? 1.1 : 1.6) * S.cd : .15;
-  if (wl.spore && cds.spore <= 0) { dropSpore(); cds.spore = .5 * S.cd; }
+  if (wl.spore && cds.spore <= 0) { dropSpore(); cds.spore = (wl.spore >= 7 ? 1.4 : .5) * S.cd; } // Full Bloom's clouds roam, so fewer of them at once
   if (wl.frost >= 7 && cds.freeze <= 0) {
     cds.freeze = 4; const R = frostR(); rings.push({ x: P.x, y: P.y, r0: 10, r1: R, life: .4, max: .4, col: '#9ff0ff', w: 8 }); sfx('nova');
     near(P.x, P.y, R + 50, e => { if (!e.boss && (e.x - P.x) ** 2 + (e.y - P.y) ** 2 < (R + e.r) ** 2) e.frz = 1.2; });
@@ -1161,7 +1163,7 @@ function weapons(dt) {
     frostT -= dt;
     if (frostT <= 0) {
       frostT = .25; const l = wl.frost, R = frostR();
-      src = 'frost'; near(P.x, P.y, R + 50, e => { if ((e.x - P.x) ** 2 + (e.y - P.y) ** 2 < (R + e.r) ** 2) { e.slowT = .5; e.slowF = e.boss ? .85 : 1 - (.25 + .05 * l); hit(e, (8 + 6 * l) * .25, undefined, undefined, true); } });
+      src = 'frost'; near(P.x, P.y, R + 50, e => { if ((e.x - P.x) ** 2 + (e.y - P.y) ** 2 < (R + e.r) ** 2) { e.slowT = .5; e.slowF = e.boss ? .85 : 1 - (.25 + .05 * l); tickNum(e, hit(e, (8 + 6 * l) * .25, undefined, undefined, true), 'fa', '#9ff0ff'); } });
     }
   }
 }
@@ -1264,9 +1266,10 @@ function choices() {
   for (const k in PASSIVES) if (pv(k) < PASSIVES[k].max) ps.push({ kind: 'p', id: k });
   const rnd = daily ? mkRng(1, offerN++) : Math.random;
   const sh = a => { for (let i = a.length - 1; i > 0; i--) { const j = (rnd() * (i + 1)) | 0, t = a[i]; a[i] = a[j]; a[j] = t; } return a; };
-  sh(ws); sh(ps);
-  const out = []; if (evs.length) out.push(sh(evs).pop()); else if (ws.length) out.push(ws.pop());
-  const rest = sh(ws.concat(ps)); while (out.length < nC && rest.length) out.push(rest.pop());
+  // anything you already own is four times as likely to be offered as something new, so builds fill out before they spread
+  const wt = c => (c.kind === 'w' ? (wl[c.id] || 0) : pv(c.id)) > 0 ? 4 : 1, pool = ws.concat(ps), out = [];
+  if (evs.length) out.push(sh(evs).pop());
+  while (out.length < nC && pool.length) { let r = rnd() * pool.reduce((a, c) => a + wt(c), 0), i = 0; for (; i < pool.length - 1; i++) if ((r -= wt(pool[i])) < 0) break; out.push(pool.splice(i, 1)[0]); }
   while (out.length < nC) out.push({ kind: 'heal', id: 'heal' + out.length });
   return sh(out);
 }
@@ -1438,7 +1441,7 @@ function update(dt) {
       } else if (e.type === 'shield') {
         // turns slowly, so you can get round the side of the plate
         if (e.hd === undefined) e.hd = Math.atan2(dy, dx);
-        const da = Math.atan2(Math.sin(Math.atan2(dy, dx) - e.hd), Math.cos(Math.atan2(dy, dx) - e.hd)); e.hd += clamp(da, -1.1 * dt, 1.1 * dt);
+        const da = Math.atan2(Math.sin(Math.atan2(dy, dx) - e.hd), Math.cos(Math.atan2(dy, dx) - e.hd)); e.hd += clamp(da, -.0873 * dt, .0873 * dt); // 5 degrees a second, so walking round the plate works
         vx = Math.cos(e.hd) * sp; vy = Math.sin(e.hd) * sp;
       } else if (e.type === 'drag') {
         // circles at range, stops to line up a strike (the line shows), then shoots along it
@@ -1471,10 +1474,10 @@ function update(dt) {
       if (Math.random() < .5 && parts.length < 600) parts.push({ x: b.x, y: b.y, vx: 0, vy: 0, life: .3, max: .3, col: '#9dff8a', s: 3 });
     }
     if (b.k === 'thorn') {
-      b.rot += dt * 18; b.v -= 950 * dt;
+      b.rot += dt * 18; b.v -= 900 * dt;
       if (b.v <= 0 && !b.back) { b.back = true; b.hit = []; }
       if (b.back) {
-        const dx = P.x - b.x, dy = P.y - b.y, d = Math.hypot(dx, dy) || 1, s = Math.min(760, 120 - b.v);
+        const dx = P.x - b.x, dy = P.y - b.y, d = Math.hypot(dx, dy) || 1, s = Math.min(900, 120 - b.v);
         b.vx = dx / d * s; b.vy = dy / d * s; if (d < 22) { b.dead = true; continue; }
       } else { b.vx = Math.cos(b.a) * b.v; b.vy = Math.sin(b.a) * b.v; }
     }
@@ -1507,7 +1510,9 @@ function update(dt) {
   // spore clouds
   for (const z of zones) {
     z.life -= dt; z.tick -= dt;
-    if (z.tick <= 0) { z.tick = .25; src = 'spore'; near(z.x, z.y, z.r + 50, e => { if ((e.x - z.x) ** 2 + (e.y - z.y) ** 2 < (z.r + e.r) ** 2) hit(e, z.dps * .25, undefined, undefined, true); }); }
+    if (z.tick <= 0) { z.tick = .25; src = 'spore'; near(z.x, z.y, z.r + 50, e => { if ((e.x - z.x) ** 2 + (e.y - z.y) ** 2 < (z.r + e.r) ** 2) tickNum(e, hit(e, z.dps * .25, undefined, undefined, true), 'sa', '#d6ff5c'); }); }
+    // Full Bloom's clouds drift toward the nearest enemy instead of sitting where you dropped them
+    if (z.bloom) { const t = nearest(z.x, z.y, 320); if (t) { const dx = t.x - z.x, dy = t.y - z.y, dd = Math.hypot(dx, dy) || 1; if (dd > 6) { z.x += dx / dd * 85 * dt; z.y += dy / dd * 85 * dt; } } }
   }
   zones = zones.filter(z => z.life > 0);
   for (const z of embers) {
@@ -3227,8 +3232,16 @@ function render() {
   // frost aura
   for (const z of embers) if (vis(z.x, z.y, z.r * 1.3)) { ctx.globalAlpha = .55 * Math.min(1, z.life * 1.5) * (.8 + Math.sin(T * 9 + z.x) * .2); ctx.drawImage(glow('#ff7a2a'), z.x - z.r * 1.3, z.y - z.r * 1.3, z.r * 2.6, z.r * 2.6); }
   for (const z of zones) if (vis(z.x, z.y, z.r * 1.3)) { ctx.globalAlpha = .5 * Math.min(1, z.life * 2) * (.85 + Math.sin(T * 5 + z.x) * .15); ctx.drawImage(glow('#d6ff5c'), z.x - z.r * 1.3, z.y - z.r * 1.3, z.r * 2.6, z.r * 2.6); }
+  // each cloud's reach: a soft edge ring (brighter and thicker for Full Bloom) so it's clear what's inside
+  for (const z of zones) if (vis(z.x, z.y, z.r * 1.3)) { const k = Math.min(1, z.life * 2); ctx.fillStyle = 'rgba(214,255,92,' + ((z.bloom ? .09 : .05) * k).toFixed(3) + ')'; ctx.beginPath(); ctx.arc(z.x, z.y, z.r, 0, TAU); ctx.fill(); ctx.strokeStyle = 'rgba(214,255,92,' + ((z.bloom ? .65 : .4) * k).toFixed(3) + ')'; ctx.lineWidth = z.bloom ? 2.5 : 1.5; ctx.stroke(); }
   ctx.globalAlpha = 1;
-  if (wl.frost && alive) { const Rr = frostR(); ctx.globalAlpha = .16 + Math.sin(T * 3) * .03; ctx.drawImage(glow('#9ff0ff'), P.x - Rr * 1.25, P.y - Rr * 1.25, Rr * 2.5, Rr * 2.5); ctx.globalAlpha = 1; }
+  if (wl.frost && alive) {
+    const Rr = frostR(); ctx.globalAlpha = .16 + Math.sin(T * 3) * .03; ctx.drawImage(glow('#9ff0ff'), P.x - Rr * 1.25, P.y - Rr * 1.25, Rr * 2.5, Rr * 2.5); ctx.globalAlpha = 1;
+    // the aura's exact reach: a faint icy fill and a crisp edge with slowly turning frost marks
+    ctx.fillStyle = 'rgba(159,240,255,.06)'; ctx.beginPath(); ctx.arc(P.x, P.y, Rr, 0, TAU); ctx.fill();
+    ctx.strokeStyle = 'rgba(190,246,255,.55)'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.strokeStyle = 'rgba(230,252,255,.8)'; ctx.lineWidth = 3; ctx.setLineDash([6, 18]); ctx.lineDashOffset = reduceMotion ? 0 : -T * 12; ctx.beginPath(); ctx.arc(P.x, P.y, Rr, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+  }
   // drifting motes in the foreground
   for (let i = 0; i < 16; i++) {
     const sx = (((i * 197.3 + T * (6 + i % 5) - cam.x * 1.25) % 1000) + 1000) % 1000 / 1000, sy = (((i * 331.7 + Math.sin(T * .4 + i) * 30 - cam.y * 1.25) % 800) + 800) % 800 / 800;
@@ -3354,7 +3367,7 @@ function render() {
   // damage numbers
   for (const t of texts) {
     ctx.globalAlpha = Math.min(1, t.life / t.max * 2);
-    ctx.font = (t.crit ? '24px' : '17px') + ' "Jersey 20", system-ui'; ctx.fillStyle = t.heal ? '#8df0b0' : t.crit ? '#ffd65a' : '#f2eee2';
+    ctx.font = (t.crit ? '24px' : t.col ? '16px' : '17px') + ' "Jersey 20", system-ui'; ctx.fillStyle = t.col || (t.heal ? '#8df0b0' : t.crit ? '#ffd65a' : '#f2eee2');
     ctx.strokeStyle = 'rgba(5,6,7,.85)'; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.strokeText(t.t, t.x, t.y); ctx.fillText(t.t, t.x, t.y);
   }
   ctx.globalAlpha = 1;
