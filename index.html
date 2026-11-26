@@ -3880,6 +3880,17 @@ async function sendOutbox() {
   for (const p of save.outbox) if (!(await postFeedback(p))) left.push(p);
   save.outbox = left; persist();
 }
+// the maker's player count: each browser gets a random id and says hello once (no name or stats, just the id).
+// Skipped when running locally so test runs don't count. If the server can't take it, it tries again next visit.
+async function countMe() {
+  if (save.counted || !/^https?:$/.test(location.protocol) || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) return;
+  if (!save.pid) { save.pid = [...crypto.getRandomValues(new Uint8Array(12))].map(b => b.toString(16).padStart(2, '0')).join(''); persist(); }
+  try {
+    const r = await fetch('/api/players', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: save.pid }) });
+    if (r.ok) { save.counted = true; persist(); }
+  } catch (e) {}
+}
+countMe();
 
 // ---- the residents ----
 const pickLine = (key, lines) => { save.talk = save.talk || {}; const i = (save.talk[key] || 0) % lines.length; save.talk[key] = i + 1; persist(); return lines[i]; };
