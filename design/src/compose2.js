@@ -145,7 +145,7 @@ function enemyFrames(name) { const d = SPRITES[name]; return d.frames.map(fr => 
   const put2 = (im, x, y, flip) => c.drawImage(flip ? flipX(im) : im, Math.round(x - im.width / 2), Math.round(y - im.height / 2));
   const P0 = [15 * 16, 9 * 16];
   c.globalCompositeOperation = 'lighter'; c.drawImage(halo(80, [255, 210, 120], 5), P0[0] - 80, P0[1] - 80); c.globalCompositeOperation = 'source-over';
-  for (const [n, x, y] of [['tick', 9, 5], ['tick', 10.5, 6.5], ['gnat', 20, 6], ['toad', 23, 13.5], ['beetle', 7, 12], ['brood', 21, 9], ['puff', 11, 12.5], ['moth', 18, 3.5], ['jar', 12, 3], ['tick', 24, 7], ['grub', 19.2, 10.5]]) put2(enemyFrames(n)[0], x * 16, y * 16, x * 16 > P0[0]);
+  for (const [n, x, y] of [['tick', 9, 5], ['tick', 10.5, 6.5], ['gnat', 20, 6], ['toad', 23, 13.5], ['beetle', 7, 12], ['brood', 21, 9], ['puff', 11, 12.5], ['moth', 18, 3.5], ['jar', 12, 3], ['tick', 24, 7], ['grub', 19.2, 10.5], ['mole', 5.5, 6], ['stag', 26, 5.6], ['stag', 26, 7.2], ['stag', 26, 8.8], ['dragon', 16.5, 14.6]]) put2(enemyFrames(n)[0], x * 16, y * 16, x * 16 > P0[0]);
   put2(BUGS.firefly[0], P0[0], P0[1]); for (let i = 0; i < 5; i++) put2(FIREFLY[0], P0[0] - 14 - i * 9, P0[1] + 4 + Math.sin(i) * 4);
   put2(PLAYER_SHOTS['Spark Shot'][0], P0[0] + 40, P0[1] - 14); put2(PLAYER_SHOTS['Spark Shot'][1], P0[0] + 72, P0[1] - 30); put2(PLAYER_SHOTS['Thorn'][1], P0[0] - 50, P0[1] + 36);
   put2(PLAYER_SHOTS['Moon scythe'][0], P0[0] + 2, P0[1] - 30); put2(PLAYER_SHOTS['Spore cloud'][0], P0[0] - 60, P0[1] + 10);

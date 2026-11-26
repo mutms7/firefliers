@@ -585,6 +585,9 @@ const ET = {
   jar:   { hp: 28, sp: 235, r: 13, dmg: 0, xp: 4, col: '#7d6cf0' },
   gloomling: { hp: 14, sp: 96, r: 9, dmg: 7, xp: 1, col: '#b06bff' },
   drone: { hp: 26, sp: 0, r: 10, dmg: 10, xp: 0, col: '#ffd34d' },
+  burrow: { hp: 34, sp: 150, r: 11, dmg: 12, xp: 3, col: '#c8782a' }, // mole cricket: tunnels under you, can't be hit while buried
+  shield: { hp: 46, sp: 44, r: 14, dmg: 12, xp: 4, col: '#aebcc4' }, // shieldback: marches in a line behind a steel plate
+  drag: { hp: 18, sp: 140, r: 10, dmg: 11, xp: 3, col: '#4ec8a8' }, // dragonfly: circles, then strikes along a line it draws first
   boss:  { hp: 800, sp: 48, r: 42, dmg: 24, xp: 0, col: '#ff3b5c' },
 };
 const BOSSES = [
@@ -703,7 +706,7 @@ const gkey = (cx, cy) => cx * 100003 + cy;
 function buildGrid() {
   grid.clear();
   for (const e of enemies) {
-    if (e.dead) continue;
+    if (e.dead || e.under) continue;
     const k = gkey(Math.floor(e.x / CELL), Math.floor(e.y / CELL));
     let a = grid.get(k); if (!a) { a = []; grid.set(k, a); } a.push(e);
   }
@@ -718,7 +721,7 @@ function near(x, y, r, fn) {
 function nearest(x, y, maxR, skip) {
   let b = null, bd = maxR * maxR;
   for (const e of enemies) {
-    if (e.dead || (skip && skip.includes(e))) continue;
+    if (e.dead || e.under || (skip && skip.includes(e))) continue;
     const d = (e.x - x) * (e.x - x) + (e.y - y) * (e.y - y); if (d < bd) { bd = d; b = e; }
   }
   return b;
@@ -748,7 +751,7 @@ function spawn(type, x, y, opt) {
     flash: 0, orbT: 0, slowT: 0, slowF: 1, kx: 0, ky: 0, t: rand(1, 3), ph: rand(0, TAU), dead: false };
   if (opt && opt.elite) { e.elite = true; e.hp *= 5; e.r *= 1.35; e.xp = e.xp * 4 + 6; e.dmg *= 1.2; }
   if (endless) { const k = endK(); e.hp *= k; e.speed *= k; }
-  e.maxhp = e.hp; enemies.push(e); return e;
+  e.maxhp = e.hp; enemies.push(e); if (FOE_TIP[type]) firstMeet(type); return e;
 }
 const pwOf = e => [.8, 1, 1.2][Math.min(e.tier, 2)] * (1 + Math.max(0, e.tier - 2) * .25);
 function hiveDrone(h, slot) {
@@ -837,16 +840,24 @@ function gloomShock(e, pw) {
 }
 function shock(e, pw) { shocks.push({ x: e.x, y: e.y, r: e.r, max: 440, v: 250, dmg: 12 * pw, hit: false }); sfx('nova'); shake(6); }
 function pickType() {
-  const w = [['wisp', 10], ['dart', RT > 25 ? 4 : 0], ['brute', RT > 75 ? 2 + RT / 150 : 0], ['spit', RT > 130 ? 2.2 : 0], ['split', RT > 185 ? 2.6 : 0], ['boom', RT > 100 ? 1.6 : 0], ['ghost', RT > 250 ? 1.8 : 0]];
+  const w = [['wisp', 10], ['dart', RT > 25 ? 4 : 0], ['brute', RT > 75 ? 2 + RT / 150 : 0], ['spit', RT > 130 ? 2.2 : 0], ['split', RT > 185 ? 2.6 : 0], ['boom', RT > 100 ? 1.6 : 0], ['ghost', RT > 250 ? 1.8 : 0], ['burrow', RT > 100 ? 1.4 : 0], ['shield', RT > 170 ? .35 : 0], ['drag', RT > 220 ? 1.5 : 0]];
   let tot = 0; for (const x of w) tot += x[1];
   let r = (daily ? drand(2, spawnN) : Math.random()) * tot; for (const x of w) { if ((r -= x[1]) < 0) return x[0]; }
   return 'wisp';
 }
+// shieldbacks come as a marching line of four (five later on), side by side, all facing you
+function shieldLine() {
+  const a = rand(0, TAU), R = viewR() + 60, cx = P.x + Math.cos(a) * R, cy = P.y + Math.sin(a) * R, n = RT > 300 ? 5 : 4;
+  for (let i = 0; i < n; i++) { const o = (i - (n - 1) / 2) * 34, e = spawn('shield', cx - Math.sin(a) * o, cy + Math.cos(a) * o); e.hd = a + Math.PI; }
+}
+// the first time you meet a new creature, the banner tells you what it does and how to beat it
+const FOE_TIP = { burrow: ['Burrower', 'Keep moving when the ground cracks'], shield: ['Shieldbacks', 'Their plates face front. Go round, or use zaps, spores and flares'], drag: ['Dragonfly', 'It draws a line before it strikes. Step off it'] };
+function firstMeet(t) { if (!FOE_TIP[t] || tut) return; save.seenFoe = save.seenFoe || {}; if (save.seenFoe[t]) return; save.seenFoe[t] = 1; persist(); if (!boss) say(FOE_TIP[t][0], FOE_TIP[t][1], 3.4); }
 function director(dt) {
   let rate = 1.0 + RT * 0.03 + (RT > 180 ? (RT - 180) * 0.026 : 0); if (boss) rate *= 0.55; if (nm) rate *= 1.3;
   spawnAcc += dt * rate;
   if (enemies.length >= 330) spawnAcc = 0;
-  while (spawnAcc >= 1) { spawnAcc--; spawn(pickType(), undefined, undefined, { elite: RT > 50 && (daily ? drand(3, spawnN) : Math.random()) < .03 }); spawnN++; }
+  while (spawnAcc >= 1) { spawnAcc--; const t = pickType(), el = RT > 50 && (daily ? drand(3, spawnN) : Math.random()) < .03; if (t === 'shield') shieldLine(); else spawn(t, undefined, undefined, { elite: el }); spawnN++; }
   if (RT >= nextEvent) {
     const n = Math.floor(nextEvent / 45); nextEvent += 45;
     if (n % 2) { // ring of darts
@@ -1003,9 +1014,10 @@ function bossAI(e, dt, dx, dy, d) {
   return [dx * e.speed, dy * e.speed];
 }
 function hit(e, base, kx, ky, quiet) {
-  if (e.dead) return;
+  if (e.dead || e.under) return;
   let d = base * S.dmg; const crit = !quiet && Math.random() < S.crit; if (crit) d *= 2;
   if (e.boss && e.mode === 'inhale') d *= 1.5;
+  if (e.type === 'shield' && kx !== undefined && (kx || ky)) { const kl = Math.hypot(kx, ky); if ((kx * Math.cos(e.hd) + ky * Math.sin(e.hd)) / kl < -.35) { d *= .3; kx *= .15; ky *= .15; if (!quiet && Math.random() < .3) burst(e.x + Math.cos(e.hd) * e.r, e.y + Math.sin(e.hd) * e.r, '#e4eef2', 3, 120); } }
   if (e.boss && e.shield) d *= .8; // the Hive behind its drones // the Maw is soft while its mouth is open
   dmgDone[src] = (dmgDone[src] || 0) + Math.min(d, Math.max(0, e.hp));
   e.hp -= d; e.flash = .08;
@@ -1176,7 +1188,7 @@ function flare() {
 }
 function ringOfLight(poly) {
   const n = flight.length, dmg = 14 + 2.5 * n; let c = 0;
-  for (const e of enemies.slice()) if (!e.dead && inPoly(e.x, e.y, poly)) {
+  for (const e of enemies.slice()) if (!e.dead && !e.under && inPoly(e.x, e.y, poly)) {
     c++; const ready = e.boss && !(e.flareCd > T), corona = ready && e.kind === 2; // bosses shrug off the special effect for a while after it lands
     if (corona) { e.stun = 2.5; e.beam = 0; e.bt = 3; e.flareCd = T + 9; say('Corona broken!', '', 1.6); award('corona'); } else if (ready && e.kind === 4) { e.stun = 1.5; e.flareCd = T + 6; }
     src = 'flare'; hit(e, tut ? 99999 : corona ? dmg * 3 : dmg);
@@ -1413,16 +1425,38 @@ function update(dt) {
         if (e.mode === 'wind') { vx = vy = 0; if (e.t <= 0) { e.mode = 'lunge'; e.t = .45; } }
         else if (e.mode === 'lunge') { vx = e.cx * 380; vy = e.cy * 380; if (e.t <= 0) { e.mode = ''; e.t = 2.2; } }
         else if (d < 250 && e.t <= 0) { e.mode = 'wind'; e.t = .65; e.cx = dx; e.cy = dy; }
+      } else if (e.type === 'burrow') {
+        // tunnels toward you, surfaces where you were standing after a visible crack, then dives again
+        e.t -= dt;
+        if (!e.mode) { e.mode = 'dig'; e.under = true; e.t = rand(2.2, 3.4); }
+        if (e.mode === 'dig') {
+          if (Math.random() < dt * 14 && parts.length < 600) parts.push({ x: e.x + rand(-5, 5), y: e.y + rand(-3, 3), vx: rand(-20, 20), vy: rand(-40, -10), life: .45, max: .45, col: '#6a4026', s: 3 });
+          if ((d < 46 || e.t <= 0) && d < 420) { e.mode = 'rise'; e.t = .8; }
+        } else if (e.mode === 'rise') { vx = vy = 0; if (e.t <= 0) { e.mode = 'up'; e.under = false; e.t = 2.4; burst(e.x, e.y, '#8a5a32', 14, 160); shake(3); sfx('hit'); if (d < 46 + P.r) hurtPlayer(e.dmg * 1.3, 'burrower'); } }
+        else if (e.mode === 'up') { vx *= .45; vy *= .45; if (e.t <= 0) { e.mode = 'dive'; e.t = .35; } }
+        else if (e.mode === 'dive') { vx = vy = 0; if (e.t <= 0) { e.mode = 'dig'; e.under = true; e.t = rand(2.4, 3.6); burst(e.x, e.y, '#6a4026', 8, 100); } }
+      } else if (e.type === 'shield') {
+        // turns slowly, so you can get round the side of the plate
+        if (e.hd === undefined) e.hd = Math.atan2(dy, dx);
+        const da = Math.atan2(Math.sin(Math.atan2(dy, dx) - e.hd), Math.cos(Math.atan2(dy, dx) - e.hd)); e.hd += clamp(da, -1.1 * dt, 1.1 * dt);
+        vx = Math.cos(e.hd) * sp; vy = Math.sin(e.hd) * sp;
+      } else if (e.type === 'drag') {
+        // circles at range, stops to line up a strike (the line shows), then shoots along it
+        e.t -= dt;
+        if (!e.mode) { e.mode = 'hover'; e.t = rand(1.5, 2.8); e.orb = Math.random() < .5 ? 1 : -1; }
+        if (e.mode === 'hover') { const want = d > 240 ? 1 : d < 180 ? -1 : 0; vx = dx * sp * want - dy * sp * e.orb * .9; vy = dy * sp * want + dx * sp * e.orb * .9 + Math.sin(T * 9 + e.ph) * 40; if (e.t <= 0 && d < 420) { e.mode = 'aim'; e.t = .6; e.cx = dx; e.cy = dy; } }
+        else if (e.mode === 'aim') { vx = vy = 0; if (e.t <= 0) { e.mode = 'strike'; e.t = .55; sfx('dash'); } }
+        else if (e.mode === 'strike') { vx = e.cx * 640; vy = e.cy * 640; if (Math.random() < .6 && parts.length < 600) parts.push({ x: e.x, y: e.y, vx: 0, vy: 0, life: .25, max: .25, col: '#4ec8a8', s: 4 }); if (e.t <= 0) { e.mode = 'hover'; e.t = rand(2.2, 3.2); } }
       } else if (e.type === 'dart') { const w = Math.sin(T * 5 + e.ph) * .5; vx += -dy * sp * w; vy += dx * sp * w; }
       near(e.x, e.y, e.r + 22, o => {
-        if (o === e) return; const ax = e.x - o.x, ay = e.y - o.y, dd = ax * ax + ay * ay, rr = (e.r + o.r) * .92;
+        if (o === e || e.under) return; const ax = e.x - o.x, ay = e.y - o.y, dd = ax * ax + ay * ay, rr = (e.r + o.r) * .92;
         if (dd < rr * rr && dd > .01) { const q = Math.sqrt(dd), push = (rr - q) / rr * 90; vx += ax / q * push; vy += ay / q * push; }
       });
     }
     if (e.frz > 0) { e.frz -= dt; vx = 0; vy = 0; }
     e.x += (vx + e.kx) * dt; e.y += (vy + e.ky) * dt;
     const kd = Math.exp(-6 * dt); e.kx *= kd; e.ky *= kd;
-    if (d < e.r + pr && e.type !== 'jar') hurtPlayer(e.dmg, e.boss ? 'boss touch' : e.elite ? 'elite' : e.type);
+    if (d < e.r + pr && e.type !== 'jar' && !e.under) hurtPlayer(e.dmg, e.boss ? 'boss touch' : e.elite ? 'elite' : e.type);
   }
 
   weapons(dt);
@@ -1660,9 +1694,9 @@ function dmgHTML() {
   }).join('');
 }
 // amber from a run: time, squashes, bosses and the dawn. It's paid as the run goes, so an endless night after a win only adds the difference.
-const amberBase = () => (RT / 6 + kills / 50 + bossKills * 20 + (won ? 50 : 0)) * (nm ? 1.5 : 1) * (TR.amber ? 1.15 : 1);
-// a tenth of the base, and whatever comes after pressing Keep going counts for a tenth of that again
-const amberEarned = () => { const b = amberBase(), eff = endless ? run.baseAtWin + (b - run.baseAtWin) * .1 : b; return Math.round(eff * .1); };
+// amber is 0.5% of your score (Amber Sense adds 15%). Score made after pressing Keep going counts for a tenth as much.
+const amberBase = () => calcScore(won);
+const amberEarned = () => { const b = amberBase(), eff = endless ? run.baseAtWin + (b - run.baseAtWin) * .1 : b; return Math.round(eff * .005 * (TR.amber ? 1.15 : 1)); };
 function payAmber() {
   if (tut || !P || state === 'menu') return 0;
   const a = amberEarned() - run.amber; if (a > 0) { save.amber += a; run.amber += a; persist(); }
@@ -2928,6 +2962,21 @@ function hiveRows(f) {
 // every regular creature shares one pixel size and every boss another, so pixels of different sizes never sit side by side
 const PX = 1.85, PX_BOSS = 3.6;
 const SPRITES = {
+  // burrow: a mole cricket. Velvet-brown body and huge orange digging claws out front; you mostly see the dirt it churns.
+  mole: { r0: 11, px: PX, fps: 9, ol: '#140a04',
+    pal: { B: ['#2a1a10', '#4a2e1a', '#7a4e2c', '#a87444', '#d8a870'], H: ['#1a100a', '#33200f', '#4a2e1a', '#6a4426', '#8a5e36'], S: ['#4a2208', '#8a4a14', '#c8782a', '#f0a850', '#ffd890'], d: '#3a2414', e: '#ffe0a0', l: '#2a1608', a: '#6a4426' },
+    frames: [['..........a..a....', '...........aa.....', '..BBBBBBBHHH......', '.BBBBBBBBHHHHSS...', 'BBdBBdBBBHHeHSSSS.', 'BBBBBBBBBHHHHSSSSS', '.BBBBBBBBBHHSSSSS.', '..BBBBBBBB..SS.S..', '...l..l..l........', '..l..l..l.........'],
+      ['..........a..a....', '...........aa.....', '..BBBBBBBHHH......', '.BBBBBBBBHHHH.....', 'BBdBBdBBBHHeHSS...', 'BBBBBBBBBHHHHSSSS.', '.BBBBBBBBBHHSSSSSS', '..BBBBBBBB..SSSSS.', '....l..l..l..S.S..', '...l..l..l........']] },
+  // shield: a shieldback stag beetle. Dark bronze shell behind a tall riveted steel plate, mandibles curling round it.
+  stag: { r0: 14, px: PX, fps: 5, ol: '#080604',
+    pal: { B: ['#14100a', '#2e2416', '#4a3a24', '#6a5636', '#9a8458'], S: ['#2a3034', '#4a5660', '#7a8a94', '#aebcc4', '#e4eef2'], d: '#0e0a06', m: '#3a2a14', r: '#e4eef2', e: '#ff9a5a', l: '#140e08' },
+    frames: [['..............mm..', '.............m....', '..BBBBBBB..SSS..mm', '.BBBBBBBBBSSSSSm..', 'BBBdBBBBBBSSSSSS..', 'BBBBBBdBBBSSrSSSe.', 'BBdBBBBBBBSSSSSS..', 'BBBBBBBBBBSSrSSSm.', '.BBBBBBBBBSSSSSm..', '..BBBBBBB..SSS..mm', '..l..l..l....l....', '.l..l..l....l.....'],
+      ['..............mm..', '.............m....', '..BBBBBBB..SSS..mm', '.BBBBBBBBBSSSSSm..', 'BBBdBBBBBBSSSSSS..', 'BBBBBBdBBBSSrSSSe.', 'BBdBBBBBBBSSSSSS..', 'BBBBBBBBBBSSrSSSm.', '.BBBBBBBBBSSSSSm..', '..BBBBBBB..SSS..mm', '.l..l..l....l.....', '..l..l..l....l....']] },
+  // drag: a dragonfly. A long thin metallic body, big violet eyes and two pairs of glassy wings that blur as they beat.
+  dragon: { r0: 10, px: PX, fps: 18, ol: '#04100e',
+    pal: { B: ['#0a2a2a', '#14504a', '#1e8a78', '#4ec8a8', '#b8f4e0'], H: ['#1a1438', '#2e2a6a', '#4a4ab0', '#7a8ae8', '#c8d4ff'], W: ['#2e4a52', '#5a8090', '#9ac4cc', '#cfe8ec', '#f4fdff'], d: '#082220', t: '#7ad0b8', e: '#ffffff' },
+    frames: [['.....WWWW...WWWW....', '...WWWWWWWWWWWWWW...', 'tdBBdBBdBBdBBBBBHHH.', 'tdBBdBBdBBdBBBBBHHeH', '...WWWWWWWWWWWWWW...', '.....WWWW...WWWW....'],
+      ['.......WW...WW......', '....WWWWWWWWWWWW....', 'tdBBdBBdBBdBBBBBHHH.', 'tdBBdBBdBBdBBBBBHHeH', '....WWWWWWWWWWWW....', '.......WW...WW......']] },
   // wisp: a blood tick. Round, soft, slow.
   tick: { r0: 10, px: PX, fps: 7, ol: '#14050f',
     pal: { B: ['#3b0f2e', '#7a1f48', '#c8385e', '#f2647a', '#ffb59a'], d: '#5c1838', e: '#fff2e0', p: '#150510', f: '#f6e6cf', l: '#3a0f26' },
@@ -3099,9 +3148,14 @@ function blit(sp, fr, x, y, s, flip, e, alpha) {
   ctx.save(); ctx.imageSmoothingEnabled = false; ctx.translate(x, y); if (flip) ctx.scale(-1, 1); if (alpha !== undefined) ctx.globalAlpha = alpha;
   ctx.drawImage(c, -w / 2, -h / 2, w, h); ctx.restore();
 }
-const SPR_OF = { wisp: 'tick', dart: 'gnat', brute: 'toad', spit: 'beetle', split: 'brood', mini: 'grub', boom: 'puff', ghost: 'moth', jar: 'jar', gloomling: 'gloomling', drone: 'drone' };
+const SPR_OF = { wisp: 'tick', dart: 'gnat', brute: 'toad', spit: 'beetle', split: 'brood', mini: 'grub', boom: 'puff', ghost: 'moth', jar: 'jar', gloomling: 'gloomling', drone: 'drone', burrow: 'mole', shield: 'stag', drag: 'dragon' };
 function drawEnemy(e) {
   const r = e.r, left = P.x < e.x;
+  if (e.under) { // a buried burrower is just a moving hump of dirt, and a widening crack once it's about to come up
+    ctx.fillStyle = '#3a2416'; ctx.beginPath(); ctx.ellipse(e.x, e.y + 4, 11, 5, 0, 0, TAU); ctx.fill(); ctx.fillStyle = '#6a4026'; ctx.fillRect(e.x - 6, e.y, 4, 3); ctx.fillRect(e.x + 2, e.y + 1, 5, 3);
+    if (e.mode === 'rise') { const k = 1 - e.t / .8; ctx.strokeStyle = 'rgba(255,160,90,' + (.35 + k * .5).toFixed(2) + ')'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(e.x, e.y, 46, 0, TAU); ctx.stroke(); ctx.fillStyle = 'rgba(160,90,40,' + (k * .3).toFixed(2) + ')'; ctx.beginPath(); ctx.arc(e.x, e.y, 46 * k, 0, TAU); ctx.fill(); }
+    return;
+  }
   ctx.fillStyle = 'rgba(0,0,0,.32)'; ctx.beginPath(); ctx.ellipse(e.x, e.y + r * .92, r * .9, r * .3, 0, 0, TAU); ctx.fill();
   if (e.boss) drawBoss(e, left);
   else {
@@ -3109,9 +3163,15 @@ function drawEnemy(e) {
     if (e.type === 'jar') flip = Math.cos(e.hd === undefined ? Math.atan2(P.y - e.y, P.x - e.x) : e.hd) < 0;
     if (e.type === 'boom' && e.fuse > 0) { fr = 2; if (Math.floor(e.fuse * 14) % 2) look = { flash: 1 }; }
     if (e.type === 'ghost' && (e.mode === 'wind' || e.mode === 'lunge')) { fr = 0; flip = e.cx < 0; }
+    if (e.type === 'shield') flip = Math.cos(e.hd || 0) < 0;
+    if (e.type === 'drag' && (e.mode === 'aim' || e.mode === 'strike')) flip = e.cx < 0;
+    if (e.type === 'burrow' && e.mode === 'dive') y += r * .5 * (1 - e.t / .35);
     if (sp.hop) y -= Math.abs(Math.sin((T * sp.fps + e.ph) * Math.PI / 2)) * r * .22;
     blit(sp, fr, e.x, y, s, flip, look, e.type === 'ghost' && e.mode !== 'lunge' ? .86 : undefined);
     if (e.type === 'boom' && e.fuse > 0) { ctx.strokeStyle = 'rgba(255,123,59,' + (1 - e.fuse) + ')'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(e.x, e.y, 88, 0, TAU); ctx.stroke(); ctx.fillStyle = 'rgba(255,123,59,.12)'; ctx.fill(); }
+    // a shieldback's plate side, shown as a pale arc so you can see which way it can't be hit
+    if (e.type === 'shield') { ctx.strokeStyle = 'rgba(228,238,242,.4)'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(e.x, e.y, r * 1.3, (e.hd || 0) - 1.1, (e.hd || 0) + 1.1); ctx.stroke(); }
+    if (e.type === 'drag' && e.mode === 'aim') { const k = 1 - e.t / .6; ctx.strokeStyle = 'rgba(122,208,184,' + (.25 + k * .55).toFixed(2) + ')'; ctx.lineWidth = 1 + k * 2; ctx.setLineDash([10, 6]); ctx.beginPath(); ctx.moveTo(e.x, e.y); ctx.lineTo(e.x + e.cx * 352, e.y + e.cy * 352); ctx.stroke(); ctx.setLineDash([]); }
     if (e.type === 'ghost' && e.mode === 'wind') { ctx.strokeStyle = '#8fa8ff88'; ctx.lineWidth = 3; ctx.setLineDash([8, 8]); ctx.beginPath(); ctx.moveTo(e.x, e.y); ctx.lineTo(e.x + e.cx * 200, e.y + e.cy * 200); ctx.stroke(); ctx.setLineDash([]); }
     if (e.type === 'jar' && e.carry) { ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(glow('#ffe9a0'), e.x - 16, e.y - 16, 32, 32); ctx.globalCompositeOperation = 'source-over'; }
   }

@@ -1154,6 +1154,21 @@ function hiveRows(f) {
 // every regular creature shares one pixel size and every boss another, so pixels of different sizes never sit side by side
 const PX = 1.85, PX_BOSS = 3.6;
 const SPRITES = {
+  // burrow: a mole cricket. Velvet-brown body and huge orange digging claws out front; you mostly see the dirt it churns.
+  mole: { r0: 11, px: PX, fps: 9, ol: '#140a04',
+    pal: { B: ['#2a1a10', '#4a2e1a', '#7a4e2c', '#a87444', '#d8a870'], H: ['#1a100a', '#33200f', '#4a2e1a', '#6a4426', '#8a5e36'], S: ['#4a2208', '#8a4a14', '#c8782a', '#f0a850', '#ffd890'], d: '#3a2414', e: '#ffe0a0', l: '#2a1608', a: '#6a4426' },
+    frames: [['..........a..a....', '...........aa.....', '..BBBBBBBHHH......', '.BBBBBBBBHHHHSS...', 'BBdBBdBBBHHeHSSSS.', 'BBBBBBBBBHHHHSSSSS', '.BBBBBBBBBHHSSSSS.', '..BBBBBBBB..SS.S..', '...l..l..l........', '..l..l..l.........'],
+      ['..........a..a....', '...........aa.....', '..BBBBBBBHHH......', '.BBBBBBBBHHHH.....', 'BBdBBdBBBHHeHSS...', 'BBBBBBBBBHHHHSSSS.', '.BBBBBBBBBHHSSSSSS', '..BBBBBBBB..SSSSS.', '....l..l..l..S.S..', '...l..l..l........']] },
+  // shield: a shieldback stag beetle. Dark bronze shell behind a tall riveted steel plate, mandibles curling round it.
+  stag: { r0: 14, px: PX, fps: 5, ol: '#080604',
+    pal: { B: ['#14100a', '#2e2416', '#4a3a24', '#6a5636', '#9a8458'], S: ['#2a3034', '#4a5660', '#7a8a94', '#aebcc4', '#e4eef2'], d: '#0e0a06', m: '#3a2a14', r: '#e4eef2', e: '#ff9a5a', l: '#140e08' },
+    frames: [['..............mm..', '.............m....', '..BBBBBBB..SSS..mm', '.BBBBBBBBBSSSSSm..', 'BBBdBBBBBBSSSSSS..', 'BBBBBBdBBBSSrSSSe.', 'BBdBBBBBBBSSSSSS..', 'BBBBBBBBBBSSrSSSm.', '.BBBBBBBBBSSSSSm..', '..BBBBBBB..SSS..mm', '..l..l..l....l....', '.l..l..l....l.....'],
+      ['..............mm..', '.............m....', '..BBBBBBB..SSS..mm', '.BBBBBBBBBSSSSSm..', 'BBBdBBBBBBSSSSSS..', 'BBBBBBdBBBSSrSSSe.', 'BBdBBBBBBBSSSSSS..', 'BBBBBBBBBBSSrSSSm.', '.BBBBBBBBBSSSSSm..', '..BBBBBBB..SSS..mm', '.l..l..l....l.....', '..l..l..l....l....']] },
+  // drag: a dragonfly. A long thin metallic body, big violet eyes and two pairs of glassy wings that blur as they beat.
+  dragon: { r0: 10, px: PX, fps: 18, ol: '#04100e',
+    pal: { B: ['#0a2a2a', '#14504a', '#1e8a78', '#4ec8a8', '#b8f4e0'], H: ['#1a1438', '#2e2a6a', '#4a4ab0', '#7a8ae8', '#c8d4ff'], W: ['#2e4a52', '#5a8090', '#9ac4cc', '#cfe8ec', '#f4fdff'], d: '#082220', t: '#7ad0b8', e: '#ffffff' },
+    frames: [['.....WWWW...WWWW....', '...WWWWWWWWWWWWWW...', 'tdBBdBBdBBdBBBBBHHH.', 'tdBBdBBdBBdBBBBBHHeH', '...WWWWWWWWWWWWWW...', '.....WWWW...WWWW....'],
+      ['.......WW...WW......', '....WWWWWWWWWWWW....', 'tdBBdBBdBBdBBBBBHHH.', 'tdBBdBBdBBdBBBBBHHeH', '....WWWWWWWWWWWW....', '.......WW...WW......']] },
   // wisp: a blood tick. Round, soft, slow.
   tick: { r0: 10, px: PX, fps: 7, ol: '#14050f',
     pal: { B: ['#3b0f2e', '#7a1f48', '#c8385e', '#f2647a', '#ffb59a'], d: '#5c1838', e: '#fff2e0', p: '#150510', f: '#f6e6cf', l: '#3a0f26' },
@@ -1430,7 +1445,7 @@ function enemyFrames(name) { const d = SPRITES[name]; return d.frames.map(fr => 
   const put2 = (im, x, y, flip) => c.drawImage(flip ? flipX(im) : im, Math.round(x - im.width / 2), Math.round(y - im.height / 2));
   const P0 = [15 * 16, 9 * 16];
   c.globalCompositeOperation = 'lighter'; c.drawImage(halo(80, [255, 210, 120], 5), P0[0] - 80, P0[1] - 80); c.globalCompositeOperation = 'source-over';
-  for (const [n, x, y] of [['tick', 9, 5], ['tick', 10.5, 6.5], ['gnat', 20, 6], ['toad', 23, 13.5], ['beetle', 7, 12], ['brood', 21, 9], ['puff', 11, 12.5], ['moth', 18, 3.5], ['jar', 12, 3], ['tick', 24, 7], ['grub', 19.2, 10.5]]) put2(enemyFrames(n)[0], x * 16, y * 16, x * 16 > P0[0]);
+  for (const [n, x, y] of [['tick', 9, 5], ['tick', 10.5, 6.5], ['gnat', 20, 6], ['toad', 23, 13.5], ['beetle', 7, 12], ['brood', 21, 9], ['puff', 11, 12.5], ['moth', 18, 3.5], ['jar', 12, 3], ['tick', 24, 7], ['grub', 19.2, 10.5], ['mole', 5.5, 6], ['stag', 26, 5.6], ['stag', 26, 7.2], ['stag', 26, 8.8], ['dragon', 16.5, 14.6]]) put2(enemyFrames(n)[0], x * 16, y * 16, x * 16 > P0[0]);
   put2(BUGS.firefly[0], P0[0], P0[1]); for (let i = 0; i < 5; i++) put2(FIREFLY[0], P0[0] - 14 - i * 9, P0[1] + 4 + Math.sin(i) * 4);
   put2(PLAYER_SHOTS['Spark Shot'][0], P0[0] + 40, P0[1] - 14); put2(PLAYER_SHOTS['Spark Shot'][1], P0[0] + 72, P0[1] - 30); put2(PLAYER_SHOTS['Thorn'][1], P0[0] - 50, P0[1] + 36);
   put2(PLAYER_SHOTS['Moon scythe'][0], P0[0] + 2, P0[1] - 30); put2(PLAYER_SHOTS['Spore cloud'][0], P0[0] - 60, P0[1] + 10);
