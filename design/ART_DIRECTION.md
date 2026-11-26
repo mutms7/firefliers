@@ -43,6 +43,11 @@ Station lights: the Lantern Gate is warm `255,200,110`, the Elder Root is amber 
 - Each enemy is a night creature whose shape says what it does: fast things are narrow and pointy (gnat), tanks are wide and squat (toad), ranged enemies show where their shots come from (the bombardier beetle's tail nozzle), and splitters show what they split into (the brood jelly's grubs).
 - Wind-ups must be visible: the puffcap swells and its cracks glow before it bursts, the Maw's jaw gapes when it inhales, and the Weaver tucks its legs before it pounces.
 - Minions are smaller than the creature they serve, and bosses are much larger.
+- Later creatures (added 2026-11-25) each counter one habit and show their tell even in a crowd:
+  - **Burrower** (mole cricket, big orange digging claws): a moving hump of dirt while buried, then an orange crack ring before it surfaces. It can't be hit underground.
+  - **Shieldbacks** (bronze stag beetles behind a riveted steel plate): they march in lines of four or five, with a pale arc marking the plate side. They turn slowly.
+  - **Dragonfly** (long teal body, pale solid wings): it draws a dashed strike line before it shoots along it.
+  - A creature's first appearance shows a one-line banner on how to beat it.
 
 ## Projectiles
 
