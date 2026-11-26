@@ -1041,7 +1041,8 @@ function dropPickup(x, y, kind) {
   pickups.push({ x, y, kind, ph: rand(0, TAU) });
 }
 function kill(e) {
-  e.dead = true; if (endless && !e.boss && e.type !== 'drone') run.endPts += endK(); // a squash is worth 1 point, like before dawn, times the endless multiplier
+  e.dead = true; if (e.type === 'burrow' || e.type === 'shield' || e.type === 'drag') { run.foes = run.foes || {}; run.foes[e.type] = 1; if (Object.keys(run.foes).length === 3) award('foes3'); }
+  if (endless && !e.boss && e.type !== 'drone') run.endPts += endK(); // a squash is worth 1 point, like before dawn, times the endless multiplier
   if (e.type !== 'drone') { kills++; if (kills === 1000) award('k1000'); } sfx('kill');
   burst(e.x, e.y, e.col, e.boss ? 90 : e.elite ? 22 : 7, e.boss ? 420 : 170);
   if (e.type === 'split' && !e.noSplit) for (let i = 0; i < 3; i++) spawn('mini', e.x + rand(-12, 12), e.y + rand(-12, 12));
@@ -1192,14 +1193,14 @@ function ringOfLight(poly) {
   const n = flight.length, dmg = 14 + 2.5 * n; let c = 0;
   for (const e of enemies.slice()) if (!e.dead && !e.under && inPoly(e.x, e.y, poly)) {
     c++; const ready = e.boss && !(e.flareCd > T), corona = ready && e.kind === 2; // bosses shrug off the special effect for a while after it lands
-    if (corona) { e.stun = 2.5; e.beam = 0; e.bt = 3; e.flareCd = T + 9; say('Corona broken!', '', 1.6); award('corona'); } else if (ready && e.kind === 4) { e.stun = 1.5; e.flareCd = T + 6; }
+    if (corona) { e.stun = 2.5; e.beam = 0; e.bt = 3; e.flareCd = T + 9; say('Corona broken!', '', 1.6); } else if (ready && e.kind === 4) { e.stun = 1.5; e.flareCd = T + 6; }
     src = 'flare'; hit(e, tut ? 99999 : corona ? dmg * 3 : dmg);
   }
   webs = webs.filter(w => !inPoly(w.x, w.y, poly));
   for (const g of gems) if (inPoly(g.x, g.y, poly)) { g.pull = true; g.sp = g.sp || 300; }
   if (!c) { ringFx.push({ poly, life: .25, max: .25, soft: true }); return; }
   ringFx.push({ poly, life: .5, max: .5 }); ringsMade++;
-  if (c >= 10) award('ring10'); if (ringsMade >= 25) award('rings25');
+  if (c >= 10) award('ring10');
   for (const f of flight) f.fl = .4;
   sfx('ring'); shake(3 + Math.min(9, c));
   if (c && texts.length < 80) texts.push({ x: P.x, y: P.y - 34, t: 'FLARE ×' + c, life: 1, max: 1, crit: true });
@@ -1350,7 +1351,7 @@ function fx(dt) {
   if (banner && (banner.t -= dt) <= 0) banner = null;
 }
 function update(dt) {
-  T += dt; if (!boss) RT += dt; if (endless) endT += dt; if (killsDawn < 0 && RT >= 360) killsDawn = kills;
+  T += dt; if (!boss) RT += dt; if (endless) { endT += dt; if (endT >= 300) award('endless5'); } if (killsDawn < 0 && RT >= 360) killsDawn = kills;
   // input
   let ix = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0);
   let iy = (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0);
@@ -1578,21 +1579,23 @@ const ACH = [
   ['fast', 'Before Sunrise', 'Beat the last boss within 40 seconds'],
   ['untouched', 'Untouchable', 'Beat a boss without being hit while it is alive'],
   ['bosses', 'Big Game', 'Beat all six bosses'],
-  ['corona', 'Corona Breaker', 'Break the corona of the Eclipse with a dash flare'],
   ['ring10', 'Wildfire', 'Burn 10 enemies with one dash flare'],
-  ['rings25', 'Firestarter', 'Land 25 dash flares in one run'],
   ['flight30', 'Full Flight', 'Fly with 30 fireflies'],
   ['freed', 'Jailbreak', 'Free a firefly from a nightjar'],
   ['evo1', 'Metamorphosis', 'Evolve a weapon'],
   ['evo3', 'Apex', 'Evolve 3 weapons in one run'],
   ['k1000', 'Crowd Control', 'Squash 1,000 enemies in one run'],
-  ['k25k', 'Lantern Keeper', 'Squash 25,000 enemies in total'],
+  ['foes3', 'Night Naturalist', 'Squash a Burrower, a Shieldback and a Dragonfly in one run'],
+  ['endless5', 'Long Night', 'Last 5 minutes into the endless night'],
   ['streak3', 'Regular', 'Play the daily 3 days in a row'],
-  ['bugs', 'Full Roost', 'Unlock every bug'],
+  ['talk', 'Good Company', 'Talk to everyone in the Haven'],
+  ['sit', 'Stillwater', 'Sit with Pell until the fireflies come out'],
+  ['grow5', 'Taking Root', 'Grow 5 branches on the Root Tree'],
+  ['growAll', 'Old Growth', 'Grow the whole Root Tree'],
   ['all', 'Every Light', 'Earn every other badge'],
 ];
 // amber for each badge, claimed on the Stats screen: 10 for most, 25 for the hard ones, 50 for all of them
-const ACH_HARD = new Set(['nm', 'fast', 'mini', 'bosses', 'evo3', 'k25k', 'flight30']);
+const ACH_HARD = new Set(['nm', 'fast', 'mini', 'bosses', 'evo3', 'flight30', 'endless5', 'growAll']);
 const achAmber = id => id === 'all' ? 50 : ACH_HARD.has(id) ? 25 : 10;
 const toClaim = () => ACH.filter(a => save.ach[a[0]] && !(save.claimed || {})[a[0]]);
 const claimTotal = () => toClaim().reduce((n, a) => n + achAmber(a[0]), 0);
@@ -1611,7 +1614,6 @@ function recordRun(win) {
   if (save.runs.length > 50) save.runs.length = 50;
   st.runs++; if (win) st.wins++; st.kills += kills; st.time += Math.round(RT); st.rings += ringsMade; st.rescued += run.rescued;
   st.bestFlight = Math.max(st.bestFlight, run.maxFlight, flight.length);
-  if (st.kills >= 25000) award('k25k');
   persist();
 }
 function showStats() {
@@ -3631,7 +3633,7 @@ function treeView(host) {
     if (state(n) !== 'open' || save.amber < n.cost) return;
     save.amber -= n.cost; save.tree.push(n.id); persist(); sfx('level');
     if (n.id === 'moth' || n.id === 'beetle') toast('The ' + n.name + ' has joined the Roost');
-    if (hasBug('moth') && hasBug('beetle')) award('bugs');
+    { const n = save.tree.filter(id => id !== 'first').length; if (n >= 5) award('grow5'); if (ART.TREE.every(t => grown(t[0]))) award('growAll'); }
     refresh(); hubRefresh(); const b = card.querySelector('button'); (b || wrap).focus();
   }
   // one hidden button per node, so the tree works from the keyboard and with a screen reader
@@ -3789,6 +3791,7 @@ function glimIntro() {
   ], () => { save.met = true; persist(); $('haven').classList.remove('intro'); });
 }
 function talkTo(who) {
+  save.talked = Object.assign(save.talked || {}, { [who]: 1 }); persist(); if (['glim', 'shellby', 'wick', 'pell'].every(k => save.talked[k])) award('talk');
   if (who === 'glim' && !save.met) { glimIntro(); return; }
   ({ glim: talkGlim, shellby: talkShellby, wick: talkWick, pell: talkPell })[who]();
 }
@@ -3852,7 +3855,7 @@ function talkPell() {
     moth: "A moth. Bold choice. They never sit still for long, which is the exact opposite of me, so I admire it from right here.",
     beetle: "A beetle. Slow and tough, like a good log. I mean that as the highest compliment I know, and I know about four." }[save.char];
   const menu = say => ({ say, choices: [
-    ['Sit with Pell for a while', () => dlgGo([pickLine('pell', PELL_THOUGHTS), "Sit down, if you like. The fireflies come out to play once everything goes quiet, and they don't mind company as long as it holds still.", () => { endTalk(); hollow.sit(); }])],
+    ['Sit with Pell for a while', () => dlgGo([pickLine('pell', PELL_THOUGHTS), "Sit down, if you like. The fireflies come out to play once everything goes quiet, and they don't mind company as long as it holds still.", () => { endTalk(); hollow.sit(); setTimeout(() => { if (hollow.sitting) award('sit'); }, 2500); }])],
     ['What do you make of my bug?', () => dlgGo([bug, menu("...")])],
     ['Bye', () => dlgGo(["Mm. Go on, then. The pond will still be here, and so will I, probably in this exact spot."])],
   ] });
