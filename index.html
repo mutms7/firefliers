@@ -244,7 +244,7 @@
   #tutBox{--k:var(--gold);position:fixed;left:50%;top:112px;transform:translateX(-50%);z-index:4;width:min(560px,calc(100% - 32px));padding:12px 16px;text-align:center;pointer-events:none}
   #tutStep{font-size:15px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:400}
   #tutText{font-size:20px;line-height:1.4;margin:5px 0 9px;min-height:calc(3 * 1.4em)}#tutText b{color:var(--gold);font-weight:400}#tutText .u{visibility:hidden}
-  #tutBar{height:4px;margin:0 auto 9px;width:60%;background:var(--line);visibility:hidden}#tutBar i{display:block;height:100%;width:0;background:var(--gold)}#tutBar.on{visibility:visible}
+  #tutRow{display:flex;gap:10px;justify-content:center;align-items:center}#tutGo{pointer-events:auto;display:none;align-items:center;gap:8px}#tutGo.on{display:inline-flex}#tutGo .keycap{min-width:0;height:24px;font-size:17px;padding:0 6px 3px}
   #tutSkip{pointer-events:auto}
   #topbtns{position:fixed;top:24px;right:10px;display:flex;gap:6px;z-index:4}
   #topbtns button{display:grid;place-items:center;width:36px;height:36px;border-radius:2px;background:rgba(13,17,18,.85);border:1px solid var(--line2);font-size:18px;color:var(--ink)}
@@ -281,7 +281,7 @@
   <p style="font-size:13px" id="statNote">Saved in this browser.</p>
   <div class="row" style="margin-top:6px"><button class="btn" id="statsBack">Back</button></div>
 </div></div>
-<div id="tutBox" class="panel hidden" role="status" aria-live="polite"><div id="tutStep"></div><div id="tutText"></div><div id="tutBar"><i></i></div><button class="btn ghost small" id="tutSkip">Skip tutorial</button></div>
+<div id="tutBox" class="panel hidden" role="status" aria-live="polite"><div id="tutStep"></div><div id="tutText"></div><div id="tutRow"><button class="btn small" id="tutGo" aria-label="Next step"><span class="keycap">Enter</span>Next</button><button class="btn ghost small" id="tutSkip">Skip tutorial</button></div></div>
 
 <div id="start" class="screen">
   <div class="flies" id="flies" aria-hidden="true"></div>
@@ -1663,27 +1663,27 @@ const wName = () => WEAPONS[ch.w].name, partner = () => PASSIVES[EVO[ch.w].req].
 function tutLevel(offer) { tut.lvl = true; tut.offer = offer || null; P.xp = 0; P.level++; P.next = Math.floor(5 + P.level * 4 + P.level * P.level * .35); pending = 1; }
 const TUT = [
   { text: () => isTouch() ? 'Drag anywhere on the screen to fly around.' : 'Fly around with <b>WASD</b> or the arrow keys. Clicking and dragging works too.',
-    done: t => t.moved > 240, after: 2, then: () => 'Good. The meadow goes on forever, so fly wherever you like.' },
+    done: t => t.moved > 240, after: 10, then: () => 'Good. The meadow goes on forever, so fly wherever you like.' },
   { text: () => 'You attack on your own, so all you have to do is steer. Squash 3 of these and fly over the <b>blue sparks</b> they drop.',
     enter: () => tutSpawn(4, 'wisp', 40), keep: ['wisp', 40, 4], done: t => kills - t.k0 >= 3 && P.level * 1e4 + P.xp > t.x0,
-    after: 6, then: () => 'Sparks fill the bar at the top of the screen. Keep squashing for a few seconds.' },
+    after: 10, then: () => 'Sparks fill the bar at the top of the screen. Keep squashing for a few seconds.' },
   { text: () => (isTouch() ? 'Tap <b>DASH</b> to dash.' : 'Press <b>Space</b> to dash.') + ' Nothing can hurt you mid-dash, and you damage whatever you fly through.',
-    keep: ['wisp', 55, 5], done: t => t.dashed, after: 6, then: () => 'Try dashing straight through a few of them. It\'s also how you slip out of a tight spot.' },
+    keep: ['wisp', 55, 5], done: t => t.dashed, after: 10, then: () => 'Try dashing straight through a few of them. It\'s also how you slip out of a tight spot.' },
   { text: () => 'A stray firefly is lost in the dark. Follow the <b>gold arrow</b> and touch it to rescue it.',
     enter: () => { const a = rand(0, TAU); strays.push({ x: P.x + Math.cos(a) * 460, y: P.y + Math.sin(a) * 460, ph: 0 }); }, done: t => flight.length > t.f0,
-    after: 3, then: () => 'Every firefly you save joins your trail, and each one is worth points at the end of the night.' },
+    after: 10, then: () => 'Every firefly you save joins your trail, and each one is worth points at the end of the night.' },
   { text: () => 'Your fireflies trail behind you. Fly a curve around these sleeping brutes, then <b>dash</b>. Whatever is between you and your trail burns.',
     enter: () => { while (flight.length < 16) flight.push({ x: P.x, y: P.y, fl: .4 }); tutDummies(); }, dummies: true, done: t => ringsMade > t.r0,
-    after: 3, then: () => 'That\'s a ring. It\'s your strongest move when a crowd closes in.' },
+    after: 10, then: () => 'That\'s a ring. It\'s your strongest move when a crowd closes in.' },
   { text: () => 'When the bar fills, you <b>level up</b> and pick an upgrade. Weapons attack on their own, and boosts make everything you have better. Pick one.',
-    enter: () => tutLevel(), done: t => t.picked, keep: ['wisp', 45, 5], after: 5, then: () => 'That\'s yours now. Give it a few seconds on these.' },
+    enter: () => tutLevel(), done: t => t.picked, keep: ['wisp', 45, 5], after: 10, then: () => 'That\'s yours now. Give it a few seconds on these.' },
   { text: () => 'Picking something you already own <b>levels it up</b>, and the things you own come up more often. Level up your ' + wName() + ' this time.',
-    enter: () => tutLevel('own'), done: t => t.picked, keep: ['wisp', 45, 5], after: 4, then: () => 'Every weapon goes up to <b>level 6</b> and gets stronger each time.' },
+    enter: () => tutLevel('own'), done: t => t.picked, keep: ['wisp', 45, 5], after: 10, then: () => 'Every weapon goes up to <b>level 6</b> and gets stronger each time.' },
   { text: () => 'Every weapon has a <b>partner boost</b>. Get a weapon to level 6 while you own its partner and it <b>evolves</b>. Your ' + wName() + ' is ready, and ' + partner() + ' is its partner, so pick the evolution.',
     enter: () => { wl[ch.w] = 6; pl[EVO[ch.w].req] = Math.max(1, pv(EVO[ch.w].req)); recompute(); tutLevel(); }, done: t => t.picked,
-    keep: ['wisp', 50, 8], after: 6, then: () => isTouch() ? 'Evolutions are a big jump, so it pays to plan your picks around each weapon and its partner.' : 'Evolutions are a big jump. When you pick upgrades, hover a card and its partner lights up, so you can plan ahead.' },
+    keep: ['wisp', 50, 8], after: 10, then: () => isTouch() ? 'Evolutions are a big jump, so it pays to plan your picks around each weapon and its partner.' : 'Evolutions are a big jump. When you pick upgrades, hover a card and its partner lights up, so you can plan ahead.' },
   { text: () => 'That\'s everything. Play around for a bit before the real night starts.',
-    keep: ['wisp', 55, 10], done: () => true, after: 15 },
+    keep: ['wisp', 55, 10], done: () => true, after: 20 },
 ];
 // types a line into the box letter by letter; the box is already sized for the whole line, so it never grows
 let tutTypeT = 0;
@@ -1695,7 +1695,7 @@ function tutType(html) {
 }
 function tutNext() {
   tut.step++; tut.dashed = false; tut.moved = 0; tut.time = 0; tut.hold = null; tut.picked = null; tut.k0 = kills; tut.x0 = P.level * 1e4 + P.xp; tut.f0 = flight.length; tut.r0 = ringsMade;
-  $('tutBar').classList.remove('on');
+  $('tutGo').classList.remove('on');
   if (tut.step >= TUT.length) {
     tut.end = 3; save.tut = true; persist(); sfx('win'); award('first');
     $('tutStep').textContent = 'Done'; tutType(save.stats.runs ? "That's the tutorial done. Good luck out there." : "That's the tutorial done. Now for a real night: stay alive until dawn."); $('tutSkip').classList.add('hidden'); return;
@@ -1710,12 +1710,12 @@ function tutorialUpdate(dt) {
   if (st.keep && enemies.length < st.keep[2]) tutSpawn(1, st.keep[0], st.keep[1]);
   if (st.dummies && !enemies.length && tut.hold == null) tutDummies();
   if (tut.hold != null) { // practice time after the goal
-    tut.hold -= dt; $('tutBar').firstChild.style.width = Math.max(0, tut.hold / st.after * 100) + '%';
+    tut.hold -= dt;
     if (tut.hold <= 0) tutNext(); return;
   }
   if (st.done(tut)) {
     if (!st.after) { tutNext(); return; }
-    tut.hold = st.after; $('tutBar').classList.add('on'); if (st.then) { tutType(st.then()); sfx('pick'); }
+    tut.hold = st.after; $('tutGo').classList.add('on'); if (st.then) { tutType(st.then()); sfx('pick'); }
   }
 }
 
@@ -1845,7 +1845,8 @@ for (const id of ['luBuild', 'pauseBuild']) {
   const el = $(id), over = e => { const c = e.target.closest ? e.target.closest('.chip') : null; synLight(c ? c.dataset.syn : ''); };
   el.addEventListener('mouseover', over); el.addEventListener('focusin', over); el.addEventListener('mouseleave', () => synLight('')); el.addEventListener('focusout', () => synLight(''));
 }
-$('tutSkip').onclick = () => { save.tut = true; persist(); start(false); };
+const tutSkipHold = () => { if (tut && !tut.end && tut.hold != null && state === 'play') tutNext(); };
+$('tutGo').onclick = tutSkipHold; $('tutSkip').onclick = () => { save.tut = true; persist(); start(false); };
 $('pauseBtn').onclick = () => togglePause(); $('muteBtn').onclick = toggleMute;
 $('endlessBtn').onclick = () => { daily = false; /* the daily score was locked in at the win */ run.baseAtWin = amberBase(); endless = true; endT = 0; state = 'play'; $('over').classList.add('hidden'); $('topbtns').classList.remove('hidden'); $('dashBtn').classList.toggle('hidden', !touchUI); say('Endless night', 'How long can you last?', 3); last = performance.now(); };
 $('dashBtn').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); dash(); });
@@ -1869,6 +1870,7 @@ addEventListener('keydown', e => {
   keys[e.code] = true;
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code) && state !== 'menu' && state !== 'over' && state !== 'win') e.preventDefault();
   if (state === 'play') {
+    if (e.code === 'Enter' || e.code === 'NumpadEnter') tutSkipHold();
     if (e.code === 'Space' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') dash();
     else if (e.code === 'Escape' || e.code === 'KeyP') togglePause();
   } else if (state === 'pause') { if (e.code === 'Escape' || e.code === 'KeyP') togglePause(); }
