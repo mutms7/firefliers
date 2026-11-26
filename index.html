@@ -26,6 +26,7 @@
     72%{opacity:.9}100%{transform:translate(calc(var(--dx)*1.8),calc(var(--dy)*-.6));opacity:0}}
   @media (prefers-reduced-motion:reduce){.flies i{animation:none;opacity:.5}}
   .modebox{--k:var(--line2);position:relative;width:min(560px,100%);padding:14px 14px 10px;margin-top:2px;border:1px solid var(--line);background:rgba(8,11,12,.72)}
+  .cont{display:flex;flex-direction:column;align-items:center;gap:2px;margin:4px 0 10px}.cont .btn{min-width:min(320px,100%)}.cont .best{margin:0}
   .modebox-h{position:absolute;left:50%;top:-11px;transform:translateX(-50%);padding:0 10px;background:#0b0e0f;font-size:16px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim)}
   .modeNote{font-size:16px;color:var(--dim);min-height:0}.modeNote:empty{display:none}
   .btn:disabled{filter:grayscale(1) brightness(.5);cursor:not-allowed;transform:none}
@@ -283,6 +284,7 @@
   <div class="chars" id="chars"></div>
   <div class="modebox" role="group" aria-label="Ways to play">
     <div class="modebox-h">Fly out</div>
+    <div class="cont hidden" id="contBox"><button class="btn" id="contBtn">Continue your run</button><div class="best" id="contInfo"></div></div>
     <div class="row" style="margin-top:0"><button class="btn" id="playBtn">Play</button><button class="btn daily" id="dailyBtn">Daily</button><button class="btn nightmare" id="nmBtn">Nightmare</button></div>
     <div class="best" id="dailyInfo" style="color:var(--mint)"></div>
     <div class="modeNote" id="modeNote"></div>
@@ -1081,7 +1083,7 @@ function hurtPlayer(d, src) {
     rings.push({ x: P.x, y: P.y, r0: 10, r1: 300, life: .6, max: .6, col: '#ff6b8a', w: 8 }); say('Second Wind', 'Up again, once', 2); sfx('level');
   }
   if (P.hp <= 0) {
-    P.hp = 0; state = 'dying'; dieT = 1.1; shake(20); sfx('boom');
+    P.hp = 0; state = 'dying'; dropRun(); dieT = 1.1; shake(20); sfx('boom');
     burst(P.x, P.y, '#ffe066', 70, 380); rings.push({ x: P.x, y: P.y, r0: 10, r1: 260, life: .6, max: .6, col: '#ffe066', w: 8 });
   }
 }
@@ -1710,6 +1712,7 @@ function payAmber() {
   return run.amber;
 }
 function finish(win) {
+  dropRun();
   if (win) wonW = scoreParts(true).w; // kept so an endless run after the win still counts its dawn bonus
   if (win) { award('dawn'); if (nm) award('nm'); if (Object.keys(wl).length <= 3) award('mini'); }
   if (!endless) recordRun(win);
@@ -1741,7 +1744,41 @@ function finish(win) {
   $('over').classList.remove('hidden'); $('topbtns').classList.add('hidden'); $('dashBtn').classList.add('hidden');
   if (win) sfx('win');
 }
+// a run in progress is saved when you leave (closing the tab, switching away, or Menu), so you can pick it up later.
+// It keeps your build, clock, score and bosses, and starts you back on a clear field.
+const RUN_KEY = 'firefliers.run';
+function loadRun() {
+  try { const s = JSON.parse(localStorage.getItem(RUN_KEY) || 'null'); if (s && s.v === 1 && !(s.daily && s.dday !== today())) return s; } catch (e) {}
+  dropRun(); return null;
+}
+function dropRun() { try { localStorage.removeItem(RUN_KEY); } catch (e) {} }
+function snapRun() {
+  if (tut || !P || !['play', 'pause', 'levelup'].includes(state) || P.hp <= 0) return;
+  payAmber();
+  const up = !!(boss && !boss.dead), chId = Object.keys(CHARS).find(k => CHARS[k] === ch) || 'glow';
+  const s = { v: 1, at: Date.now(), daily, dday, nm, ch: chId, TR, RT, T, endT, kills, endless, won, wonW, killsDawn, P, wl, pl, cds, rerolls, flight: flight.length, run, dmgDone, dmgLog, bossOrder,
+    bossCount: up ? bossCount - 1 : bossCount, nextBoss: up ? nextBoss - 120 : nextBoss, nextEvent, ringsMade, bossKills, offerN, spawnN, pending };
+  try { localStorage.setItem(RUN_KEY, JSON.stringify(s)); } catch (e) {}
+}
+function resumeRun() {
+  const s = loadRun(); if (!s) { buildStart(); return; }
+  initAudio(); mStep = 0; tut = null; daily = !!s.daily; dday = s.dday || 0; if (daily) dseed = seedOf(dday);
+  reset();
+  nm = s.nm; TR = s.TR || {}; ch = CHARS[s.ch] || ch; RT = s.RT; T = s.T; endT = s.endT || 0; kills = s.kills; endless = s.endless; won = s.won; wonW = s.wonW || 0; killsDawn = s.killsDawn;
+  wl = s.wl; pl = s.pl; cds = s.cds; rerolls = s.rerolls; run = s.run; dmgDone = s.dmgDone || {}; dmgLog = s.dmgLog || {}; bossOrder = s.bossOrder;
+  bossCount = s.bossCount; nextBoss = s.nextBoss; nextEvent = s.nextEvent; ringsMade = s.ringsMade || 0; bossKills = s.bossKills || 0; offerN = s.offerN || 0; spawnN = s.spawnN || 0; pending = s.pending || 0;
+  Object.assign(P, s.P, { x: 0, y: 0, inv: 2, dashT: 0 }); recompute(); P.hp = Math.min(P.maxhp, s.P.hp);
+  flight = Array.from({ length: s.flight }, () => ({ x: 0, y: 0, fl: 0 })); path = [{ x: 0, y: 0, s: 0 }];
+  banner = { text: 'Welcome back', sub: 'Your run picks up right where you left it', t: 3.5, max: 3.5 };
+  state = 'play'; $('tutBox').classList.add('hidden');
+  for (const id of ['start', 'over', 'pause', 'levelup', 'haven']) $(id).classList.add('hidden'); if (hollow) hollow.active(false); where = 'run';
+  $('topbtns').classList.remove('hidden'); $('dashBtn').classList.toggle('hidden', !touchUI);
+  togglePause(true); // land on the pause screen so you can get your bearings
+}
+setInterval(() => { if (state === 'play' || state === 'levelup') snapRun(); }, 5000);
+window.addEventListener('pagehide', snapRun);
 function start(d, tutorial) {
+  if (!tutorial) dropRun();
   initAudio(); mStep = 0; tut = tutorial === true ? { step: -1 } : null; daily = d === true && !tut; if (daily) beginDaily(); reset(); state = 'play';
   if (tut) { banner = null; tutNext(); } $('tutBox').classList.toggle('hidden', !tut);
   for (const id of ['start', 'over', 'pause', 'levelup', 'haven']) $(id).classList.add('hidden'); if (hollow) hollow.active(false); where = 'run';
@@ -1760,10 +1797,10 @@ $('againBtn').onclick = () => start(daily); $('restartBtn').onclick = () => { pa
 $('resumeBtn').onclick = () => togglePause(false);
 $('dmgBtn').onclick = () => { const h = $('overDmg').classList.toggle('hidden'); $('dmgBtn').textContent = h ? 'Damage' : 'Hide damage'; };
 $('menuBtn').onclick = toMenu; $('havenGoBtn').onclick = () => toHaven();
-$('playBtn').onclick = () => playMode('night'); $('dailyBtn').onclick = () => playMode('daily'); $('nmBtn').onclick = () => playMode('nightmare');
+$('contBtn').onclick = resumeRun; $('playBtn').onclick = () => playMode('night'); $('dailyBtn').onclick = () => playMode('daily'); $('nmBtn').onclick = () => playMode('nightmare');
 $('havenBtn').onclick = () => toHaven(); $('howBtn').onclick = () => playMode('tutorial'); $('statsBtn').onclick = showStats; $('setMenuBtn').onclick = openSettings;
 (() => { const f = $('flies'); for (let i = 0; i < 18; i++) { const e = document.createElement('i'); e.style.cssText = 'left:' + rand(2, 96) + '%;top:' + rand(4, 94) + '%;--d:' + rand(7, 15).toFixed(1) + 's;--dl:-' + rand(0, 15).toFixed(1) + 's;--dx:' + rand(-70, 70).toFixed(0) + 'px;--dy:' + rand(-60, 30).toFixed(0) + 'px'; f.appendChild(e); } })();
-$('quitBtn').onclick = () => { const a = payAmber(); toMenu(); if (a) toast('+' + num(a) + ' amber'); }; $('setBtn').onclick = openSettings; $('rerollBtn').onclick = reroll;
+$('quitBtn').onclick = () => { snapRun(); const a = payAmber(); toMenu(); if (a) toast('+' + num(a) + ' amber'); }; $('setBtn').onclick = openSettings; $('rerollBtn').onclick = reroll;
 $('statsBack').onclick = () => { $('stats').classList.add('hidden'); if (statsFrom === 'haven') toHaven('records'); else toMenu(); };
 for (const id of ['luBuild', 'pauseBuild']) {
   const el = $(id), over = e => { const c = e.target.closest ? e.target.closest('.chip') : null; synLight(c ? c.dataset.syn : ''); };
@@ -1802,7 +1839,7 @@ addEventListener('keydown', e => {
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; joy = null; togglePause(true); });
-document.addEventListener('visibilitychange', () => { if (document.hidden) togglePause(true); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { togglePause(true); snapRun(); } });
 cv.addEventListener('contextmenu', e => e.preventDefault());
 cv.addEventListener('pointerdown', e => {
   if (e.pointerType === 'touch' && !touchUI) { touchUI = true; if (state === 'play') $('dashBtn').classList.remove('hidden'); }
@@ -3523,6 +3560,8 @@ function buildStart() {
   $('havenNote').textContent = first ? 'Opens after your first run' : !save.met ? "Someone's waiting for you there" : 'Grow the Root Tree, pick your bug and catch up with everyone';
   { const owed = claimTotal(), sb = $('statsBtn'); sb.classList.toggle('notify', owed > 0 && !first); sb.dataset.n = owed ? '+' + owed : ''; sb.setAttribute('aria-label', owed ? 'Stats, ' + owed + ' amber to claim' : 'Stats'); }
   $('bestStart').textContent = bestLine();
+  { const r = first ? null : loadRun(); $('contBox').classList.toggle('hidden', !r);
+    if (r) $('contInfo').textContent = (r.daily ? 'Daily' : r.nm ? 'Nightmare' : r.endless ? 'Endless night' : 'Night') + ' as the ' + (CHARS[r.ch] || CHARS.glow).name + ', level ' + r.P.level + ' at ' + fmt(r.RT) + '. Starting a new run ends it.'; }
   $('whoLine').textContent = save.name ? 'Flying as ' + save.name : '';
 }
 function playMode(mode) { // every way to play goes through here
