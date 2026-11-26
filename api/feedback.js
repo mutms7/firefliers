@@ -29,7 +29,8 @@ module.exports = async (req, res) => {
   const r = await fetch(hook, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      username: 'Firefliers feedback',
+      username: 'Glim', // posts as Glim, with his portrait, whatever the webhook itself is called
+      avatar_url: 'https://firefliers.vercel.app/icons/glim-avatar.png',
       allowed_mentions: { parse: [] }, // nobody can @everyone through this
       embeds: [{ title: 'Feedback from ' + who, description: msg, color: 0xf2c14e, footer: { text: meta }, timestamp: new Date().toISOString() }],
     }),
