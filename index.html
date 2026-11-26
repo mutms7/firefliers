@@ -243,7 +243,8 @@
     padding:9px 16px;font-size:18px;color:var(--ink);pointer-events:none;transition:opacity .3s;max-width:calc(100% - 24px);text-align:center;box-shadow:0 10px 30px -10px #000}
   #tutBox{--k:var(--gold);position:fixed;left:50%;top:112px;transform:translateX(-50%);z-index:4;width:min(560px,calc(100% - 32px));padding:12px 16px;text-align:center;pointer-events:none}
   #tutStep{font-size:15px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:400}
-  #tutText{font-size:20px;line-height:1.4;margin:5px 0 9px}#tutText b{color:var(--gold);font-weight:400}
+  #tutText{font-size:20px;line-height:1.4;margin:5px 0 9px;min-height:calc(3 * 1.4em)}#tutText b{color:var(--gold);font-weight:400}#tutText .u{visibility:hidden}
+  #tutBar{height:4px;margin:0 auto 9px;width:60%;background:var(--line);visibility:hidden}#tutBar i{display:block;height:100%;width:0;background:var(--gold)}#tutBar.on{visibility:visible}
   #tutSkip{pointer-events:auto}
   #topbtns{position:fixed;top:24px;right:10px;display:flex;gap:6px;z-index:4}
   #topbtns button{display:grid;place-items:center;width:36px;height:36px;border-radius:2px;background:rgba(13,17,18,.85);border:1px solid var(--line2);font-size:18px;color:var(--ink)}
@@ -280,7 +281,7 @@
   <p style="font-size:13px" id="statNote">Saved in this browser.</p>
   <div class="row" style="margin-top:6px"><button class="btn" id="statsBack">Back</button></div>
 </div></div>
-<div id="tutBox" class="panel hidden" role="status" aria-live="polite"><div id="tutStep"></div><div id="tutText"></div><button class="btn ghost small" id="tutSkip">Skip tutorial</button></div>
+<div id="tutBox" class="panel hidden" role="status" aria-live="polite"><div id="tutStep"></div><div id="tutText"></div><div id="tutBar"><i></i></div><button class="btn ghost small" id="tutSkip">Skip tutorial</button></div>
 
 <div id="start" class="screen">
   <div class="flies" id="flies" aria-hidden="true"></div>
@@ -1260,6 +1261,7 @@ function flightUpdate(dt) {
 /* ---------- level up ---------- */
 function gainXP(v) {
   P.xp += v * S.xp;
+  if (tut && !tut.lvl) { P.xp = Math.min(P.xp, P.next - 1); return; } // the tutorial hands out levels itself
   while (P.xp >= P.next) { P.xp -= P.next; P.level++; P.next = Math.floor(5 + P.level * 4 + P.level * P.level * .35); pending++; }
 }
 function choices() {
@@ -1280,6 +1282,8 @@ function choices() {
   if (evs.length) out.push(sh(evs).pop());
   while (out.length < nC && pool.length) { let r = rnd() * pool.reduce((a, c) => a + wt(c), 0), i = 0; for (; i < pool.length - 1; i++) if ((r -= wt(pool[i])) < 0) break; out.push(pool.splice(i, 1)[0]); }
   while (out.length < nC) out.push({ kind: 'heal', id: 'heal' + out.length });
+  // the tutorial's second level-up makes sure your starting weapon is on offer, so you can level it
+  if (tut && tut.offer === 'own' && !out.some(c => c.kind === 'w' && c.id === ch.w) && (wl[ch.w] || 0) < 6) out[0] = { kind: 'w', id: ch.w };
   return sh(out);
 }
 let curChoices = [];
@@ -1327,10 +1331,10 @@ function choose(i, force) {
   if (state !== 'levelup' || (!force && performance.now() < luLock)) return;
   const c = curChoices[i]; if (!c) return;
   if (c.kind === 'w') wl[c.id] = (wl[c.id] || 0) + 1;
-  else if (c.kind === 'e') { wl[c.id] = 7; award('evo1'); if (Object.values(wl).filter(v => v >= 7).length >= 3) award('evo3'); { const nw = daily || tut ? null : Object.keys(W_NODE).find(k => !grown(W_NODE[k]) && !run.extraW.includes(k)); if (nw) run.extraW.push(nw); say(EVO[c.id].name + '!', WEAPONS[c.id].name + ' evolved. Room for one more weapon' + (nw ? ', and ' + WEAPONS[nw].name + ' joins the pool' : ''), 3.2); } whiteT = .2; sfx('win'); }
+  else if (c.kind === 'e') { wl[c.id] = 7; if (!tut) { award('evo1'); if (Object.values(wl).filter(v => v >= 7).length >= 3) award('evo3'); } { const nw = daily || tut ? null : Object.keys(W_NODE).find(k => !grown(W_NODE[k]) && !run.extraW.includes(k)); if (nw) run.extraW.push(nw); say(EVO[c.id].name + '!', WEAPONS[c.id].name + ' evolved. Room for one more weapon' + (nw ? ', and ' + WEAPONS[nw].name + ' joins the pool' : ''), 3.2); } whiteT = .2; sfx('win'); }
   else if (c.kind === 'p') { pl[c.id] = pv(c.id) + 1; recompute(); if (c.id === 'vigor') P.hp = Math.min(P.maxhp, P.hp + 25); }
   else P.hp = Math.min(P.maxhp, P.hp + 40);
-  if (tut && tut.step === TUT.length - 1) tut.picked = true;
+  if (tut) { tut.picked = c; tut.lvl = false; tut.offer = null; }
   sfx('select'); pending--; $('levelup').classList.add('hidden');
   if (pending > 0) { openLevelUp(); return; }
   state = 'play'; P.inv = Math.max(P.inv, .8);
@@ -1653,36 +1657,66 @@ function tutDummies() {
   const a = rand(0, TAU), cx = P.x + Math.cos(a) * 220, cy = P.y + Math.sin(a) * 220;
   for (let i = 0; i < 3; i++) { const b = i / 3 * TAU, e = spawn('brute', cx + Math.cos(b) * 20, cy + Math.sin(b) * 20); e.speed = 0; e.hp = e.maxhp = 600; }
 }
+// Each step shows its line, waits until you've done the thing, then gives you a few seconds to play with it
+// (the gold bar counts that time down) before the next line types in. Levels only come when a step hands one out.
+const wName = () => WEAPONS[ch.w].name, partner = () => PASSIVES[EVO[ch.w].req].name;
+function tutLevel(offer) { tut.lvl = true; tut.offer = offer || null; P.xp = 0; P.level++; P.next = Math.floor(5 + P.level * 4 + P.level * P.level * .35); pending = 1; }
 const TUT = [
-  { text: () => isTouch() ? 'Drag anywhere on the screen to fly.' : 'Fly with <b>WASD</b> or the arrow keys. You can also click and drag.',
-    done: t => t.moved > 240 },
-  { text: () => 'You attack on your own. Squash 3 enemies, then fly over the blue sparks they drop.',
-    enter: () => tutSpawn(4, 'wisp', 40), keep: ['wisp', 40], done: t => kills - t.k0 >= 3 && P.level * 1e4 + P.xp > t.x0 },
+  { text: () => isTouch() ? 'Drag anywhere on the screen to fly around.' : 'Fly around with <b>WASD</b> or the arrow keys. Clicking and dragging works too.',
+    done: t => t.moved > 240, after: 2, then: () => 'Good. The meadow goes on forever, so fly wherever you like.' },
+  { text: () => 'You attack on your own, so all you have to do is steer. Squash 3 of these and fly over the <b>blue sparks</b> they drop.',
+    enter: () => tutSpawn(4, 'wisp', 40), keep: ['wisp', 40, 4], done: t => kills - t.k0 >= 3 && P.level * 1e4 + P.xp > t.x0,
+    after: 6, then: () => 'Sparks fill the bar at the top of the screen. Keep squashing for a few seconds.' },
   { text: () => (isTouch() ? 'Tap <b>DASH</b> to dash.' : 'Press <b>Space</b> to dash.') + ' Nothing can hurt you mid-dash, and you damage whatever you fly through.',
-    done: t => t.dashed },
-  { text: () => 'A stray firefly is lost in the dark. Follow the gold arrow and touch it to rescue it.',
-    enter: () => { const a = rand(0, TAU); strays.push({ x: P.x + Math.cos(a) * 460, y: P.y + Math.sin(a) * 460, ph: 0 }); }, done: t => flight.length > t.f0 },
-  { text: () => 'Your fireflies trail behind you. Fly a curve around these sleeping brutes, then dash. Whatever is between you and your trail burns.',
-    enter: () => { while (flight.length < 16) flight.push({ x: P.x, y: P.y, fl: .4 }); tutDummies(); }, dummies: true, done: t => ringsMade > t.r0 },
-  { text: () => 'Sparks level you up. Pick an upgrade to finish.',
-    enter: () => gainXP(P.next), done: t => t.picked },
+    keep: ['wisp', 55, 5], done: t => t.dashed, after: 6, then: () => 'Try dashing straight through a few of them. It\'s also how you slip out of a tight spot.' },
+  { text: () => 'A stray firefly is lost in the dark. Follow the <b>gold arrow</b> and touch it to rescue it.',
+    enter: () => { const a = rand(0, TAU); strays.push({ x: P.x + Math.cos(a) * 460, y: P.y + Math.sin(a) * 460, ph: 0 }); }, done: t => flight.length > t.f0,
+    after: 3, then: () => 'Every firefly you save joins your trail, and each one is worth points at the end of the night.' },
+  { text: () => 'Your fireflies trail behind you. Fly a curve around these sleeping brutes, then <b>dash</b>. Whatever is between you and your trail burns.',
+    enter: () => { while (flight.length < 16) flight.push({ x: P.x, y: P.y, fl: .4 }); tutDummies(); }, dummies: true, done: t => ringsMade > t.r0,
+    after: 3, then: () => 'That\'s a ring. It\'s your strongest move when a crowd closes in.' },
+  { text: () => 'When the bar fills, you <b>level up</b> and pick an upgrade. Weapons attack on their own, and boosts make everything you have better. Pick one.',
+    enter: () => tutLevel(), done: t => t.picked, keep: ['wisp', 45, 5], after: 5, then: () => 'That\'s yours now. Give it a few seconds on these.' },
+  { text: () => 'Picking something you already own <b>levels it up</b>, and the things you own come up more often. Level up your ' + wName() + ' this time.',
+    enter: () => tutLevel('own'), done: t => t.picked, keep: ['wisp', 45, 5], after: 4, then: () => 'Every weapon goes up to <b>level 6</b> and gets stronger each time.' },
+  { text: () => 'Every weapon has a <b>partner boost</b>. Get a weapon to level 6 while you own its partner and it <b>evolves</b>. Your ' + wName() + ' is ready, and ' + partner() + ' is its partner, so pick the evolution.',
+    enter: () => { wl[ch.w] = 6; pl[EVO[ch.w].req] = Math.max(1, pv(EVO[ch.w].req)); recompute(); tutLevel(); }, done: t => t.picked,
+    keep: ['wisp', 50, 8], after: 6, then: () => isTouch() ? 'Evolutions are a big jump, so it pays to plan your picks around each weapon and its partner.' : 'Evolutions are a big jump. When you pick upgrades, hover a card and its partner lights up, so you can plan ahead.' },
+  { text: () => 'That\'s everything. Play around for a bit before the real night starts.',
+    keep: ['wisp', 55, 10], done: () => true, after: 15 },
 ];
+// types a line into the box letter by letter; the box is already sized for the whole line, so it never grows
+let tutTypeT = 0;
+function tutType(html) {
+  const el = $('tutText'), letters = []; clearInterval(tutTypeT); el.innerHTML = html;
+  const walk = n => { for (const c of [...n.childNodes]) { if (c.nodeType === 3) { const f = document.createDocumentFragment(); for (const q of c.textContent) { const sp = document.createElement('span'); sp.className = 'u'; sp.textContent = q; f.appendChild(sp); letters.push(sp); } c.replaceWith(f); } else walk(c); } };
+  if (reduceMotion) return; walk(el);
+  let i = 0; tutTypeT = setInterval(() => { for (let k = 0; k < 2 && i < letters.length; k++) letters[i++].className = ''; if (i >= letters.length) clearInterval(tutTypeT); }, 28);
+}
 function tutNext() {
-  tut.step++; tut.dashed = false; tut.moved = 0; tut.k0 = kills; tut.x0 = P.level * 1e4 + P.xp; tut.f0 = flight.length; tut.r0 = ringsMade;
+  tut.step++; tut.dashed = false; tut.moved = 0; tut.time = 0; tut.hold = null; tut.picked = null; tut.k0 = kills; tut.x0 = P.level * 1e4 + P.xp; tut.f0 = flight.length; tut.r0 = ringsMade;
+  $('tutBar').classList.remove('on');
   if (tut.step >= TUT.length) {
-    tut.end = 2.4; save.tut = true; persist(); sfx('win'); award('first');
-    $('tutStep').textContent = 'Done'; $('tutText').innerHTML = save.stats.runs ? "That's everything. Good luck out there." : "That's everything. Now for a real night: stay alive until dawn."; $('tutSkip').classList.add('hidden'); return;
+    tut.end = 3; save.tut = true; persist(); sfx('win'); award('first');
+    $('tutStep').textContent = 'Done'; tutType(save.stats.runs ? "That's the tutorial done. Good luck out there." : "That's the tutorial done. Now for a real night: stay alive until dawn."); $('tutSkip').classList.add('hidden'); return;
   }
   const st = TUT[tut.step];
-  $('tutStep').textContent = 'Step ' + (tut.step + 1) + ' of ' + TUT.length; $('tutText').innerHTML = st.text(); $('tutSkip').classList.remove('hidden');
+  $('tutStep').textContent = 'Step ' + (tut.step + 1) + ' of ' + TUT.length; tutType(st.text()); $('tutSkip').classList.remove('hidden');
   if (st.enter) st.enter(); if (tut.step) sfx('pick');
 }
 function tutorialUpdate(dt) {
   if (tut.end) { tut.end -= dt; if (tut.end <= 0) { if (save.stats.runs) toMenu(); else start(false); } return; }
-  const st = TUT[tut.step];
-  if (st.keep && enemies.length < 2) tutSpawn(2, st.keep[0], st.keep[1]);
-  if (st.dummies && !enemies.length) tutDummies();
-  if (st.done(tut)) tutNext();
+  const st = TUT[tut.step]; tut.time += dt;
+  if (st.keep && enemies.length < st.keep[2]) tutSpawn(1, st.keep[0], st.keep[1]);
+  if (st.dummies && !enemies.length && tut.hold == null) tutDummies();
+  if (tut.hold != null) { // practice time after the goal
+    tut.hold -= dt; $('tutBar').firstChild.style.width = Math.max(0, tut.hold / st.after * 100) + '%';
+    if (tut.hold <= 0) tutNext(); return;
+  }
+  if (st.done(tut)) {
+    if (!st.after) { tutNext(); return; }
+    tut.hold = st.after; $('tutBar').classList.add('on'); if (st.then) { tutType(st.then()); sfx('pick'); }
+  }
 }
 
 /* ---------- screens ---------- */
@@ -3558,7 +3592,7 @@ function buildStart() {
   $('nmBtn').innerHTML = 'Nightmare' + (save.nmWon ? ' ★' : '');
   const lock = (id, on, why) => { const b = $(id); b.disabled = !on; b.title = on ? '' : why; };
   lock('dailyBtn', !first, 'Finish your first run to open this'); lock('nmBtn', save.won, first ? 'Finish your first run to open this' : 'See the dawn once to open Nightmare');
-  lock('havenBtn', !first, 'Finish your first run to open the Haven'); lock('howBtn', !first, 'Finish your first run first'); lock('statsBtn', !first, 'Finish your first run first');
+  lock('havenBtn', !first, 'Finish your first run to open the Haven');  lock('statsBtn', !first, 'Finish your first run first');
   $('modeNote').textContent = first ? 'Your first flight starts with a short lesson. You can skip it.' : save.won ? "Nightmare mode is harder, and your Root Tree's boosts can't help you." : '';
   $('havenAmber').innerHTML = first ? iconImg(ART.ICO.lock, 2) : amberTag(save.amber);
   $('havenBtn').classList.toggle('calling', !first && !save.met);
@@ -3980,7 +4014,7 @@ requestAnimationFrame(frame);
 
 // small hook for automated playtests
 window.__glow = { sprite, SPRITES, get dmgDone() { return dmgDone; }, get state() { return state; }, get T() { return T; }, get P() { return P; }, get enemies() { return enemies; }, get ebullets() { return ebullets; },
-  get kills() { return kills; }, get wl() { return wl; }, get pl() { return pl; }, get gems() { return gems; }, get pickups() { return pickups; }, get flight() { return flight; }, get strays() { return strays; }, get shocks() { return shocks; }, get dmgLog() { return dmgLog; }, get webs() { return webs; }, get bossOrder() { return bossOrder; }, setBosses: a => { bossOrder = a; }, award, showStats, get rings() { return ringsMade; }, scoreParts, get boss() { return boss; }, keys, update, choose, recompute, start, dash, render, save, reroll, toMenu, music, shareText, get hollow() { return hollow; }, get embers() { return embers; }, finish, ART, hub: { get endK() { return endK(); }, get endT() { return endT; }, get sitting() { return hollow.sitting; }, openGate, openTree, openRoost, openRecords, openSettings, hubRefresh, payAmber, toHaven, toMenu, glimIntro, talkTo, endTalk, get dlg() { return dlg; }, get where() { return where; }, dlgAdvance, sendFeedback, get RT() { return RT; }, get TR() { return TR; } }, get lastDaily() { return lastDaily; } };
+  get kills() { return kills; }, get wl() { return wl; }, get pl() { return pl; }, get gems() { return gems; }, get pickups() { return pickups; }, get flight() { return flight; }, get strays() { return strays; }, get shocks() { return shocks; }, get dmgLog() { return dmgLog; }, get webs() { return webs; }, get bossOrder() { return bossOrder; }, setBosses: a => { bossOrder = a; }, award, showStats, get rings() { return ringsMade; }, scoreParts, get boss() { return boss; }, keys, update, choose, recompute, start, get tut() { return tut; }, tutNext, dash, render, save, reroll, toMenu, music, shareText, get hollow() { return hollow; }, get embers() { return embers; }, finish, ART, hub: { get endK() { return endK(); }, get endT() { return endT; }, get sitting() { return hollow.sitting; }, openGate, openTree, openRoost, openRecords, openSettings, hubRefresh, payAmber, toHaven, toMenu, glimIntro, talkTo, endTalk, get dlg() { return dlg; }, get where() { return where; }, dlgAdvance, sendFeedback, get RT() { return RT; }, get TR() { return TR; } }, get lastDaily() { return lastDaily; } };
 })();
 </script>
 </body>
