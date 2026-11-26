@@ -1676,11 +1676,11 @@ const TUT = [
     enter: () => { while (flight.length < 16) flight.push({ x: P.x, y: P.y, fl: .4 }); tutDummies(); }, dummies: true, done: t => ringsMade > t.r0,
     after: 10, then: () => 'That\'s a ring. It\'s your strongest move when a crowd closes in.' },
   { text: () => 'When the bar fills, you <b>level up</b> and pick an upgrade. Weapons attack on their own, and boosts make everything you have better. Pick one.',
-    enter: () => tutLevel(), done: t => t.picked, keep: ['wisp', 45, 5], after: 10, then: () => 'That\'s yours now. Give it a few seconds on these.' },
+    enter: () => { tut.lvlAfterRead = 'any'; }, done: t => t.picked, keep: ['wisp', 45, 5], after: 10, then: () => 'That\'s yours now. Give it a few seconds on these.' },
   { text: () => 'Picking something you already own <b>levels it up</b>, and the things you own come up more often. Level up your ' + wName() + ' this time.',
-    enter: () => tutLevel('own'), done: t => t.picked, keep: ['wisp', 45, 5], after: 10, then: () => 'Every weapon goes up to <b>level 6</b> and gets stronger each time.' },
+    enter: () => { tut.lvlAfterRead = 'own'; }, done: t => t.picked, keep: ['wisp', 45, 5], after: 10, then: () => 'Every weapon goes up to <b>level 6</b> and gets stronger each time.' },
   { text: () => 'Every weapon has a <b>partner boost</b>. Get a weapon to level 6 while you own its partner and it <b>evolves</b>. Your ' + wName() + ' is ready, and ' + partner() + ' is its partner, so pick the evolution.',
-    enter: () => { wl[ch.w] = 6; pl[EVO[ch.w].req] = Math.max(1, pv(EVO[ch.w].req)); recompute(); tutLevel(); }, done: t => t.picked,
+    enter: () => { wl[ch.w] = 6; pl[EVO[ch.w].req] = Math.max(1, pv(EVO[ch.w].req)); recompute(); tut.lvlAfterRead = 'any'; }, done: t => t.picked,
     keep: ['wisp', 50, 8], after: 10, then: () => isTouch() ? 'Evolutions are a big jump, so it pays to plan your picks around each weapon and its partner.' : 'Evolutions are a big jump. When you pick upgrades, hover a card and its partner lights up, so you can plan ahead.' },
   { text: () => 'That\'s everything. Play around for a bit before the real night starts.',
     keep: ['wisp', 55, 10], done: () => true, after: 20 },
@@ -1689,15 +1689,16 @@ const TUT = [
 let tutTypeT = 0;
 function tutType(html) {
   const el = $('tutText'), letters = []; clearInterval(tutTypeT); el.innerHTML = html;
+  if (tut) tut.readAt = performance.now() + (reduceMotion ? 0 : el.textContent.length * 14) + Math.max(2200, el.textContent.length * 25);
   const walk = n => { for (const c of [...n.childNodes]) { if (c.nodeType === 3) { const f = document.createDocumentFragment(); for (const q of c.textContent) { const sp = document.createElement('span'); sp.className = 'u'; sp.textContent = q; f.appendChild(sp); letters.push(sp); } c.replaceWith(f); } else walk(c); } };
   if (reduceMotion) return; walk(el);
   let i = 0; tutTypeT = setInterval(() => { for (let k = 0; k < 2 && i < letters.length; k++) letters[i++].className = ''; if (i >= letters.length) clearInterval(tutTypeT); }, 28);
 }
 function tutNext() {
-  tut.step++; tut.dashed = false; tut.moved = 0; tut.time = 0; tut.hold = null; tut.picked = null; tut.k0 = kills; tut.x0 = P.level * 1e4 + P.xp; tut.f0 = flight.length; tut.r0 = ringsMade;
+  tut.step++; tut.dashed = false; tut.moved = 0; tut.time = 0; tut.hold = null; tut.picked = null; tut.met = false; tut.lvlAfterRead = null; tut.k0 = kills; tut.x0 = P.level * 1e4 + P.xp; tut.f0 = flight.length; tut.r0 = ringsMade;
   $('tutGo').classList.remove('on');
   if (tut.step >= TUT.length) {
-    tut.end = 3; save.tut = true; persist(); sfx('win'); award('first');
+    tut.end = 4; save.tut = true; persist(); sfx('win'); award('first');
     $('tutStep').textContent = 'Done'; tutType(save.stats.runs ? "That's the tutorial done. Good luck out there." : "That's the tutorial done. Now for a real night: stay alive until dawn."); $('tutSkip').classList.add('hidden'); return;
   }
   const st = TUT[tut.step];
@@ -1709,13 +1710,16 @@ function tutorialUpdate(dt) {
   const st = TUT[tut.step]; tut.time += dt;
   if (st.keep && enemies.length < st.keep[2]) tutSpawn(1, st.keep[0], st.keep[1]);
   if (st.dummies && !enemies.length && tut.hold == null) tutDummies();
+  const read = performance.now() >= tut.readAt; // nothing new appears until the current line has been read
+  if (tut.lvlAfterRead && read) { tutLevel(tut.lvlAfterRead === 'own' ? 'own' : null); tut.lvlAfterRead = null; }
   if (tut.hold != null) { // practice time after the goal
-    tut.hold -= dt;
-    if (tut.hold <= 0) tutNext(); return;
+    tut.hold -= dt; $('tutGo').classList.toggle('on', read);
+    if (tut.hold <= 0 && read) tutNext(); return;
   }
-  if (st.done(tut)) {
+  if (!tut.met && st.done(tut)) tut.met = true;
+  if (tut.met && read) {
     if (!st.after) { tutNext(); return; }
-    tut.hold = st.after; $('tutGo').classList.add('on'); if (st.then) { tutType(st.then()); sfx('pick'); }
+    tut.hold = st.after; if (st.then) { tutType(st.then()); sfx('pick'); }
   }
 }
 
@@ -1845,7 +1849,7 @@ for (const id of ['luBuild', 'pauseBuild']) {
   const el = $(id), over = e => { const c = e.target.closest ? e.target.closest('.chip') : null; synLight(c ? c.dataset.syn : ''); };
   el.addEventListener('mouseover', over); el.addEventListener('focusin', over); el.addEventListener('mouseleave', () => synLight('')); el.addEventListener('focusout', () => synLight(''));
 }
-const tutSkipHold = () => { if (tut && !tut.end && tut.hold != null && state === 'play') tutNext(); };
+const tutSkipHold = () => { if (tut && !tut.end && tut.hold != null && state === 'play' && performance.now() >= tut.readAt) tutNext(); };
 $('tutGo').onclick = tutSkipHold; $('tutSkip').onclick = () => { save.tut = true; persist(); start(false); };
 $('pauseBtn').onclick = () => togglePause(); $('muteBtn').onclick = toggleMute;
 $('endlessBtn').onclick = () => { daily = false; /* the daily score was locked in at the win */ run.baseAtWin = amberBase(); endless = true; endT = 0; state = 'play'; $('over').classList.add('hidden'); $('topbtns').classList.remove('hidden'); $('dashBtn').classList.toggle('hidden', !touchUI); say('Endless night', 'How long can you last?', 3); last = performance.now(); };
