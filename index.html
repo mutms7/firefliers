@@ -210,6 +210,9 @@
   .scoreLine{font-size:16px;color:var(--dim);margin:8px auto 0;max-width:560px}
   .achs{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;width:100%;margin-top:4px}
   .ach{background:#0c1011;border:1px solid var(--line);border-radius:2px;padding:8px 10px;text-align:left;opacity:.55}
+  .ach-a{display:block;font-style:normal;font-size:15px;color:var(--gold);margin-top:2px}.ach-a.done{color:var(--mute)}
+  .claimBtn{margin-left:10px;padding:4px 12px!important;font-size:16px!important;vertical-align:middle;animation:calling 1.8s ease-in-out infinite}
+  .notify{position:relative}.notify::after{content:attr(data-n);position:absolute;top:-9px;right:-9px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--gold);color:#1d1404;font-size:14px;line-height:20px;box-shadow:0 0 12px -2px var(--gold)}
   .ach.got{opacity:1;border-color:#7c6630;border-left:3px solid var(--gold)}.ach b{display:block;font-size:18px;font-weight:400}.ach.got b{color:var(--gold)}.ach span{font-size:15px;color:var(--dim)}
   .runs{width:100%;margin-top:4px;display:flex;flex-direction:column;gap:3px}
   .run{display:flex;gap:10px;justify-content:space-between;background:#0c1011;border:1px solid var(--line);border-radius:2px;padding:6px 12px;font-size:16px;color:var(--dim);flex-wrap:wrap}
@@ -610,6 +613,9 @@ try { best = Object.assign(best, JSON.parse(localStorage.getItem('firefliers.bes
 let zones = [], embers = [], rerolls = 2, ch = CHARS.glow, nm = false, TR = {}, emberT = 0, swarmT = 0; // TR: the Root Tree nodes this run uses
 let flight = [], strays = [], path = [], ringFx = [], pathSer = 0, ringSer = 0, ringCd = 0, syncT = 2.4, strayT = 5, jarT = 12, ringsMade = 0, bossKills = 0, killsDawn = -1;
 const MAX_FLIGHT = 30;
+let endT = 0; // time spent in the endless night
+// endless gets 10% harder each full minute, compounding
+const endK = () => endless ? Math.pow(1.1, Math.floor(endT / 60)) : 1;
 let frenzyT = 0, quietT = 0, wonW = 0, newBestScore = false; // quietT: enemies can't fire (Cold snap)
 let shocks = [], dark = 0, webs = [], bossOrder = [0, 1, 2, 3, 4, 5], frameMove = 0;
 let save = { unlocked: { glow: true }, char: 'glow', nm: false, won: false, nmWon: false, daily: { day: 0, best: 0, attempts: 0, streak: 0 },
@@ -648,8 +654,8 @@ function beginDaily() {
 // Time and kills stop counting at 6:00, when the last boss arrives, so stalling earns nothing. Bosses pay more the faster they go down.
 function scoreParts(win) {
   const t = Math.min(360, Math.floor(RT)) * 5, k = killsDawn >= 0 ? killsDawn : kills, b = run.bossPts || 0, f = Math.max(0, flight.length - 3) * 60, // the 3 you start with don't count
-    w = win ? 2000 : wonW, m = nm ? 1.5 : 1;
-  return { t, k, b, f, w, m, total: Math.round((t + k + b + f + w) * m) };
+    w = win ? 2000 : wonW, m = nm ? 1.5 : 1, e = Math.round(run.endPts || 0);
+  return { t, k, b, f, w, e, m, total: Math.round((t + k + b + f + w + e) * m) };
 }
 const calcScore = win => scoreParts(win).total;
 const num = n => n.toLocaleString('en-US');
@@ -668,14 +674,14 @@ function reset() {
   nm = !daily && !tut && !!(save.nm && save.won);
   TR = {}; if (!daily && !tut) for (const id of save.tree) if (UNLOCKS.has(id) || (!nm && !save.off.includes(id))) TR[id] = true; // Nightmare keeps unlocks only
   dmgDone = {}; src = 'bolt';
-  T = 0; RT = 0; kills = 0; endless = false; won = false;
+  T = 0; RT = 0; endT = 0; kills = 0; endless = false; won = false;
   ch = daily ? CHARS[dailyCharId(dday)] : CHARS[save.char] || CHARS.glow; offerN = 0; spawnN = 0;
   P = { x: 0, y: 0, r: 12, hp: 100, maxhp: 100, speed: 190, inv: 0, dashT: 0, dashCd: 0, dvx: 1, dvy: 0, face: 0, level: 1, xp: 0, next: 6, wing: 0, armor: ch.armor || 0, dashN: TR.double ? 2 : 1, dashMax: TR.double ? 2 : 1, dashCdMax: TR.wings ? 1.35 : 1.6 };
   S = {}; wl = { [ch.w]: 1 }; pl = {}; cds = { bolt: .3, nova: 1, zap: .6, fly: .5, thorn: .4, spore: .2, freeze: 3 };
   recompute(); P.hp = P.maxhp;
   zones = []; embers = []; rerolls = TR.rerolls ? 4 : 2; emberT = swarmT = 0;
   flight = Array.from({ length: TR.trail ? 5 : 3 }, () => ({ x: 0, y: 0, fl: 0 })); strays = []; path = [{ x: 0, y: 0, s: 0 }]; ringFx = [];
-  run = { rescued: 0, maxFlight: flight.length, bosses: [], bossHurt: false, wind: false, amber: 0, bossPts: 0 }; webs = []; frameMove = 0; frenzyT = 0; quietT = 0; wonW = 0;
+  run = { rescued: 0, maxFlight: flight.length, bosses: [], bossHurt: false, wind: false, amber: 0, bossPts: 0, baseAtWin: 0, endPts: 0, extraW: [] }; webs = []; frameMove = 0; frenzyT = 0; quietT = 0; wonW = 0;
   { const rnd = daily ? mkRng(4, 0) : Math.random; bossOrder = BOSSES.map((b, i) => i); for (let i = bossOrder.length - 1; i > 0; i--) { const j = (rnd() * (i + 1)) | 0, t = bossOrder[i]; bossOrder[i] = bossOrder[j]; bossOrder[j] = t; } }
   dmgLog = {}; shocks = []; dark = 0; pathSer = 0; ringSer = 0; ringCd = 0; syncT = 2.4; strayT = 5; jarT = 12; ringsMade = 0; bossKills = 0; killsDawn = -1;
   enemies = []; bullets = []; ebullets = []; gems = []; pickups = []; parts = []; texts = []; rings = []; arcs = [];
@@ -741,6 +747,7 @@ function spawn(type, x, y, opt) {
   const e = { type, x, y, r: d.r, hp: d.hp * hpMult(), speed: d.sp * rand(.9, 1.1) * (1 + Math.min(.3, T / 1000)) * (nm ? 1.12 : 1), dmg: d.dmg * (1 + Math.min(.7, T / 600)), xp: d.xp, col: d.col,
     flash: 0, orbT: 0, slowT: 0, slowF: 1, kx: 0, ky: 0, t: rand(1, 3), ph: rand(0, TAU), dead: false };
   if (opt && opt.elite) { e.elite = true; e.hp *= 5; e.r *= 1.35; e.xp = e.xp * 4 + 6; e.dmg *= 1.2; }
+  if (endless) { const k = endK(); e.hp *= k; e.speed *= k; }
   e.maxhp = e.hp; enemies.push(e); return e;
 }
 const pwOf = e => [.8, 1, 1.2][Math.min(e.tier, 2)] * (1 + Math.max(0, e.tier - 2) * .25);
@@ -770,6 +777,7 @@ function spawnBoss() {
   if (kind === 4) e.hp = e.maxhp = e.hp * 1.4; // the Shade spends the fight inside your own firing line
   // the Hive's drones soak up shots, so its body gets less health
   if (kind === 5) { e.hp = e.maxhp = e.hp * .8; const n = tier >= 2 ? 8 : 6; for (let i = 0; i < n; i++) e.slots[i] = hiveDrone(e, i); }
+  if (endless) { const k = endK(); e.hp = e.maxhp = e.maxhp * k; e.speed *= k; }
   run.bossHurt = false;
   boss = e; say(e.name, B.tip, 3.6); sfx('warn'); shake(6);
 }
@@ -1001,7 +1009,7 @@ function hit(e, base, kx, ky, quiet) {
   if (e.boss && e.shield) d *= .8; // the Hive behind its drones // the Maw is soft while its mouth is open
   dmgDone[src] = (dmgDone[src] || 0) + Math.min(d, Math.max(0, e.hp));
   e.hp -= d; e.flash = .08;
-  if (!e.boss && kx !== undefined) { e.kx += kx; e.ky += ky; }
+  if (!e.boss && kx !== undefined) { const kb = endless ? Math.pow(.9, Math.floor(endT / 60)) : 1; e.kx += kx * kb; e.ky += ky * kb; } // heavier in the endless night
   if (!quiet) {
     if (texts.length < 60) texts.push({ x: e.x + rand(-8, 8), y: e.y - e.r - 2, t: Math.round(d), life: .55, max: .55, crit });
     sfx('hit');
@@ -1019,7 +1027,8 @@ function dropPickup(x, y, kind) {
   pickups.push({ x, y, kind, ph: rand(0, TAU) });
 }
 function kill(e) {
-  e.dead = true; if (e.type !== 'drone') { kills++; if (kills === 1000) award('k1000'); } sfx('kill');
+  e.dead = true; if (endless && !e.boss && e.type !== 'drone') run.endPts += endK(); // a squash is worth 1 point, like before dawn, times the endless multiplier
+  if (e.type !== 'drone') { kills++; if (kills === 1000) award('k1000'); } sfx('kill');
   burst(e.x, e.y, e.col, e.boss ? 90 : e.elite ? 22 : 7, e.boss ? 420 : 170);
   if (e.type === 'split' && !e.noSplit) for (let i = 0; i < 3; i++) spawn('mini', e.x + rand(-12, 12), e.y + rand(-12, 12));
   if (e.boss) {
@@ -1034,7 +1043,7 @@ function kill(e) {
     for (let i = 0; i < 28; i++) dropGem(e.x + rand(-70, 70), e.y + rand(-70, 70), 4 + e.tier * 3);
     dropPickup(e.x - 24, e.y, 'heart'); if (!nm) dropPickup(e.x + 24, e.y, 'magnet');
     ebullets.length = 0;
-    { const secs = T - e.born, bp = Math.round((300 + Math.max(0, 120 - secs) * 10) * (1 + Math.min(e.tier, 4) * .5)); run.bossPts += bp; // faster kills pay more
+    { const secs = T - e.born, bp = Math.round((300 + Math.max(0, 120 - secs) * 10) * (1 + Math.min(e.tier, 4) * .5)); if (endless) { run.endPts += bp * (endK() - 1); } run.bossPts += bp; // faster kills pay more
       if (e.tier === WIN_TIER && !won) winT = 1.6; say(e.name + ' is down!', '+' + num(bp) + ' points for ' + Math.round(secs) + ' seconds', 2.4); }
     if (TR.roots && P.hp < P.maxhp) { P.hp = Math.min(P.maxhp, P.hp + P.maxhp * .5); texts.push({ x: P.x, y: P.y - 30, t: 'Deep Roots', life: 1.2, max: 1.2, heal: true }); }
   } else {
@@ -1046,6 +1055,7 @@ function kill(e) {
 let dmgLog = {};
 function hurtPlayer(d, src) {
   if (P.inv > 0 || state !== 'play' || tut) return;
+  d *= endK(); // everything hits harder deeper into the endless night
   if (boss) run.bossHurt = true;
   const dealt = Math.max(2, d - P.armor); dmgLog[src || 'other'] = (dmgLog[src || 'other'] || 0) + dealt; // per-source totals, used when tuning balance
   P.hp -= dealt; P.inv = .6; shake(9);
@@ -1231,13 +1241,13 @@ function gainXP(v) {
 }
 function choices() {
   const ws = [], ps = [];
-  const owned = Object.keys(wl).length, evs = [];
+  const owned = Object.keys(wl).length, evs = [], slots = MAX_WEAPONS + Object.values(wl).filter(v => v >= 7).length;
   const evoAt = TR.overflow ? 5 : 6, nC = TR.fourth ? 4 : 3;
   for (const k in WEAPONS) {
     const l = wl[k] || 0;
-    if (!l && !daily && !tut && W_NODE[k] && !grown(W_NODE[k])) continue;
+    if (!l && !daily && !tut && W_NODE[k] && !grown(W_NODE[k]) && !run.extraW.includes(k)) continue;
     if (l >= evoAt && l < 7 && pv(EVO[k].req) > 0) evs.push({ kind: 'e', id: k });
-    else if (l < 6 && (l > 0 || owned < MAX_WEAPONS)) ws.push({ kind: 'w', id: k });
+    else if (l < 6 && (l > 0 || owned < slots)) ws.push({ kind: 'w', id: k });
   }
   for (const k in PASSIVES) if (pv(k) < PASSIVES[k].max) ps.push({ kind: 'p', id: k });
   const rnd = daily ? mkRng(1, offerN++) : Math.random;
@@ -1293,7 +1303,7 @@ function choose(i, force) {
   if (state !== 'levelup' || (!force && performance.now() < luLock)) return;
   const c = curChoices[i]; if (!c) return;
   if (c.kind === 'w') wl[c.id] = (wl[c.id] || 0) + 1;
-  else if (c.kind === 'e') { wl[c.id] = 7; award('evo1'); if (Object.values(wl).filter(v => v >= 7).length >= 3) award('evo3'); say(EVO[c.id].name + '!', WEAPONS[c.id].name + ' evolved', 2.6); whiteT = .2; sfx('win'); }
+  else if (c.kind === 'e') { wl[c.id] = 7; award('evo1'); if (Object.values(wl).filter(v => v >= 7).length >= 3) award('evo3'); { const nw = daily || tut ? null : Object.keys(W_NODE).find(k => !grown(W_NODE[k]) && !run.extraW.includes(k)); if (nw) run.extraW.push(nw); say(EVO[c.id].name + '!', WEAPONS[c.id].name + ' evolved. Room for one more weapon' + (nw ? ', and ' + WEAPONS[nw].name + ' joins the pool' : ''), 3.2); } whiteT = .2; sfx('win'); }
   else if (c.kind === 'p') { pl[c.id] = pv(c.id) + 1; recompute(); if (c.id === 'vigor') P.hp = Math.min(P.maxhp, P.hp + 25); }
   else P.hp = Math.min(P.maxhp, P.hp + 40);
   if (tut && tut.step === TUT.length - 1) tut.picked = true;
@@ -1325,7 +1335,7 @@ function fx(dt) {
   if (banner && (banner.t -= dt) <= 0) banner = null;
 }
 function update(dt) {
-  T += dt; if (!boss) RT += dt; if (killsDawn < 0 && RT >= 360) killsDawn = kills;
+  T += dt; if (!boss) RT += dt; if (endless) endT += dt; if (killsDawn < 0 && RT >= 360) killsDawn = kills;
   // input
   let ix = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0);
   let iy = (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0);
@@ -1520,7 +1530,7 @@ function update(dt) {
 }
 
 /* ---------- run history, stats, achievements ---------- */
-let run = { rescued: 0, maxFlight: flight.length, bosses: [], bossHurt: false, wind: false, amber: 0, bossPts: 0 };
+let run = { rescued: 0, maxFlight: flight.length, bosses: [], bossHurt: false, wind: false, amber: 0, bossPts: 0, baseAtWin: 0, endPts: 0, extraW: [] };
 const ACH = [
   ['first', 'First Flight', 'Finish the tutorial'],
   ['dawn', 'Dawnbringer', 'See the dawn'],
@@ -1540,12 +1550,20 @@ const ACH = [
   ['k25k', 'Lantern Keeper', 'Squash 25,000 enemies in total'],
   ['streak3', 'Regular', 'Play the daily 3 days in a row'],
   ['bugs', 'Full Roost', 'Unlock every bug'],
+  ['all', 'Every Light', 'Earn every other badge'],
 ];
+// amber for each badge, claimed on the Stats screen: 10 for most, 25 for the hard ones, 50 for all of them
+const ACH_HARD = new Set(['nm', 'fast', 'mini', 'bosses', 'evo3', 'k25k', 'flight30']);
+const achAmber = id => id === 'all' ? 50 : ACH_HARD.has(id) ? 25 : 10;
+const toClaim = () => ACH.filter(a => save.ach[a[0]] && !(save.claimed || {})[a[0]]);
+const claimTotal = () => toClaim().reduce((n, a) => n + achAmber(a[0]), 0);
 let toastT = 0;
 function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.remove('hidden'); t.style.opacity = 1; clearTimeout(toastT); toastT = setTimeout(() => { t.style.opacity = 0; }, 3400); }
 function award(id) {
   if (save.ach[id]) return; const a = ACH.find(x => x[0] === id); if (!a) return;
-  save.ach[id] = Date.now(); persist(); toast('★ ' + a[1] + ': ' + a[2]); sfx('level');
+  save.ach[id] = Date.now(); persist(); toast('★ ' + a[1] + ': ' + a[2] + '. Claim ' + achAmber(id) + ' amber in Stats'); sfx('level');
+  if (id !== 'all' && ACH.every(x => x[0] === 'all' || save.ach[x[0]])) award('all');
+  if (typeof buildStart === 'function' && state === 'menu' && where === 'menu') buildStart();
 }
 function recordRun(win) {
   const st = save.stats;
@@ -1561,8 +1579,10 @@ function showStats() {
   const st = save.stats, tiles = [[st.runs, 'runs'], [st.wins, 'dawns seen'], [(st.runs ? Math.round(st.wins / st.runs * 100) : 0) + '%', 'win rate'], [num(best.score || 0), 'best score'], [fmt(best.time), 'best time'],
     [num(st.kills), 'squashed'], [num(st.rings), 'flares landed'], [num(st.rescued), 'fireflies rescued'], [st.bestFlight, 'biggest flight'], [save.daily.streak || 0, 'daily streak']];
   $('statTiles').innerHTML = tiles.map(t => '<div><b>' + t[0] + '</b>' + t[1] + '</div>').join('');
-  $('achCount').textContent = ACH.filter(a => save.ach[a[0]]).length + ' of ' + ACH.length;
-  $('achList').innerHTML = ACH.map(a => '<div class="ach' + (save.ach[a[0]] ? ' got' : '') + '"><b>' + (save.ach[a[0]] ? '★ ' : '') + a[1] + '</b><span>' + a[2] + '</span></div>').join('');
+  const owed = claimTotal(), cl = save.claimed || {};
+  $('achCount').innerHTML = ACH.filter(a => save.ach[a[0]]).length + ' of ' + ACH.length + (owed ? ' <button class="btn small claimBtn" id="claimBtn">Claim ' + owed + ' amber</button>' : '');
+  $('achList').innerHTML = ACH.map(a => { const got = save.ach[a[0]], tag = got && !cl[a[0]] ? '<i class="ach-a">+' + achAmber(a[0]) + ' amber</i>' : got ? '<i class="ach-a done">claimed</i>' : '<i class="ach-a">' + achAmber(a[0]) + ' amber</i>'; return '<div class="ach' + (got ? ' got' : '') + '"><b>' + (got ? '★ ' : '') + a[1] + '</b><span>' + a[2] + '</span>' + tag + '</div>'; }).join('');
+  if (owed) $('claimBtn').onclick = () => { save.claimed = Object.assign(save.claimed || {}); for (const a of toClaim()) save.claimed[a[0]] = Date.now(); save.amber += owed; persist(); sfx('level'); toast('+' + owed + ' amber from your badges'); showStats(); };
   $('runList').innerHTML = save.runs.length ? save.runs.slice(0, 20).map(r => {
     const dt = new Date(r.d);
     return '<div class="run"><span>' + (dt.getMonth() + 1) + '/' + dt.getDate() + ' · <b>' + r.bug + '</b> · ' + r.mode + '</span><span class="' + (r.win ? 'w' : '') + '">' + fmt(r.T) + (r.win ? ' · saw the dawn' : '') + '</span><span>' +
@@ -1640,7 +1660,9 @@ function dmgHTML() {
   }).join('');
 }
 // amber from a run: time, squashes, bosses and the dawn. It's paid as the run goes, so an endless night after a win only adds the difference.
-const amberEarned = () => Math.round((RT / 6 + kills / 50 + bossKills * 20 + (won ? 50 : 0)) * (nm ? 1.5 : 1) * (TR.amber ? 1.15 : 1));
+const amberBase = () => (RT / 6 + kills / 50 + bossKills * 20 + (won ? 50 : 0)) * (nm ? 1.5 : 1) * (TR.amber ? 1.15 : 1);
+// a tenth of the base, and whatever comes after pressing Keep going counts for a tenth of that again
+const amberEarned = () => { const b = amberBase(), eff = endless ? run.baseAtWin + (b - run.baseAtWin) * .1 : b; return Math.round(eff * .1); };
 function payAmber() {
   if (tut || !P || state === 'menu') return 0;
   const a = amberEarned() - run.amber; if (a > 0) { save.amber += a; run.amber += a; persist(); }
@@ -1662,7 +1684,7 @@ function finish(win) {
     : RT < 360 ? 'So close. Dawn comes once the third boss falls, right after the 6 minute mark.' : 'That was a serious run.';
   $('stTime').textContent = fmt(RT); $('stKills').textContent = kills; $('stLevel').textContent = P.level; $('stFlight').textContent = flight.length;
   { const sp = scoreParts(win); $('stScore').textContent = num(sp.total);
-    $('scoreLine').textContent = 'time ' + num(sp.t) + ' · squashed ' + num(sp.k) + ' · bosses ' + num(sp.b) + ' · fireflies ' + num(sp.f) + (sp.w ? ' · dawn ' + num(sp.w) : '') + (nm ? ' · ×1.5 Nightmare' : ''); }
+    $('scoreLine').textContent = 'time ' + num(sp.t) + ' · squashed ' + num(sp.k) + ' · bosses ' + num(sp.b) + ' · fireflies ' + num(sp.f) + (sp.w ? ' · dawn ' + num(sp.w) : '') + (sp.e ? ' · endless ' + num(sp.e) : '') + (nm ? ' · ×1.5 Nightmare' : ''); }
   $('bestOver').textContent = newBestScore ? 'New best score!' : bestLine();
   $('endlessBtn').classList.toggle('hidden', !win); $('shareBtn').classList.toggle('hidden', !daily);
   if (daily) {
@@ -1708,11 +1730,12 @@ for (const id of ['luBuild', 'pauseBuild']) {
 }
 $('tutSkip').onclick = () => { save.tut = true; persist(); start(false); };
 $('pauseBtn').onclick = () => togglePause(); $('muteBtn').onclick = toggleMute;
-$('endlessBtn').onclick = () => { daily = false; /* the daily score was locked in at the win */ endless = true; state = 'play'; $('over').classList.add('hidden'); $('topbtns').classList.remove('hidden'); $('dashBtn').classList.toggle('hidden', !touchUI); say('Endless night', 'How long can you last?', 3); last = performance.now(); };
+$('endlessBtn').onclick = () => { daily = false; /* the daily score was locked in at the win */ run.baseAtWin = amberBase(); endless = true; endT = 0; state = 'play'; $('over').classList.add('hidden'); $('topbtns').classList.remove('hidden'); $('dashBtn').classList.toggle('hidden', !touchUI); say('Endless night', 'How long can you last?', 3); last = performance.now(); };
 $('dashBtn').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); dash(); });
 
 /* ---------- input ---------- */
 addEventListener('keydown', e => {
+  if (!$('stats').classList.contains('hidden') && e.code === 'Escape') { $('statsBack').click(); return; }
   if (!$('settings').classList.contains('hidden')) { if (e.code === 'Escape') closeSettings(); return; }
   if (state === 'menu') {
     const typing = /^(INPUT|TEXTAREA|BUTTON)$/.test((document.activeElement || {}).tagName || '');
@@ -3338,7 +3361,7 @@ function render() {
   ctx.textAlign = 'right';
   ctx.font = '23px ' + F; txt(num(calcScore(false)) + ' pts', VW - 12, 76, '#f2c14e');
   ctx.font = '16px ' + F; txt(num(kills) + ' squashed · ' + flight.length + ' ✦', VW - 12, 96, '#8d9491', 1);
-  { const tag = daily ? 'DAILY #' + (dday - DAY0 + 1) : nm ? 'NIGHTMARE' : ''; if (tag) { ctx.font = '15px ' + F; txt(tag, VW - 12, 113, daily ? '#7fd6c2' : '#e8604c', 1); } }
+  { const tag = endless ? 'ENDLESS ×' + endK().toFixed(2) : daily ? 'DAILY #' + (dday - DAY0 + 1) : nm ? 'NIGHTMARE' : ''; if (tag) { ctx.font = '15px ' + F; txt(tag, VW - 12, 113, daily ? '#7fd6c2' : '#e8604c', 1); } }
   // the clock
   const tcx = narrow ? (Math.max(96, nW * (ws + 3)) + 24 + VW - 96) / 2 : VW / 2;
   ctx.textAlign = 'center'; ctx.font = (narrow ? 33 : 40) + 'px ' + F; txt(fmt(RT), tcx, 40, boss ? '#8d9491' : '#e9e4d6', 3);
@@ -3394,10 +3417,11 @@ function buildStart() {
   const lock = (id, on, why) => { const b = $(id); b.disabled = !on; b.title = on ? '' : why; };
   lock('dailyBtn', !first, 'Finish your first run to open this'); lock('nmBtn', save.won, first ? 'Finish your first run to open this' : 'See the dawn once to open Nightmare');
   lock('havenBtn', !first, 'Finish your first run to open the Haven'); lock('howBtn', !first, 'Finish your first run first'); lock('statsBtn', !first, 'Finish your first run first');
-  $('modeNote').textContent = first ? 'Your first flight starts with a short lesson. You can skip it.' : save.won ? 'Nightmare is tougher, and the Root Tree only keeps what it unlocked.' : '';
+  $('modeNote').textContent = first ? 'Your first flight starts with a short lesson. You can skip it.' : save.won ? "Nightmare mode is harder, and your Root Tree's boosts can't help you." : '';
   $('havenAmber').innerHTML = first ? iconImg(ART.ICO.lock, 2) : amberTag(save.amber);
   $('havenBtn').classList.toggle('calling', !first && !save.met);
   $('havenNote').textContent = first ? 'Opens after your first run' : !save.met ? "Someone's waiting for you there" : 'Grow the Root Tree, pick your bug and catch up with everyone';
+  { const owed = claimTotal(), sb = $('statsBtn'); sb.classList.toggle('notify', owed > 0 && !first); sb.dataset.n = owed ? '+' + owed : ''; sb.setAttribute('aria-label', owed ? 'Stats, ' + owed + ' amber to claim' : 'Stats'); }
   $('bestStart').textContent = bestLine();
   $('whoLine').textContent = save.name ? 'Flying as ' + save.name : '';
 }
@@ -3451,7 +3475,7 @@ const hubUI = {
   prompt(p) {
     const h = $('hubHint');
     if (!p || hubOpen || dlg) { h.classList.add('hidden'); return; }
-    const label = stationOpen(p) ? p.label : p.label + ' (later)';
+    const label = !stationOpen(p) ? p.label + ' (later)' : p.station === 'records' && claimTotal() ? p.label + ': ' + claimTotal() + ' amber to claim' : p.label;
     if (h.dataset.k !== label) { h.dataset.k = label; h.innerHTML = '<button class="hint-btn">' + (isTouch() ? '' : '<span class="keycap" aria-hidden="true">E</span>') + label + '</button>'; h.firstChild.onclick = () => hubUI.open(p); }
     h.classList.remove('hidden');
   },
@@ -3474,7 +3498,7 @@ function openGate() {
   const ov = hubPanel('gate', 'The Lantern Gate', '<p class="hp-sub">Pick how you want to fly out tonight. You\'ll go as the ' + CHARS[save.char].name + '.</p><div class="modes-grid">' +
     card('night', 'gold', 'Night', 'The usual run. Last until dawn.', true) +
     card('daily', 'mint', 'Daily #' + (td - DAY0 + 1), 'Everyone gets the same run as the ' + CHARS[did].name + '.' + (mine ? ' Your best is ' + num(sd.best) + '.' : ''), true) +
-    card('nightmare', 'red', 'Nightmare' + (save.nmWon ? ' ★' : ''), "Tougher, and the tree's boosts stay home. Unlocks still count.", save.won, 'See the dawn once to open this.') +
+    card('nightmare', 'red', 'Nightmare' + (save.nmWon ? ' ★' : ''), "Harder, and your Root Tree's boosts can't help you.", save.won, 'See the dawn once to open this.') +
     card('tutorial', 'stone', 'How to play', 'A short lesson on the basics.', true) + '</div>');
   ov.querySelectorAll('.mode').forEach(b => b.onclick = () => playMode(b.dataset.mode));
   ov.querySelector('.mode').focus();
@@ -3488,9 +3512,9 @@ function openRoost() {
   (ov.querySelector('.char.sel') || ov.querySelector('.char')).focus();
 }
 function openRecords() {
-  const st = save.stats, got = ACH.filter(a => save.ach[a[0]]).length;
+  const st = save.stats, got = ACH.filter(a => save.ach[a[0]]).length, owed = claimTotal();
   const ov = hubPanel('records', 'Records', (save.name ? '<p class="hp-sub">' + esc(save.name) + '\'s nights so far</p>' : '') + '<div class="stats rec"><div><b>' + num(best.score || 0) + '</b>best</div><div><b>' + fmt(best.time) + '</b>longest</div><div><b>' + num(st.runs) + '</b>runs</div><div><b>' + got + '/' + ACH.length + '</b>badges</div></div>' +
-    '<div class="row"><button class="btn ghost small" data-go>All records</button></div>');
+    (owed ? '<p class="hp-sub" style="color:var(--gold)">You have ' + owed + ' amber from badges waiting to be claimed.</p>' : '') + '<div class="row"><button class="btn ' + (owed ? '' : 'ghost ') + 'small" data-go>' + (owed ? 'Claim it in All records' : 'All records') + '</button></div>');
   ov.querySelector('[data-go]').onclick = () => { hubClose(); showStats(); };
 }
 function openTree() {
@@ -3810,7 +3834,7 @@ requestAnimationFrame(frame);
 
 // small hook for automated playtests
 window.__glow = { sprite, SPRITES, get dmgDone() { return dmgDone; }, get state() { return state; }, get T() { return T; }, get P() { return P; }, get enemies() { return enemies; }, get ebullets() { return ebullets; },
-  get kills() { return kills; }, get wl() { return wl; }, get pl() { return pl; }, get gems() { return gems; }, get pickups() { return pickups; }, get flight() { return flight; }, get strays() { return strays; }, get shocks() { return shocks; }, get dmgLog() { return dmgLog; }, get webs() { return webs; }, get bossOrder() { return bossOrder; }, setBosses: a => { bossOrder = a; }, award, showStats, get rings() { return ringsMade; }, scoreParts, get boss() { return boss; }, keys, update, choose, start, dash, render, save, reroll, toMenu, music, shareText, get hollow() { return hollow; }, get embers() { return embers; }, finish, ART, hub: { get sitting() { return hollow.sitting; }, openGate, openTree, openRoost, openRecords, openSettings, hubRefresh, payAmber, toHaven, toMenu, glimIntro, talkTo, endTalk, get dlg() { return dlg; }, get where() { return where; }, dlgAdvance, sendFeedback, get RT() { return RT; }, get TR() { return TR; } }, get lastDaily() { return lastDaily; } };
+  get kills() { return kills; }, get wl() { return wl; }, get pl() { return pl; }, get gems() { return gems; }, get pickups() { return pickups; }, get flight() { return flight; }, get strays() { return strays; }, get shocks() { return shocks; }, get dmgLog() { return dmgLog; }, get webs() { return webs; }, get bossOrder() { return bossOrder; }, setBosses: a => { bossOrder = a; }, award, showStats, get rings() { return ringsMade; }, scoreParts, get boss() { return boss; }, keys, update, choose, start, dash, render, save, reroll, toMenu, music, shareText, get hollow() { return hollow; }, get embers() { return embers; }, finish, ART, hub: { get endK() { return endK(); }, get endT() { return endT; }, get sitting() { return hollow.sitting; }, openGate, openTree, openRoost, openRecords, openSettings, hubRefresh, payAmber, toHaven, toMenu, glimIntro, talkTo, endTalk, get dlg() { return dlg; }, get where() { return where; }, dlgAdvance, sendFeedback, get RT() { return RT; }, get TR() { return TR; } }, get lastDaily() { return lastDaily; } };
 })();
 </script>
 </body>
