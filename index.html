@@ -378,7 +378,7 @@ function resize() {
   zoom = clamp(Math.min(VW, VH) / 680, 0.66, 1.2);
   if ('letterSpacing' in ctx) ctx.letterSpacing = '0.4px'; // also stops the pixel font joining fl and fi
   vignette = ctx.createRadialGradient(VW / 2, VH / 2, Math.min(VW, VH) * 0.25, VW / 2, VH / 2, Math.hypot(VW, VH) * 0.62);
-  vignette.addColorStop(0, 'rgba(4,6,7,0)'); vignette.addColorStop(1, 'rgba(3,5,6,0.72)');
+  vignette.addColorStop(0, 'rgba(4,10,7,0)'); vignette.addColorStop(1, 'rgba(4,14,12,0.62)');
 }
 addEventListener('resize', resize); resize();
 const viewR = () => Math.hypot(VW, VH) / 2 / zoom;
@@ -1023,7 +1023,7 @@ function hit(e, base, kx, ky, quiet) {
   if (e.type === 'shield' && kx !== undefined && (kx || ky)) { const kl = Math.hypot(kx, ky); if ((kx * Math.cos(e.hd) + ky * Math.sin(e.hd)) / kl < -.35) { d *= .3; kx *= .15; ky *= .15; if (!quiet && Math.random() < .3) burst(e.x + Math.cos(e.hd) * e.r, e.y + Math.sin(e.hd) * e.r, '#e4eef2', 3, 120); } }
   if (e.boss && e.shield) d *= .8; // the Hive behind its drones // the Maw is soft while its mouth is open
   dmgDone[src] = (dmgDone[src] || 0) + Math.min(d, Math.max(0, e.hp));
-  e.hp -= d; e.flash = .08;
+  e.hp -= d; e.flash = .08; if (!quiet && P) P.joy = .4; // your bug smiles when an attack lands
   if (!e.boss && kx !== undefined) { const kb = endless ? Math.pow(.9, Math.floor(endT / 60)) : 1; e.kx += kx * kb; e.ky += ky * kb; } // heavier in the endless night
   if (!quiet) {
     if (texts.length < 60) texts.push({ x: e.x + rand(-8, 8), y: e.y - e.r - 2, t: Math.round(d), life: .55, max: .55, crit });
@@ -1373,7 +1373,7 @@ function update(dt) {
   mvx = mag ? ix : 0; mvy = mag ? iy : 0;
   if (mag) P.face = Math.atan2(iy, ix);
   if (P.dashN < P.dashMax && (P.dashCd -= dt) <= 0) { P.dashN++; P.dashCd = P.dashN < P.dashMax ? P.dashCdMax : 0; }
-  P.inv -= dt; frenzyT -= dt;
+  P.inv -= dt; P.joy = (P.joy || 0) - dt; frenzyT -= dt;
   const ox = P.x, oy = P.y; let ws = 1; for (const w of webs) if (w.land <= 0 && (P.x - w.x) ** 2 + (P.y - w.y) ** 2 < w.r * w.r) { ws = .45; break; }
   if (P.dashT > 0) {
     P.dashT -= dt; P.x += P.dvx * 840 * dt; P.y += P.dvy * 840 * dt; if (P.dashT <= 0) flare();
@@ -1984,6 +1984,9 @@ const bugRows = {
     ['................', '...........a..a.', '............aa..', '.........BBHH...', 'sAAdAAdBBBHHHH..', '.AAdAAWWWWWHeH..', '..AdAWWWWWWWHH..', '...AAWWWWWWWH...', '.....WWWWW.l....', '......l.l.l.....']],
 };
 const BUGS = {}; for (const k in bugRows) BUGS[k] = bugRows[k].map(f => bake(bugPal[k], f));
+// the face when your attack lands: the eye squeezes into a happy ^ and a pink blush shows under it
+const joyRows = f => f.map((r, y) => { const a = r.split(''); if (y === 4) a[12] = 'e'; if (y === 5) { a[11] = 'e'; a[12] = 'H'; a[13] = 'e'; } if (y === 6) a[11] = 'p'; return a.join(''); });
+const BUGS_JOY = {}; for (const k in bugRows) BUGS_JOY[k] = bugRows[k].map(f => bake({ ...bugPal[k], p: '#ff8ab4' }, joyRows(f)));
 const BUG_NAMES = { firefly: 'Firefly', moth: 'Moth', beetle: 'Beetle', lantern: 'Lantern', wasp: 'Wasp' };
 
 // Old Glim: an old moth peddler with a jar-pack and a lantern on a staff
@@ -2154,7 +2157,7 @@ function grassTile(seed, flowers, pal = HUB.grass) {
     box(0, 0, 16, 16, pal[2]);
     for (let i = 0; i < 26; i++) dot((rnd() * 16) | 0, (rnd() * 16) | 0, rnd() < .5 ? pal[1] : pal[3]); // speckle
     for (let i = 0; i < 4; i++) tuft(dot, (rnd() * 16) | 0, (rnd() * 16) | 0, pal[4], pal[1]);
-    if (flowers) for (let i = 0; i < 2; i++) { const x = (rnd() * 14 + 1) | 0, y = (rnd() * 14 + 1) | 0, col = ['#ff9ac8', '#a8c8ff', '#ffe066', '#c8b0ff'][(rnd() * 4) | 0]; dot(x, y, col); dot(wrap(x + 1), y, col); dot(x, wrap(y + 1), pal[1]); }
+    if (flowers) for (let i = 0; i < 2; i++) { const x = (rnd() * 14 + 1) | 0, y = (rnd() * 14 + 1) | 0, cols = Array.isArray(flowers) ? flowers : ['#ff9ac8', '#a8c8ff', '#ffe066', '#c8b0ff'], col = cols[(rnd() * cols.length) | 0]; dot(x, y, col); dot(wrap(x + 1), y, col); dot(x, wrap(y + 1), pal[1]); }
   }, seed);
 }
 function dirtTile(seed) { return tile((c, dot, box) => { box(0, 0, 16, 16, HUB.dirt[2]); for (let i = 0; i < 30; i++) dot((rnd() * 16) | 0, (rnd() * 16) | 0, rnd() < .6 ? HUB.dirt[1] : HUB.dirt[3]); for (let i = 0; i < 3; i++) { const x = (rnd() * 15) | 0, y = (rnd() * 15) | 0; dot(x, y, HUB.dirt[4]); dot(x + 1, y, HUB.dirt[3]); dot(x, y + 1, HUB.dirt[0]); dot(x + 1, y + 1, HUB.dirt[1]); } }, seed); }
@@ -2191,12 +2194,13 @@ const HUB_TILES = {
 };
 
 // the run's meadow: the same ruin as now, but as 16x16 tiles. Darker and colder than the hub, so the creatures pop.
-const RUN = { grass: ['#0a1112', '#0f1918', '#152220', '#1d2e29', '#2a4036'] };
+const RUN_FLOWERS = ['#f4a8cc', '#a8c8f4', '#c4b4f0', '#a8e8cc']; // pastel only, never gold, so they can't be mistaken for XP
+const RUN = { grass: ['#0b1a12', '#10251a', '#173322', '#20452e', '#2f5e3d'] }; // a soft forest green: easy on the eyes, still dark enough that creatures pop
 function runSlab(seed, cracked) { return tile((c, dot, box) => { box(0, 0, 16, 16, RUN.grass[2]); box(1, 1, 14, 14, '#1c2426'); box(1, 1, 14, 1, '#28322f'); box(1, 1, 1, 14, '#28322f'); box(1, 14, 14, 1, '#111819'); box(14, 1, 1, 14, '#111819'); if (cracked) { let x = 5, y = 1; while (y < 15) { dot(x, y, '#0a0f10'); y++; if (rnd() < .4) x += rnd() < .5 ? -1 : 1; } } for (let i = 0; i < 10; i++) dot(1 + ((rnd() * 14) | 0), 1 + ((rnd() * 14) | 0), rnd() < .5 ? '#2e4a34' : '#161e20'); }, seed); }
 function puddle(f) { return tile((c, dot, box) => { box(0, 0, 16, 16, RUN.grass[2]); for (let y = 3; y < 13; y++) for (let x = 2; x < 14; x++) if (((x - 7.5) / 6) ** 2 + ((y - 7.5) / 4.6) ** 2 < 1) dot(x, y, y < 5 ? '#0b1a24' : '#0e2230'); for (let x = 4; x < 12; x++) dot(x, 4, '#05101a'); dot(6 + f, 7, '#3a6a88'); dot(7 + f, 7, '#2a5070'); dot(9 - f, 10, '#2a5070'); }, 81); }
 function rebarTile(seed) { return tile((c, dot, box) => { c.drawImage(grassTile(seed, false, RUN.grass), 0, 0); let x = 2, y = 13; for (let i = 0; i < 12; i++) { dot(x, y, '#4a2c1e'); dot(x, y - 1, '#8a5232'); x++; if (i % 3 === 0) y--; } }, seed); }
 function sporeTile(seed) { return tile((c, dot) => { c.drawImage(grassTile(seed, false, RUN.grass), 0, 0); for (const [x, y, col] of [[4, 5, '#7fb9b0'], [10, 11, '#a99cc4'], [12, 3, '#c2b48a']]) { dot(x, y, col); dot(x + 1, y + 1, col); dot(x - 1, y + 2, col); } }, seed); }
-const RUN_TILES = { grass: [grassTile(91, false, RUN.grass), grassTile(92, false, RUN.grass), grassTile(93, false, RUN.grass), grassTile(94, false, RUN.grass)], slab: [runSlab(101), runSlab(102, true)], puddle: [puddle(0), puddle(1)], rebar: [rebarTile(111)], spores: [sporeTile(121)] };
+const RUN_TILES = { grass: [grassTile(91, false, RUN.grass), grassTile(92, false, RUN.grass), grassTile(93, false, RUN.grass), grassTile(94, RUN_FLOWERS, RUN.grass)], slab: [runSlab(101), runSlab(102, true)], puddle: [puddle(0), puddle(1)], rebar: [rebarTile(111)], spores: [sporeTile(121)] };
 // run props, top-down-ish: a broken pillar stump, a ring of standing stones, a dead lamp post, a mushroom cluster, a root arch
 const STUMP = bake({ S: P.stone, d: '#16181e', m: '#3a6a3a' }, (() => { const g = pg(18, 14); ell(g, 9, 9, 8.5, 5, 'S'); ell(g, 9, 6, 8.5, 5, 'S'); ell(g, 9, 6, 6, 3.4, 'd'); for (let x = 3; x < 15; x += 3) put(g, x, 4 - (x % 2), 'S'); put(g, 4, 9, 'm'); put(g, 13, 10, 'm'); return g; })());
 const STANDING = bake({ S: P.mossStone, m: '#4a7a46' }, (() => { const g = pg(10, 18); polyFill(g, [[2, 17], [1, 5], [4, 0], [8, 3], [9, 17]], 'S'); put(g, 3, 6, 'm'); put(g, 4, 7, 'm'); return g; })());
@@ -2922,7 +2926,7 @@ function hollowOverview() {
 // the Haven's residents, for the dialogue box portraits
 const NPC_ART = { glim: GLIM, shellby: SHELLBY, wick: WICK, pell: PELL };
 
-return { BUGS, FIREFLY, WEAPON_ICONS, EVOLVED_ICONS, PASSIVE_ICONS, PICKUPS, SPARKS, ICO, PLAYER_SHOTS, ENEMY_SHOTS, RUN_TILES, STUMP, STANDING, DEAD_LAMP, flipX, px, halo, pg, ell, bake, kitCSS, AMBER, AMBER_SMALL, AMBER_PILE, BR, TREE, NODE, badge, treeArt, treeAt, TREE_W, TREE_H, mountHaven, NPC_ART, SILHOUETTE, BUG_NAMES };
+return { BUGS, BUGS_JOY, FIREFLY, WEAPON_ICONS, EVOLVED_ICONS, PASSIVE_ICONS, PICKUPS, SPARKS, ICO, PLAYER_SHOTS, ENEMY_SHOTS, RUN_TILES, STUMP, STANDING, DEAD_LAMP, flipX, px, halo, pg, ell, bake, kitCSS, AMBER, AMBER_SMALL, AMBER_PILE, BR, TREE, NODE, badge, treeArt, treeAt, TREE_W, TREE_H, mountHaven, NPC_ART, SILHOUETTE, BUG_NAMES };
 })();
 /* ART:END */
 const shadeCache = {};
@@ -2956,8 +2960,8 @@ const iconURI = cv => { let u = ICON_URI.get(cv); if (!u) { u = cv.toDataURL(); 
 const iconImg = (cv, s = 2) => cv ? '<img class="pxi" alt="" width="' + cv.width * s + '" height="' + cv.height * s + '" src="' + iconURI(cv) + '">' : '';
 const weaponIcon = k => wl && wl[k] >= 7 ? ART.EVOLVED_ICONS[k] : ART.WEAPON_ICONS[k];
 const BUG_OF = { glow: 'firefly', moth: 'moth', beetle: 'beetle', spark: 'lantern', wasp: 'wasp' };
-function drawBug(c, k, wing, pulse, noGlow, flip) {
-  const id = Object.keys(CHARS).find(key => CHARS[key] === k) || 'glow', fr = ART.BUGS[BUG_OF[id]][Math.sin(wing) > 0 ? 0 : 1], sc = PX;
+function drawBug(c, k, wing, pulse, noGlow, flip, joy) {
+  const id = Object.keys(CHARS).find(key => CHARS[key] === k) || 'glow', fr = ART[joy ? 'BUGS_JOY' : 'BUGS'][BUG_OF[id]][Math.sin(wing) > 0 ? 0 : 1], sc = PX;
   if (!noGlow) { c.globalCompositeOperation = 'lighter'; c.drawImage(glow(k.col), -32 * pulse, -32 * pulse, 64 * pulse, 64 * pulse); c.globalCompositeOperation = 'source-over'; }
   c.save(); c.imageSmoothingEnabled = false; if (flip) c.scale(-1, 1); c.drawImage(fr, -fr.width * sc / 2, -fr.height * sc / 2 - 2, fr.width * sc, fr.height * sc); c.restore();
 }
@@ -3006,9 +3010,10 @@ function drawForeground() {
   }
 }
 // everything between the world and the HUD: plants, a cool haze from above, rain
+const MOTES = ['#d8ff8a', '#9ff0c8', '#ffc8e8', '#c8b8ff', '#a8e0ff']; // soft greens, pink, lavender and sky drifting through the meadow
 function atmos() {
   drawForeground();
-  const fg = ctx.createLinearGradient(0, 0, 0, VH); fg.addColorStop(0, 'rgba(70,96,100,.08)'); fg.addColorStop(.55, 'rgba(40,55,60,0)'); fg.addColorStop(1, 'rgba(30,18,12,.06)');
+  const fg = ctx.createLinearGradient(0, 0, 0, VH); fg.addColorStop(0, 'rgba(150,130,220,.09)'); fg.addColorStop(.5, 'rgba(90,200,150,.03)'); fg.addColorStop(1, 'rgba(240,140,180,.07)');
   ctx.fillStyle = fg; ctx.fillRect(0, 0, VW, VH);
 }
 function poly(x, y, r, n, rot) {
@@ -3323,7 +3328,7 @@ function drawBoss(e, left) {
 }
 function render() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  ctx.fillStyle = '#0a0c0d'; ctx.fillRect(0, 0, VW, VH);
+  ctx.fillStyle = '#0a1610'; ctx.fillRect(0, 0, VW, VH);
   const sx = shakeT ? rand(-1, 1) * shakeT : 0, sy = shakeT ? rand(-1, 1) * shakeT : 0;
   const ox = VW / 2 - cam.x * zoom + sx, oy = VH / 2 - cam.y * zoom + sy;
   ctx.setTransform(DPR * zoom, 0, 0, DPR * zoom, DPR * ox, DPR * oy);
@@ -3356,7 +3361,7 @@ function render() {
   for (let i = 0; i < 16; i++) {
     const sx = (((i * 197.3 + T * (6 + i % 5) - cam.x * 1.25) % 1000) + 1000) % 1000 / 1000, sy = (((i * 331.7 + Math.sin(T * .4 + i) * 30 - cam.y * 1.25) % 800) + 800) % 800 / 800;
     const fl2 = .3 + .35 * Math.sin(T * 2.2 + i * 1.7);
-    if (fl2 > .08) { ctx.globalAlpha = fl2; ctx.drawImage(glow('#d8ff8a'), L + sx * (R - L) - 9, U + sy * (D - U) - 9, 18, 18); }
+    if (fl2 > .08) { ctx.globalAlpha = fl2; ctx.drawImage(glow(MOTES[i % MOTES.length]), L + sx * (R - L) - 9, U + sy * (D - U) - 9, 18, 18); }
   }
   ctx.globalAlpha = 1;
   // glows
@@ -3464,7 +3469,7 @@ function render() {
   if (alive) {
     const blink = P.inv > 0 && P.dashT <= 0 && Math.floor(T * 24) % 2;
     ctx.save(); ctx.translate(P.x, P.y); ctx.globalAlpha = blink ? .35 : 1;
-    drawBug(ctx, ch, P.wing, 1 + Math.sin(T * 6) * .08, false, Math.cos(P.face) < 0);
+    drawBug(ctx, ch, P.wing, 1 + Math.sin(T * 6) * .08, false, Math.cos(P.face) < 0, P.joy > 0 && P.inv <= 0);
     ctx.restore(); ctx.globalAlpha = 1;
     // dash ready ring + hp
     const dk = P.dashN > 0 ? 1 : clamp(1 - P.dashCd / P.dashCdMax, 0, 1);

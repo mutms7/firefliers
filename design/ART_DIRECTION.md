@@ -9,7 +9,7 @@ A firefly's night: pixel art with Vampire Survivors' readability, Rain World's m
 ## Pillars
 
 1. **Silhouette first.** Every creature, station and icon must read as a solid black shape. If it doesn't, fix the shape before adding detail.
-2. **Warm light, cold night.** The world is muted teal-grey and dark. Light is warm amber and gold, or a station's own colour. Bright, saturated colour is saved for creatures, pickups and light.
+2. **Warm light, calm green night.** The world is a dark, soft forest green (changed 2026-11-28 from teal-grey after player feedback that green is easier on the eyes and the meadow should feel like a dream paradise). Light is warm amber and gold, or a station's own colour. Bright, saturated colour is saved for creatures, pickups and light.
 3. **Simple hub, deep tree.** A few stations, close together, each with its own light. Depth lives in the Root Tree, not in more rooms or menus.
 4. **Few words.** Descriptions are a few words ("Dashes leave fire"). Players learn by trying things.
 
@@ -27,7 +27,8 @@ A firefly's night: pixel art with Vampire Survivors' readability, Rain World's m
 
 | Use | Colours |
 |---|---|
-| Night ground | `#0a0c0d` to `#1a2c28` (hub grass is a little greener than the run's) |
+| Night ground | Run meadow `#0b1a12` to `#2f5e3d` with sparse pastel flowers (pink, sky, lavender, mint, never gold so they can't pass for XP). Hub grass `#0d1715` to `#335440` |
+| Dream wash | Lavender at the top of the screen, mint in the middle, rose at the bottom, all very faint. Drifting motes cycle soft green, mint, pink, lavender and sky |
 | UI ink, dim, mute | `#e9e4d6`, `#8d9491`, `#5d6563` |
 | UI lines | `#283030`, `#465150`, highlight `#d8d2c2` |
 | Gold (levels, primary buttons, owned) | `#f2c14e` |
@@ -59,7 +60,7 @@ Station lights: the Lantern Gate is warm `255,200,110`, the Elder Root is amber 
 
 - 16×16 tiles, with 3 or 4 tones per material. Clusters wrap across tile edges so the grid doesn't show, and each ground type has at least two variants.
 - Shadows go on one or two faces only and are never longer than a tile.
-- The run's meadow is colder and darker than the hub, so creatures and your light pop.
+- The run's meadow is a calm, dark green, dark enough that creatures and your light still pop.
 
 ## The Haven (hub)
 
@@ -77,6 +78,7 @@ Station lights: the Lantern Gate is warm `255,200,110`, the Elder Root is amber 
 
 ## Characters
 
+- **Happy face:** when one of your attacks lands, your bug's eye squeezes into a `^` with a pink blush pixel under it for 0.4 seconds (`BUGS_JOY`). It doesn't show while you're blinking from a hit.
 - Three bugs: the Firefly (steady), the Moth (fast, fragile) and the Beetle (slow, tough). The Moth and the Beetle are grown on the tree.
 - **Residents** (added 2026-11-25, each with their own pixel sprite and lines):
   - **Glim:** an old moth who built the Haven. Proud of it, a bit vain about it, warm but dry, and always "renovating". He gives the first-time tour and takes feedback for the maker.
